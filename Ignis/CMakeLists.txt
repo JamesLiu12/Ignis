@@ -1,12 +1,11 @@
-﻿# CMakeList.txt : CMake project for Ignis, include source and define
-# project specific logic here.
-#
+file(GLOB_RECURSE IGNIS_SOURCES CONFIGURE_DEPENDS
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+)
 
-# Add source to this project's executable.
-add_executable (Ignis "Ignis.cpp" "Ignis.h")
+add_library(Ignis STATIC ${IGNIS_SOURCES})
+add_library(Ignis::Ignis ALIAS Ignis)
 
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET Ignis PROPERTY CXX_STANDARD 20)
-endif()
-
-# TODO: Add tests and install targets if needed.
+target_include_directories(Ignis PUBLIC
+	${CMAKE_CURRENT_SOURCE_DIR}/src
+)
