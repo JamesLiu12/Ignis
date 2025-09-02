@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 namespace Ignis {
 
 	class Application
@@ -10,4 +12,6 @@ namespace Ignis {
 
 		void Run();
 	};
+
+	std::unique_ptr<Application> CreateApplication();
 }
