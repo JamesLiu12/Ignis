@@ -2,25 +2,21 @@
     "version": 3,
     "configurePresets": [
         {
-            "name": "windows-base",
+            "name": "base",
             "hidden": true,
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "installDir": "${sourceDir}/out/install/${presetName}",
-            "cacheVariables": {
-                "CMAKE_C_COMPILER": "cl.exe",
-                "CMAKE_CXX_COMPILER": "cl.exe"
-            },
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
+            "installDir": "${sourceDir}/out/install/${presetName}"
         },
         {
             "name": "x64-debug",
             "displayName": "x64 Debug",
-            "inherits": "windows-base",
+            "inherits": "base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
             "architecture": {
                 "value": "x64",
                 "strategy": "external"
@@ -38,24 +34,27 @@
             }
         },
         {
-            "name": "x86-debug",
-            "displayName": "x86 Debug",
-            "inherits": "windows-base",
-            "architecture": {
-                "value": "x86",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
-            }
+          "name": "arm64-debug",
+          "displayName": "ARM64 Debug",
+          "inherits": "base",
+          "condition": {
+              "type": "equals",
+              "lhs": "${hostSystemName}",
+              "rhs": "Darwin"
+          },
+          "cacheVariables": {
+              "CMAKE_BUILD_TYPE": "Debug",
+              "CMAKE_OSX_ARCHITECTURES": "arm64",
+              "CMAKE_OSX_DEPLOYMENT_TARGET": "12.0"
+          }
         },
         {
-            "name": "x86-release",
-            "displayName": "x86 Release",
-            "inherits": "x86-debug",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            }
+          "name": "arm64-release",
+          "displayName": "ARM64 Release",
+          "inherits": "arm64-debug",
+          "cacheVariables": {
+              "CMAKE_BUILD_TYPE": "Release"
+          }
         }
     ]
 }
