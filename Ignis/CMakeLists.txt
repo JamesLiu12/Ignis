@@ -9,3 +9,8 @@ add_library(Ignis::Ignis ALIAS Ignis)
 target_include_directories(Ignis PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/src
 )
+
+target_precompile_headers(Ignis
+    PUBLIC
+        $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
+)
