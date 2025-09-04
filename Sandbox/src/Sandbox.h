@@ -2,7 +2,7 @@
 
 #include "Ignis.h"
 
-class Sandbox : public Ignis::Application
+class Sandbox : public ignis::Application
 {
 public:
 	Sandbox() {}
