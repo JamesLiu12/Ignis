@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Ignis {
+namespace ignis {
 
 	class Application
 	{

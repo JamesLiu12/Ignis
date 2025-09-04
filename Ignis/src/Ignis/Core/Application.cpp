@@ -1,6 +1,6 @@
 #include "Application.h"
 
-namespace Ignis {
+namespace ignis {
 
 	Application::Application()
 	{
