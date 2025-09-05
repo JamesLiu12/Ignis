@@ -12,7 +12,6 @@ namespace ignis {
 
 	void Application::Run()
 	{
-
 		while (true);
 	}
 }
