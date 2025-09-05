@@ -16,17 +16,18 @@ namespace ignis {
 	void Application::Run()
 	{
 		EventDispatcher<KeyEvents> dispatcher;
-		auto subscription = dispatcher.Subscribe(KeyEvents::KeyPressed, [](Event<KeyEvents>& e) {
-			auto& event = static_cast<KeyPressedEvent&>(e);
-			printf("Key Pressed: %d (repeat = %s)\n", event.GetKeyCode(), event.IsRepeat() ? "true" : "false");
-			e.Handled = true;
-		});
+		auto subscription = dispatcher.Subscribe<KeyPressedEvent>(KeyEvents::KeyPressed,
+			[](KeyPressedEvent& event) {
+				printf("Key Pressed: %d (repeat = %s)\n",
+					event.GetKeyCode(),
+					event.IsRepeat() ? "true" : "false");
+				event.Handled = true;
+			});
 
 		while (true)
 		{
 			int ch = getchar();
-			auto e = KeyPressedEvent(ch);
-			dispatcher.Dispatch(e);
+			dispatcher.Dispatch<KeyPressedEvent>(ch, false);
 		}
 	}
 }

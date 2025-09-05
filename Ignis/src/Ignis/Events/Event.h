@@ -1,7 +1,5 @@
 #pragma once
 
-#include "pch.h"
-
 namespace ignis 
 {
 
@@ -28,7 +26,10 @@ namespace ignis
 	class EventDispatcher
 	{
 	public:
+		using EventPtr = std::unique_ptr<Event<T>>;
 		using Func = std::function<void(Event<T>&)>;
+		template<typename EventType>
+		using TypedFunc = std::function<void(EventType&)>;
 		using ListenerId = std::uint64_t;
 
 		class Subscription
@@ -86,29 +87,51 @@ namespace ignis
 			return Subscription(this, type, id);
 		}
 
-		void Dispatch(Event<T>& event)
+		template<typename EventType>
+			requires std::is_base_of_v<Event<T>, EventType>
+		Subscription Subscribe(const T& type, TypedFunc<EventType> func)
+		{
+			return Subscribe(type, [func = std::move(func)](Event<T>& e){
+				func(static_cast<EventType&>(e));
+			});
+		}
+
+		void Dispatch(EventPtr event)
 		{
 			std::lock_guard<std::mutex> lock(m_listeners_mutex);
-			auto it = m_listeners.find(event.GetType());
+			auto it = m_listeners.find(event->GetType());
 			if (it != m_listeners.end())
 			{
 				for (auto& [id, func] : it->second)
 				{
-					func(event);
-					if (event.Handled) break;
+					if (!event->Handled) func(*event);
 				}
 			}
 		}
 
-		void QueueEvent(const Event<T>& event)
+		template<typename EventType, typename... Args>
+			requires std::is_base_of_v<Event<T>, EventType>
+		void Dispatch(Args&&... args)
+		{
+			Dispatch(std::make_unique<EventType>(std::forward<Args>(args)...));
+		}
+
+		void QueueEvent(EventPtr event)
 		{
 			std::lock_guard<std::mutex> lock(m_queue_mutex);
-			m_event_queue.push(event);
+			m_event_queue.push(std::move(event));
+		}
+
+		template<typename EventType, typename... Args>
+			requires std::is_base_of_v<Event<T>, EventType>
+		void QueueEvent(Args&&... args)
+		{
+			QueueEvent(std::make_unique<EventType>(std::forward<Args>(args)...));
 		}
 
 		void ProcessEventQueue()
 		{
-			std::queue<Event<T>> temp_queue;
+			std::queue<EventPtr> temp_queue;
 			{
 				std::lock_guard<std::mutex> lock(m_queue_mutex);
 				temp_queue.swap(m_event_queue);
@@ -116,9 +139,8 @@ namespace ignis
 
 			while (!temp_queue.empty())
 			{
-				auto event = std::move(temp_queue.front());
+				Dispatch(std::move(temp_queue.front()));
 				temp_queue.pop();
-				Dispatch(event);
 			}
 		}
 
@@ -142,7 +164,7 @@ namespace ignis
 		std::unordered_map<T, std::vector<std::pair<ListenerId, Func>>> m_listeners;
 		std::mutex m_listeners_mutex;
 
-		std::queue<Event<T>> m_event_queue;
+		std::queue<EventPtr> m_event_queue;
 		std::mutex m_queue_mutex;
 
 		std::atomic<ListenerId> m_next_id{ 0 };
