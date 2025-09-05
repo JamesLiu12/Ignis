@@ -22,7 +22,7 @@ namespace ignis
 
 	class WindowResizeEvent : public Event<WindowEvents>
 	{
-		WindowCloseEvent() : Event(WindowEvents::WindowClose, "WindowClose") {}
+		WindowResizeEvent() : Event(WindowEvents::WindowResize, "WindowResize") {}
 		virtual ~WindowResizeEvent() = default;
 		unsigned width, height;
 	};
