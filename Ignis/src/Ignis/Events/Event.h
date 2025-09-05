@@ -2,7 +2,8 @@
 
 #include "pch.h"
 
-namespace ignis {
+namespace ignis 
+{
 
 	template <typename T>
 	class Event
