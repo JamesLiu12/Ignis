@@ -50,7 +50,7 @@ namespace ignis
 			Subscription& operator=(const Subscription&) = delete;
 
 			Subscription(Subscription&& other) noexcept
-				: m_dispatcher(other.dispatcher), m_type(other.m_type), m_id(other.m_id)
+				: m_dispatcher(other.m_dispatcher), m_type(other.m_type), m_id(other.m_id)
 			{
 				other.m_dispatcher = nullptr;
 			}
@@ -78,7 +78,7 @@ namespace ignis
 
 		EventDispatcher() = default;
 
-		Subscription Subscribe(const T& type, Func&& func)
+		Subscription Subscribe(const T& type, const Func& func)
 		{
 			std::lock_guard<std::mutex> lock(m_listeners_mutex);
 			ListenerId id = ++m_next_id;
@@ -148,5 +148,5 @@ namespace ignis
 		std::atomic<ListenerId> m_next_id{ 0 };
 
 		friend class Subscription;
-	}
+	};
 }

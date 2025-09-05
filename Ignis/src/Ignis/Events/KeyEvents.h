@@ -42,7 +42,8 @@ namespace ignis
 
 	class KeyReleasedEvent : public KeyEvent
 	{
-	public KeyReleasedEvent(const int keycode)
+	public:
+		KeyReleasedEvent(const int keycode)
 			: KeyEvent(keycode)
 		{
 			m_type = KeyEvents::KeyReleased;
