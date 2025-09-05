@@ -14,10 +14,11 @@ namespace ignis
 	class KeyEvent : public Event<KeyEvents>
 	{
 	public:
-		KeyEvent(int keycode) 
+		KeyEvent(const int keycode) 
 			: Event(KeyEvents::KeyTyped, "KeyEvent"), m_keycode(keycode) {}
 		virtual ~KeyEvent() = default;
 		int GetKeyCode() const { return m_keycode; }
+
 	protected:
 		int m_keycode;
 	};
@@ -25,21 +26,23 @@ namespace ignis
 	class KeyPressedEvent : public KeyEvent
 	{
 	public:
-		KeyPressedEvent(int keycode, bool is_repeat = false) 
+		KeyPressedEvent(const int keycode, const bool is_repeat = false) 
 			: KeyEvent(keycode), m_is_repeat(is_repeat) 
 		{
 			m_type = KeyEvents::KeyPressed;
 			m_name = "KeyPressedEvent";
 		}
 		virtual ~KeyPressedEvent() = default;
+
 		bool IsRepeat() const { return m_is_repeat; }
+
 	private:
 		bool m_is_repeat;
 	};
 
 	class KeyReleasedEvent : public KeyEvent
 	{
-		public KeyReleasedEvent(int keycode)
+	public KeyReleasedEvent(const int keycode)
 			: KeyEvent(keycode)
 		{
 			m_type = KeyEvents::KeyReleased;
@@ -50,8 +53,8 @@ namespace ignis
 
 	class KeyTypedEvent : public KeyEvent
 	{
-		public:
-		KeyTypedEvent(int keycode)
+	public:
+		KeyTypedEvent(const int keycode)
 			: KeyEvent(keycode)
 		{
 			m_type = KeyEvents::KeyTyped;
