@@ -1,6 +1,6 @@
 #include "EntryPoint.h"
 
-int main(int argc, int** argv)
+int main(int argc, char** argv)
 {
 	puts("Hi, Ignis");
 	auto app = ignis::CreateApplication();
