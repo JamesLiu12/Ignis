@@ -1,0 +1,3 @@
+[submodule "Ignis/vendor/glfw"]
+	path = Ignis/vendor/glfw
+	url = https://github.com/JamesLiu12/glfw
