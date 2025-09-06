@@ -112,11 +112,13 @@ Ignis/
 - **Chai Ming How** (3036086476) - BEng(CompSc)
 - **Liu Sizhe** (3036098041) - BEng(CompSc)
 
-**Supervisor:** Oliveira Bruno  
+**Supervisor:** Oliveira Bruno
 
 ## 📄 License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE.txt](LICENSE.txt) file for details.
+
+Third-party libraries used in this project have their own licenses - see [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for details.
 
 ## 🤝 Contributing
 

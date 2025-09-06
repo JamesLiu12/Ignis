@@ -5,6 +5,8 @@ namespace ignis {
 
 	std::shared_ptr<spdlog::logger> Log::s_CoreLogger;
 	std::shared_ptr<spdlog::logger> Log::s_ClientLogger;
+	std::map<std::string, Log::TagDetails> Log::s_EnabledTags;
+	// TODO: Create logger for editor
 
 	void Log::Init()
 	{
@@ -13,34 +15,33 @@ namespace ignis {
 		if (!std::filesystem::exists(logsDirectory))
 			std::filesystem::create_directories(logsDirectory);
 
-		// Create sinks for core logger (engine)
-		std::vector<spdlog::sink_ptr> ignisSinks =
-		{
-			std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/IGNIS.log", true),
-			std::make_shared<spdlog::sinks::stdout_color_sink_mt>()
+		// Common sink creation helper
+		auto createSinks = [](const std::string& filename) {
+			std::vector<spdlog::sink_ptr> sinks = {
+				std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename, true),
+				std::make_shared<spdlog::sinks::stdout_color_sink_mt>()
+			};
+			
+			// Set patterns
+			sinks[0]->set_pattern("[%T] [%l] %n: %v");        // File pattern
+			sinks[1]->set_pattern("%^[%T] %n: %v%$");         // Console pattern (with colors)
+			
+			return sinks;
 		};
 
-		// Create sinks for client logger (application)
-		std::vector<spdlog::sink_ptr> appSinks =
-		{
-			std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/APP.log", true),
-			std::make_shared<spdlog::sinks::stdout_color_sink_mt>()
-		};
+		// Create loggers with shared sinks
+		auto ignisSinks = createSinks("logs/IGNIS.log");
+		auto appSinks = createSinks("logs/APP.log");
 
-		// Set patterns for file sinks
-		ignisSinks[0]->set_pattern("[%T] [%l] %n: %v");
-		appSinks[0]->set_pattern("[%T] [%l] %n: %v");
-
-		// Set patterns for console sinks (with colors)
-		ignisSinks[1]->set_pattern("%^[%T] %n: %v%$");
-		appSinks[1]->set_pattern("%^[%T] %n: %v%$");
-
-		// Create loggers
 		s_CoreLogger = std::make_shared<spdlog::logger>("IGNIS", ignisSinks.begin(), ignisSinks.end());
 		s_CoreLogger->set_level(spdlog::level::trace);
 
 		s_ClientLogger = std::make_shared<spdlog::logger>("APP", appSinks.begin(), appSinks.end());
 		s_ClientLogger->set_level(spdlog::level::trace);
+
+		// TODO: Initialize EditorConsoleLogger for level editor
+		// TODO: Set up default tag settings for engine subsystems
+		// TODO: Add log file rotation and size limits
 
 		// Initialize default tag settings
 		s_EnabledTags[""] = TagDetails{ true, Level::Trace };
@@ -56,8 +57,8 @@ namespace ignis {
 
 	void Log::Shutdown()
 	{
-		s_ClientLogger.reset();
 		s_CoreLogger.reset();
+		s_ClientLogger.reset();
 		spdlog::drop_all();
 	}
 
