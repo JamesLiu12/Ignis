@@ -1,6 +1,6 @@
 # Ignis Game Engine
 
-A C++-based 3D game engine developed as a Final Year Project at The University of Hong Kong.
+A C++-based 3D game engine developed as a Final Year Project at The University of Hong Kong, by Chai Ming How and Liu Sizhe.
 
 ## 🔥 About
 
@@ -36,6 +36,7 @@ Ignis (Latin for "fire") is a custom game engine built from scratch to understan
 | Asset Loading     | Assimp                        |
 | GUI               | Dear ImGui                    |
 | Build System      | CMake                         |
+| Logging           | spdlog                        |
 
 ## 🚀 Getting Started
 
@@ -96,19 +97,6 @@ Ignis/
 └── CMakeLists.txt
 ```
 
-## 🎮 Current Features
-
-- [x] Basic application framework
-- [x] Event handling system
-- [x] Cross-platform build system
-- [ ] OpenGL renderer
-- [ ] 3D math library
-- [ ] Entity Component System
-- [ ] Physics integration
-- [ ] Audio system
-- [ ] Asset loading pipeline
-- [ ] Level editor
-
 ## 🗓️ Development Timeline
 
 | Phase       | Duration     | Focus                           |
@@ -125,7 +113,6 @@ Ignis/
 - **Liu Sizhe** (3036098041) - BEng(CompSc)
 
 **Supervisor:** Oliveira Bruno  
-**Institution:** The University of Hong Kong
 
 ## 📄 License
 
