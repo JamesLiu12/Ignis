@@ -3,10 +3,6 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
 
-#include <memory>
-#include <string>
-#include <map>
-
 namespace ignis {
 
 	class Log

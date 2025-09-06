@@ -1,7 +1,5 @@
 #include "pch.h"
 #include "Application.h"
-#include <thread>
-#include <chrono>
 
 namespace ignis {
 
