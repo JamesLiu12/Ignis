@@ -10,15 +10,14 @@ namespace ignis {
 
 	void Log::Init()
 	{
-		// Create "logs" directory if doesn't exist
-		std::string logsDirectory = "logs";
+		std::filesystem::path logsDirectory = std::filesystem::current_path() / "logs";
 		if (!std::filesystem::exists(logsDirectory))
 			std::filesystem::create_directories(logsDirectory);
 
 		// Common sink creation helper
-		auto createSinks = [](const std::string& filename) {
+		auto createSinks = [&logsDirectory](const std::string& filename) {
 			std::vector<spdlog::sink_ptr> sinks = {
-				std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename, true),
+				std::make_shared<spdlog::sinks::basic_file_sink_mt>((logsDirectory / filename).string(), true),
 				std::make_shared<spdlog::sinks::stdout_color_sink_mt>()
 			};
 			
@@ -30,8 +29,8 @@ namespace ignis {
 		};
 
 		// Create loggers with shared sinks
-		auto ignisSinks = createSinks("logs/IGNIS.log");
-		auto appSinks = createSinks("logs/APP.log");
+		auto ignisSinks = createSinks("IGNIS.log");
+		auto appSinks = createSinks("APP.log");
 
 		s_CoreLogger = std::make_shared<spdlog::logger>("IGNIS", ignisSinks.begin(), ignisSinks.end());
 		s_CoreLogger->set_level(spdlog::level::trace);
