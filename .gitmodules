@@ -1,0 +1,6 @@
+[submodule "Ignis/external/glfw"]
+	path = Ignis/external/glfw
+	url = https://github.com/JamesLiu12/glfw
+[submodule "Ignis/external/spdlog"]
+	path = Ignis/external/spdlog
+	url = https://github.com/gabime/spdlog.git
