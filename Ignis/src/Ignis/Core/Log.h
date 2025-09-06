@@ -34,6 +34,12 @@ namespace ignis {
 		static bool HasTag(const std::string& tag) { return s_EnabledTags.find(tag) != s_EnabledTags.end(); }
 		static std::map<std::string, TagDetails>& EnabledTags() { return s_EnabledTags; }
 
+		// TODO: Add SetTagLevel method for runtime tag configuration
+		// TODO: Add PrintAssertMessage methods for debugging assertions
+		// TODO: Add EditorConsoleLogger for level editor
+		// TODO: Add default tag settings map for better organization
+		// TODO: Implement log file rotation and cleanup
+
 		template<typename... Args>
 		static void PrintMessage(Log::Type type, Log::Level level, spdlog::format_string_t<Args...> fmt, Args&&... args);
 
@@ -54,7 +60,7 @@ namespace ignis {
 			return "";
 		}
 
-		static Level LevelFromString(const std::string& string)
+		static Level LevelFromString(std::string_view string)
 		{
 			if (string == "Trace") return Level::Trace;
 			if (string == "Info")  return Level::Info;
@@ -67,8 +73,10 @@ namespace ignis {
 	private:
 		static std::shared_ptr<spdlog::logger> s_CoreLogger;
 		static std::shared_ptr<spdlog::logger> s_ClientLogger;
+		// TODO: Add EditorConsoleLogger for level editor
 		
-		inline static std::map<std::string, TagDetails> s_EnabledTags;
+		static std::map<std::string, TagDetails> s_EnabledTags;
+		// TODO: Add default tag settings map for better organization
 	};
 
 }
