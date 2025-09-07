@@ -10,6 +10,7 @@
 #include <thread>
 #include <chrono>
 #include <filesystem>
+#include <typeindex>
 
 #include <string>
 #include <vector>
