@@ -2,9 +2,16 @@
 
 namespace ignis 
 {
+	class EventBase
+	{
+	public:
+		EventBase() = default;
+		virtual ~EventBase() = default;
+		bool Handled = false;
+	};
 
 	template <typename T>
-	class Event
+	class Event : public EventBase
 	{
 	public:
 		Event() = default;
@@ -22,20 +29,18 @@ namespace ignis
 		std::string m_name;
 	};
 
-	template <typename T>
 	class EventDispatcher
 	{
 	public:
-		using EventPtr = std::unique_ptr<Event<T>>;
-		using Func = std::function<void(Event<T>&)>;
-		template<typename EventType>
-		using TypedFunc = std::function<void(EventType&)>;
+		using EventPtr = std::unique_ptr<EventBase>;
+		using Func = std::function<void(EventBase&)>;
 		using ListenerId = std::uint64_t;
+		using EventTypeId = std::type_index;
 
 		class Subscription
 		{
 		public:
-			Subscription(EventDispatcher* dispatcher, const T& type, ListenerId id)
+			Subscription(EventDispatcher* dispatcher, EventTypeId type, ListenerId id)
 				: m_dispatcher(dispatcher), m_type(type), m_id(id) {}
 
 			~Subscription()
@@ -73,33 +78,34 @@ namespace ignis
 
 		private:
 			EventDispatcher* m_dispatcher;
-			T m_type;
+			EventTypeId m_type;
 			ListenerId m_id;
 		};
 
 		EventDispatcher() = default;
 
-		Subscription Subscribe(const T& type, const Func& func)
+		template<typename EventType>
+			requires std::is_base_of_v<EventBase, EventType>
+		Subscription Subscribe(std::function<void(EventType&)> func)
 		{
 			std::lock_guard<std::mutex> lock(m_listeners_mutex);
+			EventTypeId type_id = std::type_index(typeid(EventType));
 			ListenerId id = ++m_next_id;
-			m_listeners[type].emplace_back(id, std::move(func));
-			return Subscription(this, type, id);
-		}
 
-		template<typename EventType>
-			requires std::is_base_of_v<Event<T>, EventType>
-		Subscription Subscribe(const T& type, TypedFunc<EventType> func)
-		{
-			return Subscribe(type, [func = std::move(func)](Event<T>& e){
+			auto wrapper = [func = std::move(func)](EventBase& e) {
 				func(static_cast<EventType&>(e));
-			});
+				};
+
+			m_listeners[type_id].emplace_back(id, std::move(wrapper));
+
+			return Subscription(this, type_id, id);
 		}
 
 		void Dispatch(EventPtr event)
 		{
 			std::lock_guard<std::mutex> lock(m_listeners_mutex);
-			auto it = m_listeners.find(event->GetType());
+			EventTypeId type_id = std::type_index(typeid(*event));
+			auto it = m_listeners.find(type_id);
 			if (it != m_listeners.end())
 			{
 				for (auto& [id, func] : it->second)
@@ -110,7 +116,7 @@ namespace ignis
 		}
 
 		template<typename EventType, typename... Args>
-			requires std::is_base_of_v<Event<T>, EventType>
+			requires std::is_base_of_v<EventBase, EventType>
 		void Dispatch(Args&&... args)
 		{
 			Dispatch(std::make_unique<EventType>(std::forward<Args>(args)...));
@@ -123,7 +129,7 @@ namespace ignis
 		}
 
 		template<typename EventType, typename... Args>
-			requires std::is_base_of_v<Event<T>, EventType>
+			requires std::is_base_of_v<EventBase, EventType>
 		void QueueEvent(Args&&... args)
 		{
 			QueueEvent(std::make_unique<EventType>(std::forward<Args>(args)...));
@@ -145,7 +151,7 @@ namespace ignis
 		}
 
 	private:
-		void Unsubscribe(const T& type, ListenerId id)
+		void Unsubscribe(EventTypeId type, ListenerId id)
 		{
 			std::lock_guard<std::mutex> lock(m_listeners_mutex);
 			auto it = m_listeners.find(type);
@@ -161,7 +167,7 @@ namespace ignis
 			}
 		}
 
-		std::unordered_map<T, std::vector<std::pair<ListenerId, Func>>> m_listeners;
+		std::unordered_map<EventTypeId, std::vector<std::pair<ListenerId, Func>>> m_listeners;
 		std::mutex m_listeners_mutex;
 
 		std::queue<EventPtr> m_event_queue;
