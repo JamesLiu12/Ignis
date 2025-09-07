@@ -4,8 +4,8 @@ namespace ignis
 {
 	void EventExample()
 	{
-		EventDispatcher<KeyEvents> dispatcher;
-		auto subscription = dispatcher.Subscribe<KeyPressedEvent>(KeyEvents::KeyPressed,
+		EventDispatcher dispatcher;
+		auto subscription = dispatcher.Subscribe<KeyPressedEvent>(
 			[](KeyPressedEvent& event) {
 				printf("Key Pressed: %d (repeat = %s)\n",
 					event.GetKeyCode(),
