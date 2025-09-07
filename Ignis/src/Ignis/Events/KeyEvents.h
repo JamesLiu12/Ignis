@@ -2,8 +2,9 @@
 
 #include "Event.h"
 
-enum class KeyEvents
+enum class KeyEventType
 {
+	None = 0,
 	KeyPressed,
 	KeyReleased,
 	KeyTyped
@@ -11,11 +12,11 @@ enum class KeyEvents
 
 namespace ignis
 {
-	class KeyEvent : public Event<KeyEvents>
+	class KeyEvent : public Event<KeyEventType>
 	{
 	public:
-		KeyEvent(const int keycode) 
-			: Event(KeyEvents::KeyTyped, "KeyEvent"), m_keycode(keycode) {}
+		KeyEvent(KeyEventType type, const std::string& name, const int keycode) 
+			: Event(type, name), m_keycode(keycode) {}
 		virtual ~KeyEvent() = default;
 		int GetKeyCode() const { return m_keycode; }
 
@@ -27,11 +28,8 @@ namespace ignis
 	{
 	public:
 		KeyPressedEvent(const int keycode, const bool is_repeat = false) 
-			: KeyEvent(keycode), m_is_repeat(is_repeat) 
-		{
-			m_type = KeyEvents::KeyPressed;
-			m_name = "KeyPressedEvent";
-		}
+			: KeyEvent(KeyEventType::KeyPressed, "KeyPressedEvent", keycode), 
+			m_is_repeat(is_repeat) {}
 		virtual ~KeyPressedEvent() = default;
 
 		bool IsRepeat() const { return m_is_repeat; }
@@ -44,11 +42,7 @@ namespace ignis
 	{
 	public:
 		KeyReleasedEvent(const int keycode)
-			: KeyEvent(keycode)
-		{
-			m_type = KeyEvents::KeyReleased;
-			m_name = "KeyReleasedEvent";
-		}
+			: KeyEvent(KeyEventType::KeyReleased, "KeyReleasedEvent", keycode) {}
 		virtual ~KeyReleasedEvent() = default;
 	};
 
@@ -56,11 +50,7 @@ namespace ignis
 	{
 	public:
 		KeyTypedEvent(const int keycode)
-			: KeyEvent(keycode)
-		{
-			m_type = KeyEvents::KeyTyped;
-			m_name = "KeyTypedEvent";
-		}
+			: KeyEvent(KeyEventType::KeyTyped, "KeyTypedEvent", keycode) {}
 		virtual ~KeyTypedEvent() = default;
 	};
 }
