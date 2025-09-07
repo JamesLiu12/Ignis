@@ -4,8 +4,9 @@
 
 namespace ignis
 {
-	enum class WindowEvents
+	enum class WindowEventType
 	{
+		None = 0,
 		WindowClose,
 		WindowResize,
 		WindowFocus,
@@ -13,38 +14,45 @@ namespace ignis
 		WindowMoved
 	};
 
-	class WindowCloseEvent : public Event<WindowEvents>
+	class WindowEvent : public Event<WindowEventType>
+	{
+		public:
+		WindowEvent(WindowEventType type, const std::string& name) : Event(type, name) {}
+		virtual ~WindowEvent() = default;
+	};
+
+	class WindowCloseEvent : public WindowEvent
 	{
 	public:
-		WindowCloseEvent() : Event(WindowEvents::WindowClose, "WindowClose") {}
+		WindowCloseEvent() : WindowEvent(WindowEventType::WindowClose, "WindowClose") {}
 		virtual ~WindowCloseEvent() = default;
 	};
 
-	class WindowResizeEvent : public Event<WindowEvents>
+	class WindowResizeEvent : public WindowEvent
 	{
-		WindowResizeEvent() : Event(WindowEvents::WindowResize, "WindowResize") {}
+		WindowResizeEvent() : WindowEvent(WindowEventType::WindowResize, "WindowResize") {}
 		virtual ~WindowResizeEvent() = default;
 		unsigned width, height;
 	};
 
-	class WindowFocusEvent : public Event<WindowEvents>
+	class WindowFocusEvent : public WindowEvent
 	{
 		public:
-		WindowFocusEvent() : Event(WindowEvents::WindowFocus, "WindowFocus") {}
+		WindowFocusEvent() : WindowEvent(WindowEventType::WindowFocus, "WindowFocus") {}
 		virtual ~WindowFocusEvent() = default;
 	};
 
-	class WindowLostFocusEvent : public Event<WindowEvents>
+	class WindowLostFocusEvent : public WindowEvent
 	{
 		public:
-		WindowLostFocusEvent() : Event(WindowEvents::WindowLostFocus, "WindowLostFocus") {}
+		WindowLostFocusEvent() : WindowEvent(WindowEventType::WindowLostFocus, "WindowLostFocus") {}
 		virtual ~WindowLostFocusEvent() = default;
 	};
 
-	class WindowMovedEvent : public Event<WindowEvents>
+	class WindowMovedEvent : public WindowEvent
 	{
 		public:
-		WindowMovedEvent() : Event(WindowEvents::WindowMoved, "WindowMoved") {}
+		WindowMovedEvent() : WindowEvent(WindowEventType::WindowMoved, "WindowMoved") {}
 		virtual ~WindowMovedEvent() = default;
 		unsigned xPos, yPos;
 	};
