@@ -17,5 +17,8 @@ CMakeUserPresets.json
 
 .vs/
 out/
+logs/
 
 # Files
+
+*.log
