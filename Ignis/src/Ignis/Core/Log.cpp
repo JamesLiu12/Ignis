@@ -10,7 +10,38 @@ namespace ignis {
 
 	void Log::Init()
 	{
-		std::filesystem::path logsDirectory = std::filesystem::current_path() / "logs";
+		std::filesystem::path executableDir;
+		
+		// Get the directory where the executable is located
+		#ifdef _WIN32
+			char path[MAX_PATH];
+			GetModuleFileNameA(NULL, path, MAX_PATH);
+			executableDir = std::filesystem::path(path).parent_path();
+		#elif defined(__APPLE__)
+			// macOS: Use _NSGetExecutablePath
+			char path[1024];
+			uint32_t size = sizeof(path);
+			if (_NSGetExecutablePath(path, &size) == 0) {
+				executableDir = std::filesystem::path(path).parent_path();
+			} else {
+				executableDir = std::filesystem::current_path(); // Fallback
+			}
+		#elif defined(__linux__)
+			// Linux: Use /proc/self/exe
+			char path[1024];
+			ssize_t len = readlink("/proc/self/exe", path, sizeof(path) - 1);
+			if (len != -1) {
+				path[len] = '\0';
+				executableDir = std::filesystem::path(path).parent_path();
+			} else {
+				executableDir = std::filesystem::current_path(); // Fallback
+			}
+		#else
+			// Other Unix systems: fallback to current path
+			executableDir = std::filesystem::current_path();
+		#endif
+		
+		std::filesystem::path logsDirectory = executableDir / "logs";
 		if (!std::filesystem::exists(logsDirectory))
 			std::filesystem::create_directories(logsDirectory);
 
