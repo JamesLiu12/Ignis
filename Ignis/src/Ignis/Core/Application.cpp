@@ -9,22 +9,22 @@ namespace ignis {
 		Log::Init();
 		
 		// Test logging system
-		Log::core_info("Ignis Engine initialized!");
-		Log::core_info_tag("Core", "Application constructor called");
-		Log::info("Client application starting...");
-		Log::warn_tag("Test", "This is a warning message with tag");
-		Log::error("This is an error message");
+		Log::CoreInfo("Ignis Engine initialized!");
+		Log::CoreInfoTag("Core", "Application constructor called");
+		Log::Info("Client application starting...");
+		Log::WarnTag("Test", "This is a warning message with tag");
+		Log::Error("This is an error message");
 	}
 
 	Application::~Application()
 	{
-		Log::core_info("Application shutting down...");
+		Log::CoreInfo("Application shutting down...");
 		Log::Shutdown();
 	}
 
 	void Application::Run()
 	{
-		Log::core_info_tag("Core", "Application main loop started");
+		Log::CoreInfoTag("Core", "Application main loop started");
 		
 		// Simple application loop with sleep to prevent 100% CPU usage
 		while (m_Running)
@@ -33,6 +33,6 @@ namespace ignis {
 			std::this_thread::sleep_for(std::chrono::milliseconds(16)); // ~60 FPS
 		}
 		
-		Log::core_info_tag("Core", "Application main loop ended");
+		Log::CoreInfoTag("Core", "Application main loop ended");
 	}
 }
