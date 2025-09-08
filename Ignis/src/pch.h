@@ -19,6 +19,15 @@
 #include <queue>
 #include <map>
 
+// Platform-specific includes
+#ifdef _WIN32
+    #include <windows.h>
+#elif defined(__APPLE__)
+    #include <mach-o/dyld.h>
+#elif defined(__linux__)
+    #include <unistd.h>
+#endif
+
 // spdlog headers
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
