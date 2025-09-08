@@ -1,4 +1,4 @@
-#include "GLFWWindow.h"
+#include "GlfwWindow.h"
 #include "Ignis/Events/Event.h"
 #include "Ignis/Events/WindowEvents.h"
 
