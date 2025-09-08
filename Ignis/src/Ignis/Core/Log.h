@@ -40,11 +40,152 @@ namespace ignis {
 		// TODO: Add default tag settings map for better organization
 		// TODO: Implement log file rotation and cleanup
 
+		// Compile-time log level filtering (set this based on build configuration)
+		static constexpr Level compile_time_min_level = Level::Trace; // Debug: Trace, Release: Info
+
+		// Modern C++ logging interface - Core logging functions
 		template<typename... Args>
-		static void PrintMessage(Log::Type type, Log::Level level, spdlog::format_string_t<Args...> fmt, Args&&... args);
+		static constexpr void core_trace(spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Trace >= compile_time_min_level) {
+				print_message_impl(Type::Core, Level::Trace, fmt, std::forward<Args>(args)...);
+			}
+		}
 
 		template<typename... Args>
-		static void PrintMessageTag(Log::Type type, Log::Level level, const std::string& tag, spdlog::format_string_t<Args...> fmt, Args&&... args);
+		static constexpr void core_info(spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Info >= compile_time_min_level) {
+				print_message_impl(Type::Core, Level::Info, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		template<typename... Args>
+		static constexpr void core_warn(spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Warn >= compile_time_min_level) {
+				print_message_impl(Type::Core, Level::Warn, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		template<typename... Args>
+		static constexpr void core_error(spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Error >= compile_time_min_level) {
+				print_message_impl(Type::Core, Level::Error, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		template<typename... Args>
+		static constexpr void core_fatal(spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Fatal >= compile_time_min_level) {
+				print_message_impl(Type::Core, Level::Fatal, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		// Client logging functions
+		template<typename... Args>
+		static constexpr void trace(spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Trace >= compile_time_min_level) {
+				print_message_impl(Type::Client, Level::Trace, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		template<typename... Args>
+		static constexpr void info(spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Info >= compile_time_min_level) {
+				print_message_impl(Type::Client, Level::Info, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		template<typename... Args>
+		static constexpr void warn(spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Warn >= compile_time_min_level) {
+				print_message_impl(Type::Client, Level::Warn, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		template<typename... Args>
+		static constexpr void error(spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Error >= compile_time_min_level) {
+				print_message_impl(Type::Client, Level::Error, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		template<typename... Args>
+		static constexpr void fatal(spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Fatal >= compile_time_min_level) {
+				print_message_impl(Type::Client, Level::Fatal, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		// Tagged logging functions - Core
+		template<typename... Args>
+		static constexpr void core_trace_tag(const std::string& tag, spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Trace >= compile_time_min_level) {
+				print_message_tag_impl(Type::Core, Level::Trace, tag, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		template<typename... Args>
+		static constexpr void core_info_tag(const std::string& tag, spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Info >= compile_time_min_level) {
+				print_message_tag_impl(Type::Core, Level::Info, tag, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		template<typename... Args>
+		static constexpr void core_warn_tag(const std::string& tag, spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Warn >= compile_time_min_level) {
+				print_message_tag_impl(Type::Core, Level::Warn, tag, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		template<typename... Args>
+		static constexpr void core_error_tag(const std::string& tag, spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Error >= compile_time_min_level) {
+				print_message_tag_impl(Type::Core, Level::Error, tag, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		template<typename... Args>
+		static constexpr void core_fatal_tag(const std::string& tag, spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Fatal >= compile_time_min_level) {
+				print_message_tag_impl(Type::Core, Level::Fatal, tag, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		// Tagged logging functions - Client
+		template<typename... Args>
+		static constexpr void trace_tag(const std::string& tag, spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Trace >= compile_time_min_level) {
+				print_message_tag_impl(Type::Client, Level::Trace, tag, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		template<typename... Args>
+		static constexpr void info_tag(const std::string& tag, spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Info >= compile_time_min_level) {
+				print_message_tag_impl(Type::Client, Level::Info, tag, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		template<typename... Args>
+		static constexpr void warn_tag(const std::string& tag, spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Warn >= compile_time_min_level) {
+				print_message_tag_impl(Type::Client, Level::Warn, tag, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		template<typename... Args>
+		static constexpr void error_tag(const std::string& tag, spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Error >= compile_time_min_level) {
+				print_message_tag_impl(Type::Client, Level::Error, tag, fmt, std::forward<Args>(args)...);
+			}
+		}
+
+		template<typename... Args>
+		static constexpr void fatal_tag(const std::string& tag, spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			if constexpr (Level::Fatal >= compile_time_min_level) {
+				print_message_tag_impl(Type::Client, Level::Fatal, tag, fmt, std::forward<Args>(args)...);
+			}
+		}
 
 		// Enum utils
 		static const char* LevelToString(Level level)
@@ -77,101 +218,43 @@ namespace ignis {
 		
 		static std::map<std::string, tag_details> m_enabled_tags;
 		// TODO: Add default tag settings map for better organization
+
+		// Internal implementation functions
+		template<typename... Args>
+		static inline void print_message_impl(Type type, Level level, spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			auto detail = m_enabled_tags[""];
+			if (detail.enabled && detail.level_filter <= level) {
+				auto logger = (type == Type::Core) ? GetCoreLogger() : GetClientLogger();
+				switch (level) {
+					case Level::Trace: logger->trace(fmt, std::forward<Args>(args)...); break;
+					case Level::Info:  logger->info(fmt, std::forward<Args>(args)...); break;
+					case Level::Warn:  logger->warn(fmt, std::forward<Args>(args)...); break;
+					case Level::Error: logger->error(fmt, std::forward<Args>(args)...); break;
+					case Level::Fatal: logger->critical(fmt, std::forward<Args>(args)...); break;
+				}
+			}
+		}
+
+		template<typename... Args>
+		static inline void print_message_tag_impl(Type type, Level level, const std::string& tag, spdlog::format_string_t<Args...> fmt, Args&&... args) {
+			auto detail = m_enabled_tags[tag];
+			if (detail.enabled && detail.level_filter <= level) {
+				auto logger = (type == Type::Core) ? GetCoreLogger() : GetClientLogger();
+				std::string formatted = fmt::format(fmt, std::forward<Args>(args)...);
+				switch (level) {
+					case Level::Trace: logger->trace("[{}] {}", tag, formatted); break;
+					case Level::Info:  logger->info("[{}] {}", tag, formatted); break;
+					case Level::Warn:  logger->warn("[{}] {}", tag, formatted); break;
+					case Level::Error: logger->error("[{}] {}", tag, formatted); break;
+					case Level::Fatal: logger->critical("[{}] {}", tag, formatted); break;
+				}
+			}
+		}
 	};
 
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Tagged logs (prefer these!)                                                                                      //
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Core logging
-#define IG_CORE_TRACE_TAG(tag, ...) ::ignis::Log::PrintMessageTag(::ignis::Log::Type::Core, ::ignis::Log::Level::Trace, tag, __VA_ARGS__)
-#define IG_CORE_INFO_TAG(tag, ...)  ::ignis::Log::PrintMessageTag(::ignis::Log::Type::Core, ::ignis::Log::Level::Info, tag, __VA_ARGS__)
-#define IG_CORE_WARN_TAG(tag, ...)  ::ignis::Log::PrintMessageTag(::ignis::Log::Type::Core, ::ignis::Log::Level::Warn, tag, __VA_ARGS__)
-#define IG_CORE_ERROR_TAG(tag, ...) ::ignis::Log::PrintMessageTag(::ignis::Log::Type::Core, ::ignis::Log::Level::Error, tag, __VA_ARGS__)
-#define IG_CORE_FATAL_TAG(tag, ...) ::ignis::Log::PrintMessageTag(::ignis::Log::Type::Core, ::ignis::Log::Level::Fatal, tag, __VA_ARGS__)
-
-// Client logging
-#define IG_TRACE_TAG(tag, ...) ::ignis::Log::PrintMessageTag(::ignis::Log::Type::Client, ::ignis::Log::Level::Trace, tag, __VA_ARGS__)
-#define IG_INFO_TAG(tag, ...)  ::ignis::Log::PrintMessageTag(::ignis::Log::Type::Client, ::ignis::Log::Level::Info, tag, __VA_ARGS__)
-#define IG_WARN_TAG(tag, ...)  ::ignis::Log::PrintMessageTag(::ignis::Log::Type::Client, ::ignis::Log::Level::Warn, tag, __VA_ARGS__)
-#define IG_ERROR_TAG(tag, ...) ::ignis::Log::PrintMessageTag(::ignis::Log::Type::Client, ::ignis::Log::Level::Error, tag, __VA_ARGS__)
-#define IG_FATAL_TAG(tag, ...) ::ignis::Log::PrintMessageTag(::ignis::Log::Type::Client, ::ignis::Log::Level::Fatal, tag, __VA_ARGS__)
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Core Logging
-#define IG_CORE_TRACE(...)  ::ignis::Log::PrintMessage(::ignis::Log::Type::Core, ::ignis::Log::Level::Trace, __VA_ARGS__)
-#define IG_CORE_INFO(...)   ::ignis::Log::PrintMessage(::ignis::Log::Type::Core, ::ignis::Log::Level::Info, __VA_ARGS__)
-#define IG_CORE_WARN(...)   ::ignis::Log::PrintMessage(::ignis::Log::Type::Core, ::ignis::Log::Level::Warn, __VA_ARGS__)
-#define IG_CORE_ERROR(...)  ::ignis::Log::PrintMessage(::ignis::Log::Type::Core, ::ignis::Log::Level::Error, __VA_ARGS__)
-#define IG_CORE_FATAL(...)  ::ignis::Log::PrintMessage(::ignis::Log::Type::Core, ::ignis::Log::Level::Fatal, __VA_ARGS__)
-
-// Client Logging
-#define IG_TRACE(...)   ::ignis::Log::PrintMessage(::ignis::Log::Type::Client, ::ignis::Log::Level::Trace, __VA_ARGS__)
-#define IG_INFO(...)    ::ignis::Log::PrintMessage(::ignis::Log::Type::Client, ::ignis::Log::Level::Info, __VA_ARGS__)
-#define IG_WARN(...)    ::ignis::Log::PrintMessage(::ignis::Log::Type::Client, ::ignis::Log::Level::Warn, __VA_ARGS__)
-#define IG_ERROR(...)   ::ignis::Log::PrintMessage(::ignis::Log::Type::Client, ::ignis::Log::Level::Error, __VA_ARGS__)
-#define IG_FATAL(...)   ::ignis::Log::PrintMessage(::ignis::Log::Type::Client, ::ignis::Log::Level::Fatal, __VA_ARGS__)
-
-namespace ignis {
-
-	template<typename... Args>
-	void Log::PrintMessage(Log::Type type, Log::Level level, spdlog::format_string_t<Args...> fmt, Args&&... args)
-	{
-		auto detail = m_enabled_tags[""];
-		if (detail.enabled && detail.level_filter <= level)
-		{
-			auto logger = (type == Type::Core) ? GetCoreLogger() : GetClientLogger();
-			switch (level)
-			{
-			case Level::Trace:
-				logger->trace(fmt, std::forward<Args>(args)...);
-				break;
-			case Level::Info:
-				logger->info(fmt, std::forward<Args>(args)...);
-				break;
-			case Level::Warn:
-				logger->warn(fmt, std::forward<Args>(args)...);
-				break;
-			case Level::Error:
-				logger->error(fmt, std::forward<Args>(args)...);
-				break;
-			case Level::Fatal:
-				logger->critical(fmt, std::forward<Args>(args)...);
-				break;
-			}
-		}
-	}
-
-	template<typename... Args>
-	void Log::PrintMessageTag(Log::Type type, Log::Level level, const std::string& tag, spdlog::format_string_t<Args...> fmt, Args&&... args)
-	{
-		auto detail = m_enabled_tags[tag];
-		if (detail.enabled && detail.level_filter <= level)
-		{
-			auto logger = (type == Type::Core) ? GetCoreLogger() : GetClientLogger();
-			std::string formatted = fmt::format(fmt, std::forward<Args>(args)...);
-			switch (level)
-			{
-				case Level::Trace:
-					logger->trace("[{}] {}", tag, formatted);
-					break;
-				case Level::Info:
-					logger->info("[{}] {}", tag, formatted);
-					break;
-				case Level::Warn:
-					logger->warn("[{}] {}", tag, formatted);
-					break;
-				case Level::Error:
-					logger->error("[{}] {}", tag, formatted);
-					break;
-				case Level::Fatal:
-					logger->critical("[{}] {}", tag, formatted);
-					break;
-			}
-		}
-	}
-
-}
+// Modern C++ Usage Examples:
+// ignis::Log::core_info("Engine initialized successfully");
+// ignis::Log::trace_tag("Renderer", "Loaded {} textures", count);
+// ignis::Log::error("Failed to load file: {}", filename);
