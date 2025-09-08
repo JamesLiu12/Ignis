@@ -1,5 +1,5 @@
 #include "Window.h"
-#include "Ignis/Platform/GLFW/GLFWWindow.h"
+#include "Ignis/Platform/GLFW/GlfwWindow.h"
 
 namespace ignis
 {
