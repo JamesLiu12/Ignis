@@ -5,7 +5,7 @@ namespace ignis {
 
 	std::shared_ptr<spdlog::logger> Log::m_core_logger;
 	std::shared_ptr<spdlog::logger> Log::m_client_logger;
-	std::map<std::string, Log::tag_details> Log::m_enabled_tags;
+	std::map<std::string, Log::TagDetails> Log::m_enabled_tags;
 	// TODO: Create logger for editor
 
 	void Log::Init()
@@ -74,15 +74,15 @@ namespace ignis {
 		// TODO: Add log file rotation and size limits
 
 		// Initialize default tag settings
-		m_enabled_tags[""] = tag_details{ true, Level::Trace };
-		m_enabled_tags["Core"] = tag_details{ true, Level::Trace };
-		m_enabled_tags["Renderer"] = tag_details{ true, Level::Info };
-		m_enabled_tags["Events"] = tag_details{ true, Level::Info };
-		m_enabled_tags["Input"] = tag_details{ true, Level::Info };
-		m_enabled_tags["Audio"] = tag_details{ true, Level::Info };
-		m_enabled_tags["Physics"] = tag_details{ true, Level::Warn };
-		m_enabled_tags["Scene"] = tag_details{ true, Level::Info };
-		m_enabled_tags["Memory"] = tag_details{ true, Level::Error };
+		m_enabled_tags[""] = TagDetails{ true, Level::Trace };
+		m_enabled_tags["Core"] = TagDetails{ true, Level::Trace };
+		m_enabled_tags["Renderer"] = TagDetails{ true, Level::Info };
+		m_enabled_tags["Events"] = TagDetails{ true, Level::Info };
+		m_enabled_tags["Input"] = TagDetails{ true, Level::Info };
+		m_enabled_tags["Audio"] = TagDetails{ true, Level::Info };
+		m_enabled_tags["Physics"] = TagDetails{ true, Level::Warn };
+		m_enabled_tags["Scene"] = TagDetails{ true, Level::Info };
+		m_enabled_tags["Memory"] = TagDetails{ true, Level::Error };
 	}
 
 	void Log::Shutdown()
