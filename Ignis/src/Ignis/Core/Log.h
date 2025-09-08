@@ -18,21 +18,21 @@ namespace ignis {
 			Trace = 0, Info, Warn, Error, Fatal
 		};
 
-		struct TagDetails
+		struct tag_details
 		{
-			bool Enabled = true;
-			Level LevelFilter = Level::Trace;
+			bool enabled = true;
+			Level level_filter = Level::Trace;
 		};
 
 	public:
 		static void Init();
 		static void Shutdown();
 
-		inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
-		inline static std::shared_ptr<spdlog::logger>& GetClientLogger() { return s_ClientLogger; }
+		inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return m_core_logger; }
+		inline static std::shared_ptr<spdlog::logger>& GetClientLogger() { return m_client_logger; }
 
-		static bool HasTag(const std::string& tag) { return s_EnabledTags.find(tag) != s_EnabledTags.end(); }
-		static std::map<std::string, TagDetails>& EnabledTags() { return s_EnabledTags; }
+		static bool HasTag(const std::string& tag) { return m_enabled_tags.find(tag) != m_enabled_tags.end(); }
+		static std::map<std::string, tag_details>& EnabledTags() { return m_enabled_tags; }
 
 		// TODO: Add SetTagLevel method for runtime tag configuration
 		// TODO: Add PrintAssertMessage methods for debugging assertions
@@ -71,11 +71,11 @@ namespace ignis {
 		}
 
 	private:
-		static std::shared_ptr<spdlog::logger> s_CoreLogger;
-		static std::shared_ptr<spdlog::logger> s_ClientLogger;
+		static std::shared_ptr<spdlog::logger> m_core_logger;
+		static std::shared_ptr<spdlog::logger> m_client_logger;
 		// TODO: Add EditorConsoleLogger for level editor
 		
-		static std::map<std::string, TagDetails> s_EnabledTags;
+		static std::map<std::string, tag_details> m_enabled_tags;
 		// TODO: Add default tag settings map for better organization
 	};
 
@@ -120,8 +120,8 @@ namespace ignis {
 	template<typename... Args>
 	void Log::PrintMessage(Log::Type type, Log::Level level, spdlog::format_string_t<Args...> fmt, Args&&... args)
 	{
-		auto detail = s_EnabledTags[""];
-		if (detail.Enabled && detail.LevelFilter <= level)
+		auto detail = m_enabled_tags[""];
+		if (detail.enabled && detail.level_filter <= level)
 		{
 			auto logger = (type == Type::Core) ? GetCoreLogger() : GetClientLogger();
 			switch (level)
@@ -148,8 +148,8 @@ namespace ignis {
 	template<typename... Args>
 	void Log::PrintMessageTag(Log::Type type, Log::Level level, const std::string& tag, spdlog::format_string_t<Args...> fmt, Args&&... args)
 	{
-		auto detail = s_EnabledTags[tag];
-		if (detail.Enabled && detail.LevelFilter <= level)
+		auto detail = m_enabled_tags[tag];
+		if (detail.enabled && detail.level_filter <= level)
 		{
 			auto logger = (type == Type::Core) ? GetCoreLogger() : GetClientLogger();
 			std::string formatted = fmt::format(fmt, std::forward<Args>(args)...);

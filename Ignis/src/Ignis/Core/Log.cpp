@@ -3,9 +3,9 @@
 
 namespace ignis {
 
-	std::shared_ptr<spdlog::logger> Log::s_CoreLogger;
-	std::shared_ptr<spdlog::logger> Log::s_ClientLogger;
-	std::map<std::string, Log::TagDetails> Log::s_EnabledTags;
+	std::shared_ptr<spdlog::logger> Log::m_core_logger;
+	std::shared_ptr<spdlog::logger> Log::m_client_logger;
+	std::map<std::string, Log::tag_details> Log::m_enabled_tags;
 	// TODO: Create logger for editor
 
 	void Log::Init()
@@ -63,32 +63,32 @@ namespace ignis {
 		auto ignisSinks = createSinks("IGNIS.log");
 		auto appSinks = createSinks("APP.log");
 
-		s_CoreLogger = std::make_shared<spdlog::logger>("IGNIS", ignisSinks.begin(), ignisSinks.end());
-		s_CoreLogger->set_level(spdlog::level::trace);
+		m_core_logger = std::make_shared<spdlog::logger>("IGNIS", ignisSinks.begin(), ignisSinks.end());
+		m_core_logger->set_level(spdlog::level::trace);
 
-		s_ClientLogger = std::make_shared<spdlog::logger>("APP", appSinks.begin(), appSinks.end());
-		s_ClientLogger->set_level(spdlog::level::trace);
+		m_client_logger = std::make_shared<spdlog::logger>("APP", appSinks.begin(), appSinks.end());
+		m_client_logger->set_level(spdlog::level::trace);
 
 		// TODO: Initialize EditorConsoleLogger for level editor
 		// TODO: Set up default tag settings for engine subsystems
 		// TODO: Add log file rotation and size limits
 
 		// Initialize default tag settings
-		s_EnabledTags[""] = TagDetails{ true, Level::Trace };
-		s_EnabledTags["Core"] = TagDetails{ true, Level::Trace };
-		s_EnabledTags["Renderer"] = TagDetails{ true, Level::Info };
-		s_EnabledTags["Events"] = TagDetails{ true, Level::Info };
-		s_EnabledTags["Input"] = TagDetails{ true, Level::Info };
-		s_EnabledTags["Audio"] = TagDetails{ true, Level::Info };
-		s_EnabledTags["Physics"] = TagDetails{ true, Level::Warn };
-		s_EnabledTags["Scene"] = TagDetails{ true, Level::Info };
-		s_EnabledTags["Memory"] = TagDetails{ true, Level::Error };
+		m_enabled_tags[""] = tag_details{ true, Level::Trace };
+		m_enabled_tags["Core"] = tag_details{ true, Level::Trace };
+		m_enabled_tags["Renderer"] = tag_details{ true, Level::Info };
+		m_enabled_tags["Events"] = tag_details{ true, Level::Info };
+		m_enabled_tags["Input"] = tag_details{ true, Level::Info };
+		m_enabled_tags["Audio"] = tag_details{ true, Level::Info };
+		m_enabled_tags["Physics"] = tag_details{ true, Level::Warn };
+		m_enabled_tags["Scene"] = tag_details{ true, Level::Info };
+		m_enabled_tags["Memory"] = tag_details{ true, Level::Error };
 	}
 
 	void Log::Shutdown()
 	{
-		s_CoreLogger.reset();
-		s_ClientLogger.reset();
+		m_core_logger.reset();
+		m_client_logger.reset();
 		spdlog::drop_all();
 	}
 
