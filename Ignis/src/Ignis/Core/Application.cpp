@@ -1,10 +1,12 @@
 #include "pch.h"
 #include "Application.h"
 
-namespace ignis {
-
+namespace ignis 
+{
 	Application::Application()
 	{
+		s_instance = this;
+
 		// Initialize logging system
 		Log::Init();
 		
