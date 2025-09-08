@@ -9,10 +9,10 @@ namespace ignis {
 		virtual ~Application();
 
 		void Run();
-		void Close() { m_Running = false; }
+		void Close() { m_running = false; }
 
 	private:
-		bool m_Running = true;
+		bool m_running = true;
 	};
 
 	std::unique_ptr<Application> CreateApplication();
