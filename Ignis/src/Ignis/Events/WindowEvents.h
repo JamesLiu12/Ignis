@@ -16,7 +16,7 @@ namespace ignis
 
 	class WindowEvent : public Event<WindowEventType>
 	{
-		public:
+	public:
 		WindowEvent(WindowEventType type, const std::string& name) : Event(type, name) {}
 		virtual ~WindowEvent() = default;
 	};
@@ -30,14 +30,19 @@ namespace ignis
 
 	class WindowResizeEvent : public WindowEvent
 	{
-		WindowResizeEvent() : WindowEvent(WindowEventType::WindowResize, "WindowResize") {}
+	public:
+		WindowResizeEvent(const unsigned width, const unsigned height) 
+			: WindowEvent(WindowEventType::WindowResize, "WindowResize"), 
+			m_width(width), m_height(height) {}
 		virtual ~WindowResizeEvent() = default;
-		unsigned width, height;
+		
+	private:
+		unsigned m_width, m_height;
 	};
 
 	class WindowFocusEvent : public WindowEvent
 	{
-		public:
+	public:
 		WindowFocusEvent() : WindowEvent(WindowEventType::WindowFocus, "WindowFocus") {}
 		virtual ~WindowFocusEvent() = default;
 	};
@@ -51,9 +56,13 @@ namespace ignis
 
 	class WindowMovedEvent : public WindowEvent
 	{
-		public:
-		WindowMovedEvent() : WindowEvent(WindowEventType::WindowMoved, "WindowMoved") {}
+	public:
+		WindowMovedEvent(const unsigned x_pos, const unsigned y_pos) 
+			: WindowEvent(WindowEventType::WindowMoved, "WindowMoved"), 
+			m_x_pos(x_pos), m_y_pos(y_pos) {}
 		virtual ~WindowMovedEvent() = default;
-		unsigned xPos, yPos;
+		
+	private:
+		unsigned m_x_pos, m_y_pos;
 	};
 }
