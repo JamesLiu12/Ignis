@@ -16,7 +16,8 @@ namespace ignis
 		while (true)
 		{
 			int ch = getchar();
-			dispatcher.Dispatch<KeyPressedEvent>(ch, false);
+			KeyPressedEvent e(ch);
+			dispatcher.Dispatch(e);
 		}
 	}
 }

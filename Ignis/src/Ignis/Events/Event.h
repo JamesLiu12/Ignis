@@ -22,8 +22,6 @@ namespace ignis
 		T GetType() const { return m_type; }
 		const std::string& GetName() const { return m_name; }
 
-		bool Handled = false;
-
 	protected:
 		T m_type;
 		std::string m_name;
@@ -72,6 +70,7 @@ namespace ignis
 					m_dispatcher = other.m_dispatcher;
 					m_type = other.m_type;
 					m_id = other.m_id;
+					other.m_dispatcher = nullptr;
 				}
 				return *this;
 			}
@@ -101,25 +100,27 @@ namespace ignis
 			return Subscription(this, type_id, id);
 		}
 
-		void Dispatch(EventPtr event)
+		void Dispatch(EventBase& event) 
 		{
-			std::lock_guard<std::mutex> lock(m_listeners_mutex);
-			EventTypeId type_id = std::type_index(typeid(*event));
-			auto it = m_listeners.find(type_id);
-			if (it != m_listeners.end())
+			std::vector<std::pair<ListenerId, Func>> listeners;
 			{
-				for (auto& [id, func] : it->second)
-				{
-					if (!event->Handled) func(*event);
-				}
+				std::lock_guard<std::mutex> lock(m_listeners_mutex);
+				auto it = m_listeners.find(std::type_index(typeid(event)));
+				if (it != m_listeners.end()) listeners = it->second;
 			}
+
+			for (auto& [_, func] : listeners)
+			{
+				if (event.Handled) break;
+				func(event);
+			}
+
 		}
 
-		template<typename EventType, typename... Args>
-			requires std::is_base_of_v<EventBase, EventType>
-		void Dispatch(Args&&... args)
+		template<typename... Args>
+		void Dispatch(EventBase& event, Args&&... args)
 		{
-			Dispatch(std::make_unique<EventType>(std::forward<Args>(args)...));
+			Dispatch(event, std::forward<Args>(args)...);
 		}
 
 		void QueueEvent(EventPtr event)
@@ -145,7 +146,7 @@ namespace ignis
 
 			while (!temp_queue.empty())
 			{
-				Dispatch(std::move(temp_queue.front()));
+				Dispatch(*temp_queue.front());
 				temp_queue.pop();
 			}
 		}
