@@ -25,6 +25,7 @@ namespace ignis
 
 	private:
 		void Shutdown();
+		void SetUpCallbacks();
 
 		GLFWwindow* m_window = nullptr;
 
