@@ -18,6 +18,18 @@ namespace ignis
 		Log::Error("This is an error message");
 
 		m_window = Window::Create();
+		m_window->SetEventCallback([this](EventBase& e) { OnEvent(e); });
+
+		m_subscriptions.emplace_back(
+			m_dispatcher.Subscribe<WindowCloseEvent>(
+				[this](WindowCloseEvent& e) { OnWindowClose(e); }
+			)
+		);
+		m_subscriptions.emplace_back(
+			m_dispatcher.Subscribe<WindowResizeEvent>(
+				[this](WindowResizeEvent& e) { OnWindowResize(e); }
+			)
+		);
 	}
 
 	Application::~Application()
@@ -37,5 +49,22 @@ namespace ignis
 		}
 		
 		Log::CoreInfoTag("Core", "Application main loop ended");
+	}
+
+	void Application::OnEvent(EventBase& e)
+	{
+		Log::CoreInfoTag("Core", "Event received in Application");
+		m_dispatcher.Dispatch(e);
+	}
+
+	void Application::OnWindowClose(WindowCloseEvent& e)
+	{
+		Log::CoreInfoTag("Core", "Window close event received");
+		m_running = false;
+	}
+
+	void Application::OnWindowResize(WindowResizeEvent& e)
+	{
+		Log::CoreInfoTag("Core", "Window resize event received");
 	}
 }
