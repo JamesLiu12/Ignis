@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "Application.h"
+#include "Ignis/ImGui/ImGuiLayer.h"
+#include "Ignis/Debug/EngineStatsPanel.h"
 
 namespace ignis 
 {
@@ -19,6 +21,13 @@ namespace ignis
 
 		m_window = Window::Create();
 		m_window->SetEventCallback([this](EventBase& e) { OnEvent(e); });
+
+		// Initialize ImGui layer
+		m_imgui_layer = ImGuiLayer::Create();
+		PushOverlay(std::unique_ptr<Layer>(m_imgui_layer.release()));
+
+		// Create debug panel (starts hidden by default)
+		m_debug_panel = std::make_unique<EngineStatsPanel>();
 
 		m_subscriptions.emplace_back(
 			m_dispatcher.Subscribe<WindowCloseEvent>(
@@ -42,9 +51,34 @@ namespace ignis
 	{
 		Log::CoreInfoTag("Core", "Application main loop started");
 		
-		// Simple application loop with sleep to prevent 100% CPU usage
 		while (m_running)
 		{
+			// Update all layers
+			for (auto& layer : m_layer_stack)
+			{
+				layer->OnUpdate();
+			}
+
+			// ImGui rendering
+			if (m_imgui_layer)
+			{
+				m_imgui_layer->Begin();
+				
+				// Render debug window only if enabled
+				if (m_debug_panel && m_show_debug_window)
+				{
+					m_debug_panel->OnImGuiRender(m_show_debug_window);
+				}
+
+				// Render all layer ImGui
+				for (auto& layer : m_layer_stack)
+				{
+					layer->OnImGuiRender();
+				}
+
+				m_imgui_layer->End();
+			}
+
 			m_window->OnUpdate();
 		}
 		
@@ -54,6 +88,14 @@ namespace ignis
 	void Application::OnEvent(EventBase& e)
 	{
 		Log::CoreInfoTag("Core", "Event received in Application");
+		
+		for (auto it = m_layer_stack.rbegin(); it != m_layer_stack.rend(); ++it)
+		{
+			if (e.Handled)
+				break;
+			(*it)->OnEvent(e);
+		}
+
 		m_dispatcher.Dispatch(e);
 	}
 
@@ -66,5 +108,15 @@ namespace ignis
 	void Application::OnWindowResize(WindowResizeEvent& e)
 	{
 		Log::CoreInfoTag("Core", "Window resize event received");
+	}
+
+	void Application::PushLayer(std::unique_ptr<Layer> layer)
+	{
+		m_layer_stack.PushLayer(std::move(layer));
+	}
+
+	void Application::PushOverlay(std::unique_ptr<Layer> overlay)
+	{
+		m_layer_stack.PushOverlay(std::move(overlay));
 	}
 }

@@ -35,3 +35,11 @@
 #include <spdlog/sinks/basic_file_sink.h>
 
 #include "Ignis/Core/Log.h"
+
+// ImGui headers
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+
+// GLFW headers
+#include <GLFW/glfw3.h>
