@@ -3,6 +3,7 @@
 #include "Ignis/ImGui/ImGuiLayer.h"
 #include "Ignis/Debug/EngineStatsPanel.h"
 #include "Ignis/Core/Events/KeyEvents.h"
+#include "Input.h"
 
 // OpenGL headers
 #ifdef __APPLE__
@@ -70,6 +71,17 @@ namespace ignis
 			for (auto& layer : m_layer_stack)
 			{
 				layer->OnUpdate();
+			}
+
+			if (Input::IsKeyPressed(KeyCode::A))
+			{
+				Log::CoreInfo("Key 'A' is currently pressed.");
+			}
+
+			if (Input::IsMouseButtonPressed(MouseButton::Left))
+			{
+				auto [x, y] = Input::GetMousePosition();
+				Log::CoreInfo("Left mouse button is currently pressed at position ({}, {}).", x, y);
 			}
 
 			// ImGui rendering
