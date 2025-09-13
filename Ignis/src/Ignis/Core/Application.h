@@ -42,9 +42,9 @@ namespace ignis {
 		std::unique_ptr<Window> m_window;
 		EventDispatcher m_dispatcher;
 		LayerStack m_layer_stack;
-		std::unique_ptr<class ImGuiLayer> m_imgui_layer;
+		class ImGuiLayer* m_imgui_layer;
 		std::unique_ptr<class EngineStatsPanel> m_debug_panel;
-		bool m_show_debug_window = false;  // Set to false by default - can be toggled
+		bool m_show_debug_window = true;  // Set to true to show debug window by default
 		std::vector<EventDispatcher::Subscription> m_subscriptions;
 	};
 }
