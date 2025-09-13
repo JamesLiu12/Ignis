@@ -19,7 +19,7 @@ if(APPLE)
 elseif(WIN32)
     # Link OpenGL library on Windows
     target_link_libraries(Ignis PUBLIC opengl32)
-elseif(UNIX AND NOT APPLE)
+elseif(UNIX)
     # Link OpenGL library on Linux
     find_package(OpenGL REQUIRED)
     target_link_libraries(Ignis PUBLIC OpenGL::GL)
