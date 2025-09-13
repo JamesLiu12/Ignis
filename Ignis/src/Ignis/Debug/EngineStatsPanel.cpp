@@ -3,6 +3,9 @@
 #include "Ignis/Core/Application.h"
 #include <format>
 
+// ImGui headers
+#include <imgui.h>
+
 namespace ignis {
 
 	EngineStatsPanel::EngineStatsPanel()

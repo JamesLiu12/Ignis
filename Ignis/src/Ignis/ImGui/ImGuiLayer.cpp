@@ -2,6 +2,9 @@
 #include "ImGuiLayer.h"
 #include "Ignis/Platform/GLFW/GlfwImGuiLayer.h"
 
+// ImGui headers
+#include <imgui.h>
+
 namespace ignis {
 
 	std::unique_ptr<ImGuiLayer> ImGuiLayer::Create()

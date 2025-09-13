@@ -2,6 +2,20 @@
 #include "GlfwImGuiLayer.h"
 #include "Ignis/Core/Application.h"
 
+// ImGui headers
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+
+// OpenGL headers
+#ifdef __APPLE__
+    #define GL_GLEXT_PROTOTYPES
+    #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
+    #include <OpenGL/gl3.h>
+#else
+    #include <GL/gl.h>
+#endif
+
 namespace ignis {
 
 	GlfwImGuiLayer::GlfwImGuiLayer()
