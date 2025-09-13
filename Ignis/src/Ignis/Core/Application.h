@@ -3,6 +3,7 @@
 #include "Ignis/Events/Event.h"
 #include "Window.h"
 #include "LayerStack.h"
+#include "Ignis/Events/WindowEvents.h"
 
 namespace ignis {
 
