@@ -8,7 +8,7 @@ namespace ignis {
 	class Layer
 	{
 	public:
-		Layer(const std::string& name = "Layer");
+		explicit Layer(const std::string& name = "Layer") : m_debug_name(name) {}
 		virtual ~Layer() = default;
 
 		virtual void OnAttach() {}
