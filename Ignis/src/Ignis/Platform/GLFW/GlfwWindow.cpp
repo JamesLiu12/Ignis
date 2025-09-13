@@ -19,6 +19,12 @@ namespace ignis
 			return;
 		}
 
+		// Set OpenGL version hints for macOS compatibility
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Required on macOS
+
 		m_window = glfwCreateWindow((int)props.Width, (int)props.Height, m_data.Title.c_str(), nullptr, nullptr);
 
 		if (!m_window)
@@ -63,6 +69,7 @@ namespace ignis
 		glfwSetWindowCloseCallback(m_window, [](GLFWwindow* window)
 			{
 				WindowData* data = (WindowData*)glfwGetWindowUserPointer(window);
+				Log::CoreInfo("GLFW window close callback triggered");
 				WindowCloseEvent event;
 				data->EventCallback(event);
 			});

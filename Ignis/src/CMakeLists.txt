@@ -12,6 +12,11 @@ target_link_libraries(Ignis PUBLIC
      imgui
 )
 
+# Link OpenGL framework on macOS
+if(APPLE)
+    target_link_libraries(Ignis PUBLIC "-framework OpenGL")
+endif()
+
 target_include_directories(Ignis PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}
 )
