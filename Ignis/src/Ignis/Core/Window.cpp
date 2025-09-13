@@ -1,7 +1,7 @@
 #include "Window.h"
-#include "Ignis/Events/WindowEvents.h"
-#include "Ignis/Events/KeyEvents.h"
-#include "Ignis/Events/MouseEvents.h"
+#include "Ignis/Core/Events/WindowEvents.h"
+#include "Ignis/Core/Events/KeyEvents.h"
+#include "Ignis/Core/Events/MouseEvents.h"
 
 // OpenGL headers
 #ifdef __APPLE__
