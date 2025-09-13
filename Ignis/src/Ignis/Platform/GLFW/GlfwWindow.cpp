@@ -4,6 +4,16 @@
 #include "Ignis/Events/KeyEvents.h"
 #include "Ignis/Events/MouseEvents.h"
 
+// OpenGL headers
+#ifdef __APPLE__
+    #define GL_SILENCE_DEPRECATION
+    #define GL_GLEXT_PROTOTYPES
+    #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
+    #include <OpenGL/gl3.h>
+#else
+    #include <GL/gl.h>
+#endif
+
 namespace ignis
 {
 	GlfwWindow::GlfwWindow(const WindowProps& props)
@@ -18,6 +28,14 @@ namespace ignis
 			Log::CoreError("Could not initialize GLFW!");
 			return;
 		}
+
+		// Set OpenGL version hints for macOS compatibility
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#ifdef __APPLE__
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Required on macOS
+#endif
 
 		m_window = glfwCreateWindow((int)props.Width, (int)props.Height, m_data.Title.c_str(), nullptr, nullptr);
 
@@ -63,6 +81,7 @@ namespace ignis
 		glfwSetWindowCloseCallback(m_window, [](GLFWwindow* window)
 			{
 				WindowData* data = (WindowData*)glfwGetWindowUserPointer(window);
+				Log::CoreInfo("GLFW window close callback triggered");
 				WindowCloseEvent event;
 				data->EventCallback(event);
 			});
