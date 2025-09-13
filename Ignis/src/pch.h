@@ -46,9 +46,6 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 
-// GLFW headers
-#include <GLFW/glfw3.h>
-
 // OpenGL headers
 #ifdef __APPLE__
     #define GL_GLEXT_PROTOTYPES
