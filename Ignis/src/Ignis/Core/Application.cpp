@@ -3,7 +3,7 @@
 #include "Ignis/ImGui/ImGuiLayer.h"
 #include "Ignis/Debug/EngineStatsPanel.h"
 #include "Ignis/Core/Events/KeyEvents.h"
-#include "input.h"
+#include "Input.h"
 
 // OpenGL headers
 #ifdef __APPLE__
