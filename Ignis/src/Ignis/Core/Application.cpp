@@ -94,7 +94,7 @@ namespace ignis
 
 	void Application::OnEvent(EventBase& e)
 	{
-		// Handle window close event directly
+		// Handle window close event
 		if (auto* closeEvent = dynamic_cast<WindowCloseEvent*>(&e))
 		{
 			Log::CoreInfo("Window close event received in OnEvent - setting m_running to false");

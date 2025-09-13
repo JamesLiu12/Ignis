@@ -1,7 +1,7 @@
 #pragma once
 
 #include "DebugPanel.h"
-#include <chrono>
+#include "pch.h"
 
 namespace ignis {
 
