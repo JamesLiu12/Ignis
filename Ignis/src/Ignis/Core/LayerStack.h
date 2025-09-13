@@ -1,7 +1,6 @@
 #pragma once
 #include "Layer.h"
-#include <vector>
-#include <memory>
+#include "pch.h"
 
 namespace ignis {
     class LayerStack {

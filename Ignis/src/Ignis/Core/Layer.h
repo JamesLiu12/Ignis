@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Ignis/Events/Event.h"
-#include <string>
+#include "pch.h"
 
 namespace ignis {
 
