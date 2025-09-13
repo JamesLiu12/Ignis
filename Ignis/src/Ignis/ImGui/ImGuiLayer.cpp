@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "ImGuiLayer.h"
-#include "Ignis/Platform/GLFW/GlfwImGuiLayer.h"
+#include "Ignis/Platform/OpenGL/ImGui/GLImGuiLayer.h"
 
 // ImGui headers
 #include <imgui.h>
@@ -9,7 +9,7 @@ namespace ignis {
 
 	std::unique_ptr<ImGuiLayer> ImGuiLayer::Create()
 	{
-		return std::make_unique<GlfwImGuiLayer>();
+		return std::make_unique<GLImGuiLayer>();
 	}
 
 	void ImGuiLayer::SetDarkTheme()
