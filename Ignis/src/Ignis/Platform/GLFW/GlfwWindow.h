@@ -21,7 +21,7 @@ namespace ignis
 		void SetVSync(bool enabled) override;
 		bool IsVSync() const override { return m_data.VSync; }
 
-		void* GetNativeHandle() const { return m_window; }
+		void* GetNativeWindow() const override { return m_window; }
 
 	private:
 		void Shutdown();

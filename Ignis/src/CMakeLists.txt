@@ -9,6 +9,7 @@ add_library(Ignis::Ignis ALIAS Ignis)
 target_link_libraries(Ignis PUBLIC
      glfw
      spdlog::spdlog
+     imgui
 )
 
 target_include_directories(Ignis PUBLIC
