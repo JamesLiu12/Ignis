@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "GlfwImGuiLayer.h"
+#include "GLImGuiLayer.h"
 #include "Ignis/Core/Application.h"
 
 // ImGui headers
@@ -19,15 +19,15 @@
 
 namespace ignis {
 
-	GlfwImGuiLayer::GlfwImGuiLayer()
+	GLImGuiLayer::GLImGuiLayer()
 	{
 	}
 
-	GlfwImGuiLayer::~GlfwImGuiLayer()
+	GLImGuiLayer::~GLImGuiLayer()
 	{
 	}
 
-	void GlfwImGuiLayer::OnAttach()
+	void GLImGuiLayer::OnAttach()
 	{
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
@@ -47,21 +47,21 @@ namespace ignis {
 		ImGui_ImplOpenGL3_Init("#version 410");
 	}
 
-	void GlfwImGuiLayer::OnDetach()
+	void GLImGuiLayer::OnDetach()
 	{
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 	}
 
-	void GlfwImGuiLayer::Begin()
+	void GLImGuiLayer::Begin()
 	{
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 	}
 
-	void GlfwImGuiLayer::End()
+	void GLImGuiLayer::End()
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		Application& app = Application::Get();
@@ -72,7 +72,7 @@ namespace ignis {
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
 
-	void GlfwImGuiLayer::OnEvent(EventBase& e)
+	void GLImGuiLayer::OnEvent(EventBase& e)
 	{
 		if (m_block_events)
 		{
