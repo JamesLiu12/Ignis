@@ -1,10 +1,5 @@
 #pragma once
 
-// OpenGL deprecation suppression - must be first
-#ifdef __APPLE__
-    #define GL_SILENCE_DEPRECATION
-#endif
-
 #include <iostream>
 #include <memory>
 #include <algorithm>
