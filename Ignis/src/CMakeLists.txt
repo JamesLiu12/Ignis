@@ -10,7 +10,6 @@ target_link_libraries(Ignis
     PUBLIC
         spdlog::spdlog
         imgui
-    PRIVATE
         glfw
 )
 

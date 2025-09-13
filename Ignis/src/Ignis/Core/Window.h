@@ -1,7 +1,8 @@
 #pragma once
 
+#include <GLFW/glfw3.h>
+
 #include "Ignis/Events/Event.h"
-#include "Ignis/Events/WindowEvents.h"
 
 namespace ignis
 {
@@ -9,42 +10,46 @@ namespace ignis
 	{
 
 	public:
-		struct WindowProps {
-			std::string Title;
-			uint32_t    Width;
-			uint32_t    Height;
-			bool        VSync;
-
-			WindowProps(const std::string& title = "Ignis Engine",
-				uint32_t width = 1920,
-				uint32_t height = 1080,
-				bool vsync = true)
-				: Title(title), Width(width), Height(height), VSync(vsync) {
-			}
-		};
+		struct WindowSpecs
+		{
+			std::string Title = "Ignis Engine";
+			uint32_t    Width = 1920;
+			uint32_t    Height = 1080;
+			bool        VSync = true;
+		};;
 
 		using EventCallbackFn = std::function<void(EventBase&)>;
 
-		virtual ~Window() = default;
+		~Window();
 
-		virtual void OnUpdate() = 0;
+		void OnUpdate();
 
-		virtual uint32_t GetWidth() const = 0;
-		virtual uint32_t GetHeight() const = 0;
+		uint32_t GetWidth() const { return m_data.Width; }
+		uint32_t GetHeight() const { return m_data.Height; }
 
-		virtual void SetEventCallback(const EventCallbackFn& cb) = 0;
+		void SetEventCallback(const EventCallbackFn& cb) { m_data.EventCallback = cb; }
 
-		virtual void SetVSync(bool enabled) = 0;
-		virtual bool IsVSync() const = 0;
+		void SetVSync(bool enabled);
+		bool IsVSync() const { return m_data.VSync; }
 
-		virtual void* GetNativeWindow() const = 0;
+		GLFWwindow* GetNativeWindow() const { return m_window; }
 
-		static std::unique_ptr<Window> Create(const WindowProps& props = WindowProps());
+		static std::unique_ptr<Window> Create(const WindowSpecs& specs = WindowSpecs());
 
-		Window(const Window&) = delete;
-		Window& operator=(const Window&) = delete;
+		Window(const WindowSpecs& specs = WindowSpecs());
+	private:
 
-	protected:
-		Window() = default;
+		void Shutdown();
+		void SetUpCallbacks();
+
+		GLFWwindow* m_window = nullptr;
+
+		struct WindowData
+		{
+			std::string Title;
+			uint32_t Width, Height;
+			bool VSync;
+			EventCallbackFn EventCallback;
+		} m_data;
 	};
 }
