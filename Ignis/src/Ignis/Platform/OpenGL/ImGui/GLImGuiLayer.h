@@ -6,11 +6,11 @@ struct GLFWwindow;
 
 namespace ignis {
 
-	class GlfwImGuiLayer : public ImGuiLayer
+	class GLImGuiLayer : public ImGuiLayer
 	{
 	public:
-		GlfwImGuiLayer();
-		virtual ~GlfwImGuiLayer();
+		GLImGuiLayer();
+		virtual ~GLImGuiLayer();
 
 		void OnAttach() override;
 		void OnDetach() override;
