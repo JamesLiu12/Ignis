@@ -2,7 +2,7 @@
 
 #include <GLFW/glfw3.h>
 
-#include "Ignis/Events/Event.h"
+#include "Ignis/Core/Events/Event.h"
 
 namespace ignis
 {

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Ignis/Events/Event.h"
+#include "Ignis/Core/Events/Event.h"
 #include "Window.h"
 #include "LayerStack.h"
-#include "Ignis/Events/WindowEvents.h"
+#include "Ignis/Core/Events/WindowEvents.h"
 
 namespace ignis {
 
