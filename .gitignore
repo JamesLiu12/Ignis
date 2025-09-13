@@ -22,3 +22,4 @@ logs/
 # Files
 
 *.log
+imgui.ini
