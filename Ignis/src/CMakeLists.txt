@@ -12,9 +12,17 @@ target_link_libraries(Ignis PUBLIC
      imgui
 )
 
-# Link OpenGL framework on macOS
+# Platform-specific OpenGL linking
 if(APPLE)
+    # Link OpenGL framework on macOS
     target_link_libraries(Ignis PUBLIC "-framework OpenGL")
+elseif(WIN32)
+    # Link OpenGL library on Windows
+    target_link_libraries(Ignis PUBLIC opengl32)
+elseif(UNIX AND NOT APPLE)
+    # Link OpenGL library on Linux
+    find_package(OpenGL REQUIRED)
+    target_link_libraries(Ignis PUBLIC OpenGL::GL)
 endif()
 
 target_include_directories(Ignis PUBLIC
