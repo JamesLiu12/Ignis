@@ -11,6 +11,8 @@ target_link_libraries(Ignis
         spdlog::spdlog
         imgui
         glfw
+        glad
+        glm
 )
 
 # Platform-specific OpenGL linking
