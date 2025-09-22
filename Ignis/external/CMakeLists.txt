@@ -34,3 +34,20 @@ target_include_directories(imgui PUBLIC
 
 # ImGui needs GLFW for window management
 target_link_libraries(imgui PRIVATE glfw)
+
+# Bullet Physics
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/bullet3/CMakeLists.txt")
+    # Disable Bullet demos, tests, and extras to speed up build
+    set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
+    set(BUILD_BULLET3 OFF CACHE BOOL "" FORCE)
+    set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
+    set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
+    set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
+    set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
+    set(BUILD_PYBULLET OFF CACHE BOOL "" FORCE)
+    set(BUILD_ENET OFF CACHE BOOL "" FORCE)
+    set(BUILD_CLSOCKET OFF CACHE BOOL "" FORCE)
+    
+    # Add Bullet Physics subdirectory
+    add_subdirectory(bullet3)
+endif()

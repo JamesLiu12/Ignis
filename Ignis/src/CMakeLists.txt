@@ -13,6 +13,16 @@ target_link_libraries(Ignis
         glfw
 )
 
+# Link Bullet Physics libraries if available
+if(TARGET BulletDynamics AND TARGET BulletCollision AND TARGET LinearMath)
+    target_link_libraries(Ignis 
+        PUBLIC
+            BulletDynamics 
+            BulletCollision 
+            LinearMath
+    )
+endif()
+
 # Platform-specific OpenGL linking
 if(APPLE)
     # Link OpenGL framework on macOS
