@@ -75,29 +75,29 @@ namespace ignis
 		// Vertex and fragment shaders are successfully compiled.
 		// Now time to link them together into a program.
 		// Get a program object.
-		GLuint program = glCreateProgram();
+		m_id = glCreateProgram();
 
 		// Attach our shaders to our program
-		glAttachShader(program, vertex_shader);
-		glAttachShader(program, fragment_shader);
+		glAttachShader(m_id, vertex_shader);
+		glAttachShader(m_id, fragment_shader);
 
 		// Link our program
-		glLinkProgram(program);
+		glLinkProgram(m_id);
 
 		// Note the different functions here: glGetProgram* instead of glGetShader*.
 		GLint isLinked = 0;
-		glGetProgramiv(program, GL_LINK_STATUS, (int*)&isLinked);
+		glGetProgramiv(m_id, GL_LINK_STATUS, (int*)&isLinked);
 		if (isLinked == GL_FALSE)
 		{
 			GLint max_length = 0;
-			glGetProgramiv(program, GL_INFO_LOG_LENGTH, &max_length);
+			glGetProgramiv(m_id, GL_INFO_LOG_LENGTH, &max_length);
 
 			// The maxLength includes the NULL character
 			std::vector<GLchar> infoLog(max_length);
-			glGetProgramInfoLog(program, max_length, &max_length, &infoLog[0]);
+			glGetProgramInfoLog(m_id, max_length, &max_length, &infoLog[0]);
 
 			// We don't need the program anymore.
-			glDeleteProgram(program);
+			glDeleteProgram(m_id);
 			// Don't leak shaders either.
 			glDeleteShader(vertex_shader);
 			glDeleteShader(fragment_shader);
@@ -109,8 +109,8 @@ namespace ignis
 		}
 
 		// Always detach shaders after a successful link.
-		glDetachShader(program, vertex_shader);
-		glDetachShader(program, fragment_shader);
+		glDetachShader(m_id, vertex_shader);
+		glDetachShader(m_id, fragment_shader);
 	}
 
 	GLShader::GLShader(const std::string& filepath)

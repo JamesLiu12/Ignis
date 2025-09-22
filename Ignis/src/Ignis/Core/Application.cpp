@@ -1,9 +1,12 @@
-#include "pch.h"
+#include <glad/glad.h>
 #include "Application.h"
 #include "Ignis/ImGui/ImGuiLayer.h"
 #include "Ignis/Debug/EngineStatsPanel.h"
 #include "Ignis/Core/Events/KeyEvents.h"
 #include "Input.h"
+#include "Ignis/Renderer/VertexBuffer.h"
+#include "Ignis/Renderer/Shader.h"
+#include "Ignis/Renderer/RendererContext.h"
 
 // OpenGL headers
 #ifdef __APPLE__
@@ -60,12 +63,68 @@ namespace ignis
 	void Application::Run()
 	{
 		Log::CoreInfoTag("Core", "Application main loop started");
+
+		glfwMakeContextCurrent(static_cast<GLFWwindow*>(m_window->GetNativeWindow()));
+		std::unique_ptr<RendererContext> context = RendererContext::Create();
+		context->Init();
+
+		float vertices[] = {
+			0.0f, 0.5f, 0.0f,
+			-0.5, -0.5f, 0.0f,
+			0.5f, -0.5f, 0.0f
+		};
+
+		//std::shared_ptr<VertexBuffer> vb = VertexBuffer::Create(vertices, sizeof(vertices));
+		unsigned int VBO;
+		glGenBuffers(1, &VBO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+		unsigned int VAO;
+		glGenVertexArrays(1, &VAO);
+		// 1. bind Vertex Array Object
+		glBindVertexArray(VAO);
+		// 2. copy our vertices array in a buffer for OpenGL to use
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		// 3. then set our vertex attributes pointers
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		std::string vertex_source = R"(
+				#version 330 core
+				
+				layout(location = 0) in vec3 aPos;
+				void main()
+				{
+					gl_Position = vec4(aPos, 1.0);
+				}
+			)";
+
+		std::string fragment_source = R"(
+				#version 330 core
+				
+				out vec4 FragColor;
+				void main()
+				{
+					FragColor = vec4(0.8, 0.2, 0.3, 1.0);
+				}
+			)";
 		
+		std::shared_ptr<Shader> shader = Shader::Create(vertex_source, fragment_source);
+
 		while (m_running)
 		{
 			// Clear the screen buffer
 			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);  // Dark gray background
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			//vb->Bind();
+			//shader->Bind();
+
+			shader->Bind();
+			glBindVertexArray(VAO);
+			glDrawArrays(GL_TRIANGLES, 0, 3);
 
 			// Update all layers
 			for (auto& layer : m_layer_stack)
@@ -94,13 +153,13 @@ namespace ignis
 				{
 					m_debug_panel->OnImGuiRender(m_show_debug_window);
 				}
-
+			
 				// Render all layer ImGui
 				for (auto& layer : m_layer_stack)
 				{
 					layer->OnImGuiRender();
 				}
-
+			
 				m_imgui_layer->End();
 			}
 			else
