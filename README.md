@@ -19,24 +19,24 @@ Ignis (Latin for "fire") is a custom game engine built from scratch to understan
 - **Window System** - Cross-platform window and input handling (GLFW)
 - **Renderer** - OpenGL-based graphics pipeline with API abstraction
 - **Entity Component System (ECS)** - Flexible game object management
-- **Physics** - Integration with Bullet Physics/Jolt Physics
+- **Physics** - Integration with Bullet Physics
 - **Audio** - 3D positional audio system (miniaudio)
 - **Asset Pipeline** - Model and texture loading (Assimp)
 - **Level Editor** - Scene creation and manipulation tools
 
 ## 🛠️ Technology Stack
 
-| Component         | Technology                    |
-| ----------------- | ----------------------------- |
-| Graphics API      | OpenGL                        |
-| Window Management | GLFW                          |
-| Physics           | Bullet Physics / Jolt Physics |
-| Audio             | miniaudio                     |
-| Math Library      | GLM                           |
-| Asset Loading     | Assimp                        |
-| GUI               | Dear ImGui                    |
-| Build System      | CMake                         |
-| Logging           | spdlog                        |
+| Component         | Technology     |
+| ----------------- | -------------- |
+| Graphics API      | OpenGL         |
+| Window Management | GLFW           |
+| Physics           | Bullet Physics |
+| Audio             | miniaudio      |
+| Math Library      | GLM            |
+| Asset Loading     | Assimp         |
+| GUI               | Dear ImGui     |
+| Build System      | CMake          |
+| Logging           | spdlog         |
 
 ## 🚀 Getting Started
 
