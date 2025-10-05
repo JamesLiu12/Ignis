@@ -51,3 +51,6 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/bullet3/CMakeLists.txt")
     # Add Bullet Physics subdirectory
     add_subdirectory(bullet3)
 endif()
+add_subdirectory(glad)
+
+add_subdirectory(glm)
