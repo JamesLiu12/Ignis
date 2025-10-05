@@ -4,118 +4,200 @@
 namespace ignis
 {
 
-	GLShader::GLShader(const std::string& vertex_source, const std::string& fragment_source)
+	std::string InjectStageDefine(const std::string& source, const std::string& defineLine)
 	{
-
-		// Create an empty vertex shader handle
-		GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-
-		// Send the vertex shader source code to GL
-		// Note that std::string's .c_str is NULL character terminated.
-		const GLchar* source = (const GLchar*)vertex_source.c_str();
-		glShaderSource(vertex_shader, 1, &source, 0);
-
-		// Compile the vertex shader
-		glCompileShader(vertex_shader);
-
-		GLint is_compiled = 0;
-		glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &is_compiled);
-		if (is_compiled == GL_FALSE)
+		if (defineLine.empty())
 		{
-			GLint max_length = 0;
-			glGetShaderiv(vertex_shader, GL_INFO_LOG_LENGTH, &max_length);
+			return source;
+		}
 
-			// The maxLength includes the NULL character
-			std::vector<GLchar> info_log(max_length);
-			glGetShaderInfoLog(vertex_shader, max_length, &max_length, &info_log[0]);
+		const std::string versionToken = "#version";
+		const std::size_t versionPos = source.find(versionToken);
 
-			// We don't need the shader anymore.
-			glDeleteShader(vertex_shader);
+		if (versionPos != std::string::npos)
+		{
+			const std::size_t lineEnd = source.find('\n', versionPos);
+			if (lineEnd != std::string::npos)
+			{
+				std::string result;
+				result.reserve(source.size() + defineLine.size() + 1);
+				result.append(source.c_str(), lineEnd + 1);
+				result.append(defineLine);
+				if (!defineLine.empty() && defineLine.back() != '\n')
+				{
+					result.push_back('\n');
+				}
+				result.append(source.c_str() + lineEnd + 1);
+				return result;
+			}
+		}
 
-			Log::Error("ERROR::SHADER::VERTEX::COMPILATION_FAILED");
-			Log::Error("{0}", info_log.data());
+		std::string result = defineLine;
+		if (!defineLine.empty() && defineLine.back() != '\n')
+		{
+			result.push_back('\n');
+		}
+		result.append(source);
+		return result;
+	}
 
-			// In this simple program, we'll just leave
+	GLuint CompileShaderStage(GLenum shaderType,
+		const std::string& source,
+		const std::string& defineLine,
+		const char* stageLabel)
+	{
+		const GLuint shader = glCreateShader(shaderType);
+		if (shader == 0)
+		{
+			Log::Error("ERROR::SHADER::{0}::CREATE_FAILED", stageLabel);
+			return 0;
+		}
+
+		const std::string finalSource = InjectStageDefine(source, defineLine);
+		const GLchar* src = finalSource.c_str();
+
+		glShaderSource(shader, 1, &src, nullptr);
+		glCompileShader(shader);
+
+		GLint compileStatus = GL_FALSE;
+		glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
+
+		if (compileStatus == GL_FALSE)
+		{
+			GLint logLength = 0;
+			glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+
+			std::vector<GLchar> infoLog(static_cast<std::size_t>(logLength));
+			if (logLength > 0)
+			{
+				glGetShaderInfoLog(shader, logLength, &logLength, infoLog.data());
+			}
+
+			glDeleteShader(shader);
+
+			Log::Error("ERROR::SHADER::{0}::COMPILATION_FAILED", stageLabel);
+			if (!infoLog.empty())
+			{
+				Log::Error("{0}", infoLog.data());
+			}
+
+			return 0;
+		}
+
+		return shader;
+	}
+
+	GLuint LinkProgram(GLuint vertexShader, GLuint fragmentShader)
+	{
+		const GLuint program = glCreateProgram();
+		if (program == 0)
+		{
+			Log::Error("ERROR::SHADER::PROGRAM::CREATE_FAILED");
+			glDeleteShader(vertexShader);
+			glDeleteShader(fragmentShader);
+			return 0;
+		}
+
+		glAttachShader(program, vertexShader);
+		glAttachShader(program, fragmentShader);
+		glLinkProgram(program);
+
+		GLint linkStatus = GL_FALSE;
+		glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
+
+		if (linkStatus == GL_FALSE)
+		{
+			GLint logLength = 0;
+			glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+
+			std::vector<GLchar> infoLog(static_cast<std::size_t>(logLength));
+			if (logLength > 0)
+			{
+				glGetProgramInfoLog(program, logLength, &logLength, infoLog.data());
+			}
+
+			glDetachShader(program, vertexShader);
+			glDetachShader(program, fragmentShader);
+			glDeleteProgram(program);
+			glDeleteShader(vertexShader);
+			glDeleteShader(fragmentShader);
+
+			Log::Error("ERROR::SHADER::PROGRAM::LINK_FAILED");
+			if (!infoLog.empty())
+			{
+				Log::Error("{0}", infoLog.data());
+			}
+
+			return 0;
+		}
+
+		glDetachShader(program, vertexShader);
+		glDetachShader(program, fragmentShader);
+		glDeleteShader(vertexShader);
+		glDeleteShader(fragmentShader);
+
+		return program;
+	}
+
+	std::string ReadFileToString(const std::string& filepath)
+	{
+		std::ifstream file(filepath, std::ios::in | std::ios::binary);
+		if (!file.is_open())
+		{
+			Log::Error("ERROR::SHADER::IO::FAILED_TO_OPEN_FILE {0}", filepath);
+			return {};
+		}
+
+		std::ostringstream ss;
+		ss << file.rdbuf();
+		return ss.str();
+	}
+
+	GLShader::GLShader(const std::string& vertex_source, const std::string& fragment_source)
+		: m_id(0)
+	{
+		const GLuint vertexShader = CompileShaderStage(GL_VERTEX_SHADER, vertex_source, "", "VERTEX");
+		if (vertexShader == 0)
+		{
 			return;
 		}
 
-		// Create an empty fragment shader handle
-		GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-
-		// Send the fragment shader source code to GL
-		// Note that std::string's .c_str is NULL character terminated.
-		source = (const GLchar*)fragment_source.c_str();
-		glShaderSource(fragment_shader, 1, &source, 0);
-
-		// Compile the fragment shader
-		glCompileShader(fragment_shader);
-
-		glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &is_compiled);
-		if (is_compiled == GL_FALSE)
+		const GLuint fragmentShader = CompileShaderStage(GL_FRAGMENT_SHADER, fragment_source, "", "FRAGMENT");
+		if (fragmentShader == 0)
 		{
-			GLint max_length = 0;
-			glGetShaderiv(fragment_shader, GL_INFO_LOG_LENGTH, &max_length);
-
-			// The maxLength includes the NULL character
-			std::vector<GLchar> info_log(max_length);
-			glGetShaderInfoLog(fragment_shader, max_length, &max_length, &info_log[0]);
-
-			// We don't need the shader anymore.
-			glDeleteShader(fragment_shader);
-			// Either of them. Don't leak shaders.
-			glDeleteShader(vertex_shader);
-
-			Log::Error("ERROR::SHADER::VERTEX::COMPILATION_FAILED");
-			Log::Error("{0}", info_log.data());
-
-			// In this simple program, we'll just leave
+			glDeleteShader(vertexShader);
 			return;
 		}
 
-		// Vertex and fragment shaders are successfully compiled.
-		// Now time to link them together into a program.
-		// Get a program object.
-		m_id = glCreateProgram();
-
-		// Attach our shaders to our program
-		glAttachShader(m_id, vertex_shader);
-		glAttachShader(m_id, fragment_shader);
-
-		// Link our program
-		glLinkProgram(m_id);
-
-		// Note the different functions here: glGetProgram* instead of glGetShader*.
-		GLint isLinked = 0;
-		glGetProgramiv(m_id, GL_LINK_STATUS, (int*)&isLinked);
-		if (isLinked == GL_FALSE)
-		{
-			GLint max_length = 0;
-			glGetProgramiv(m_id, GL_INFO_LOG_LENGTH, &max_length);
-
-			// The maxLength includes the NULL character
-			std::vector<GLchar> infoLog(max_length);
-			glGetProgramInfoLog(m_id, max_length, &max_length, &infoLog[0]);
-
-			// We don't need the program anymore.
-			glDeleteProgram(m_id);
-			// Don't leak shaders either.
-			glDeleteShader(vertex_shader);
-			glDeleteShader(fragment_shader);
-
-			// Use the infoLog as you see fit.
-
-			// In this simple program, we'll just leave
-			return;
-		}
-
-		// Always detach shaders after a successful link.
-		glDetachShader(m_id, vertex_shader);
-		glDetachShader(m_id, fragment_shader);
+		m_id = LinkProgram(vertexShader, fragmentShader);
 	}
 
 	GLShader::GLShader(const std::string& filepath)
+		: m_id(0)
 	{
-		// TODO: Implement shader loading from file
+		const std::string combinedSource = ReadFileToString(filepath);
+		if (combinedSource.empty())
+		{
+			return;
+		}
+
+		const std::string vertexDefine = "#define VERTEX_STAGE 1\n";
+		const std::string fragmentDefine = "#define FRAGMENT_STAGE 1\n";
+
+		const GLuint vertexShader = CompileShaderStage(GL_VERTEX_SHADER, combinedSource, vertexDefine, "VERTEX");
+		if (vertexShader == 0)
+		{
+			return;
+		}
+
+		const GLuint fragmentShader = CompileShaderStage(GL_FRAGMENT_SHADER, combinedSource, fragmentDefine, "FRAGMENT");
+		if (fragmentShader == 0)
+		{
+			glDeleteShader(vertexShader);
+			return;
+		}
+
+		m_id = LinkProgram(vertexShader, fragmentShader);
 	}
 
 	GLShader::~GLShader()
