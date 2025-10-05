@@ -34,3 +34,7 @@ target_include_directories(imgui PUBLIC
 
 # ImGui needs GLFW for window management
 target_link_libraries(imgui PRIVATE glfw)
+
+add_subdirectory(glad)
+
+add_subdirectory(glm)

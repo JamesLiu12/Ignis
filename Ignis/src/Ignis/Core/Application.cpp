@@ -1,19 +1,15 @@
-#include "pch.h"
+#include <glad/glad.h>
 #include "Application.h"
 #include "Ignis/ImGui/ImGuiLayer.h"
 #include "Ignis/Debug/EngineStatsPanel.h"
 #include "Ignis/Core/Events/KeyEvents.h"
 #include "Input.h"
+#include "Ignis/Renderer/VertexBuffer.h"
+#include "Ignis/Renderer/Shader.h"
+#include "Ignis/Renderer/RendererContext.h"
+#include "Ignis/Renderer/VertexArray.h"
+#include "Ignis/Renderer/IndexBuffer.h"
 
-// OpenGL headers
-#ifdef __APPLE__
-    #define GL_SILENCE_DEPRECATION
-    #define GL_GLEXT_PROTOTYPES
-    #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
-    #include <OpenGL/gl3.h>
-#else
-    #include <GL/gl.h>
-#endif
 
 namespace ignis 
 {
@@ -60,12 +56,47 @@ namespace ignis
 	void Application::Run()
 	{
 		Log::CoreInfoTag("Core", "Application main loop started");
+
+		glfwMakeContextCurrent(static_cast<GLFWwindow*>(m_window->GetNativeWindow()));
+		std::unique_ptr<RendererContext> context = RendererContext::Create();
+		context->Init();
+
+		float vertices[] = {
+			-0.5f, 0.5f, 0.0f,
+			-0.5, -0.5f, 0.0f,
+			0.5f, -0.5f, 0.0f,
+			0.5f, 0.5f, 0.0f
+		};
+
+		uint32_t indices [] = {
+			0, 1, 2,
+			2, 3, 0
+		};
+
+		std::shared_ptr<VertexBuffer> vb = VertexBuffer::Create(vertices, sizeof(vertices));
+		vb->SetLayout(VertexBuffer::Layout({ VertexBuffer::Attribute(0, Shader::DataType::Float3) }));
+
+		std::shared_ptr<IndexBuffer> ib;
+		ib = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
+
+		std::shared_ptr<VertexArray> va = VertexArray::Create();
+		va->AddVertexBuffer(vb);
+		va->SetIndexBuffer(ib);
+
+		std::string shader_path = "assets/shaders/example.glsl";
 		
+		std::shared_ptr<Shader> shader = Shader::CreateFromFile(shader_path);
+
 		while (m_running)
 		{
 			// Clear the screen buffer
 			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);  // Dark gray background
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+			shader->Bind();
+			va->Bind();
+			glDrawElements(GL_TRIANGLES, va->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
 
 			// Update all layers
 			for (auto& layer : m_layer_stack)
@@ -94,13 +125,13 @@ namespace ignis
 				{
 					m_debug_panel->OnImGuiRender(m_show_debug_window);
 				}
-
+			
 				// Render all layer ImGui
 				for (auto& layer : m_layer_stack)
 				{
 					layer->OnImGuiRender();
 				}
-
+			
 				m_imgui_layer->End();
 			}
 			else
