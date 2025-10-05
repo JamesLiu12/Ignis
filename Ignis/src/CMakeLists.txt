@@ -11,6 +11,8 @@ target_link_libraries(Ignis
         spdlog::spdlog
         imgui
         glfw
+        glad
+        glm
 )
 
 # Link Bullet Physics libraries if available
