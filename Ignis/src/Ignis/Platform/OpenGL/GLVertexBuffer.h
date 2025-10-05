@@ -19,6 +19,6 @@ namespace ignis
 		void SetData(float* data, size_t size) override;
 
 	private:
-		unsigned int m_id = 0;
+		uint32_t m_id = 0;
 	};
 }

@@ -31,6 +31,6 @@ namespace ignis
 		void Set(const std::string& name, const glm::mat4& matrix);
 
 	private:
-		unsigned int m_id = 0;
+		uint32_t m_id = 0;
 	};
 }

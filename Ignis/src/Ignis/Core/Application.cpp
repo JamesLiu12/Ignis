@@ -8,6 +8,7 @@
 #include "Ignis/Renderer/Shader.h"
 #include "Ignis/Renderer/RendererContext.h"
 #include "Ignis/Renderer/VertexArray.h"
+#include "Ignis/Renderer/IndexBuffer.h"
 
 // OpenGL headers
 #ifdef __APPLE__
@@ -70,30 +71,26 @@ namespace ignis
 		context->Init();
 
 		float vertices[] = {
-			0.0f, 0.5f, 0.0f,
+			-0.5f, 0.5f, 0.0f,
 			-0.5, -0.5f, 0.0f,
-			0.5f, -0.5f, 0.0f
+			0.5f, -0.5f, 0.0f,
+			0.5f, 0.5f, 0.0f
+		};
+
+		uint32_t indices [] = {
+			0, 1, 2,
+			2, 3, 0
 		};
 
 		std::shared_ptr<VertexBuffer> vb = VertexBuffer::Create(vertices, sizeof(vertices));
 		vb->SetLayout(VertexBuffer::Layout({ VertexBuffer::Attribute(0, Shader::DataType::Float3) }));
-		//unsigned int VBO;
-		//glGenBuffers(1, &VBO);
-		//glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-		//unsigned int VAO;
-		//glGenVertexArrays(1, &VAO);
-		//// 1. bind Vertex Array Object
-		//glBindVertexArray(VAO);
-		//// 2. copy our vertices array in a buffer for OpenGL to use
-		//glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-		//// 3. then set our vertex attributes pointers
-		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-		//glEnableVertexAttribArray(0);
+		std::shared_ptr<IndexBuffer> ib;
+		ib = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
+
 		std::shared_ptr<VertexArray> va = VertexArray::Create();
 		va->AddVertexBuffer(vb);
+		va->SetIndexBuffer(ib);
 
 		std::string vertex_source = R"(
 				#version 330 core
@@ -123,13 +120,10 @@ namespace ignis
 			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);  // Dark gray background
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			//vb->Bind();
-			//shader->Bind();
 
 			shader->Bind();
-			//glBindVertexArray(VAO);
 			va->Bind();
-			glDrawArrays(GL_TRIANGLES, 0, 3);
+			glDrawElements(GL_TRIANGLES, va->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
 
 			// Update all layers
 			for (auto& layer : m_layer_stack)

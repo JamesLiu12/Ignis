@@ -103,4 +103,11 @@ namespace ignis
 		m_vertex_buffers.push_back(vertex_buffer);
 	}
 
+	void GLVertexArray::SetIndexBuffer(const std::shared_ptr<IndexBuffer>& index_buffer)
+	{
+		glBindVertexArray(m_id);
+		index_buffer->Bind();
+		m_index_buffer = index_buffer;
+	}
+
 }
