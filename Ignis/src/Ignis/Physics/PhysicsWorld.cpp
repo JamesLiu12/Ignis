@@ -4,11 +4,11 @@
 namespace ignis {
 
 	PhysicsWorld::PhysicsWorld()
-		: m_collisionConfiguration(nullptr)
+		: m_collision_configuration(nullptr)
 		, m_dispatcher(nullptr)
 		, m_broadphase(nullptr)
 		, m_solver(nullptr)
-		, m_dynamicsWorld(nullptr)
+		, m_dynamics_world(nullptr)
 		, m_initialized(false)
 	{
 	}
@@ -27,10 +27,10 @@ namespace ignis {
 		}
 
 		// Step 1: Create collision configuration
-		m_collisionConfiguration = new btDefaultCollisionConfiguration();
+		m_collision_configuration = new btDefaultCollisionConfiguration();
 
 		// Step 2: Create collision dispatcher
-		m_dispatcher = new btCollisionDispatcher(m_collisionConfiguration);
+		m_dispatcher = new btCollisionDispatcher(m_collision_configuration);
 
 		// Step 3: Create broadphase (spatial optimization)
 		m_broadphase = new btDbvtBroadphase();
@@ -39,15 +39,15 @@ namespace ignis {
 		m_solver = new btSequentialImpulseConstraintSolver();
 
 		// Step 5: Create dynamics world
-		m_dynamicsWorld = new btDiscreteDynamicsWorld(
+		m_dynamics_world = new btDiscreteDynamicsWorld(
 			m_dispatcher,
 			m_broadphase,
 			m_solver,
-			m_collisionConfiguration
+			m_collision_configuration
 		);
 
 		// Step 6: Set default gravity
-		m_dynamicsWorld->setGravity(btVector3(0.0f, -9.81f, 0.0f));
+		m_dynamics_world->setGravity(btVector3(0.0f, -9.81f, 0.0f));
 
 		m_initialized = true;
 		Log::CoreInfo("PhysicsWorld initialized successfully");
@@ -62,23 +62,23 @@ namespace ignis {
 		m_bodies.clear();
 
 		// Delete dynamics world
-		if (m_dynamicsWorld)
+		if (m_dynamics_world)
 		{
 			// Remove all remaining collision objects
-			for (int i = m_dynamicsWorld->getNumCollisionObjects() - 1; i >= 0; i--)
+			for (int i = m_dynamics_world->getNumCollisionObjects() - 1; i >= 0; i--)
 			{
-				btCollisionObject* obj = m_dynamicsWorld->getCollisionObjectArray()[i];
+				btCollisionObject* obj = m_dynamics_world->getCollisionObjectArray()[i];
 				btRigidBody* body = btRigidBody::upcast(obj);
 				if (body && body->getMotionState())
 				{
 					delete body->getMotionState();
 				}
-				m_dynamicsWorld->removeCollisionObject(obj);
+				m_dynamics_world->removeCollisionObject(obj);
 				delete obj;
 			}
 
-			delete m_dynamicsWorld;
-			m_dynamicsWorld = nullptr;
+			delete m_dynamics_world;
+			m_dynamics_world = nullptr;
 		}
 
 		// Delete solver
@@ -94,32 +94,31 @@ namespace ignis {
 		m_dispatcher = nullptr;
 
 		// Delete collision configuration
-		delete m_collisionConfiguration;
-		m_collisionConfiguration = nullptr;
+		delete m_collision_configuration;
+		m_collision_configuration = nullptr;
 
 		m_initialized = false;
 		Log::CoreInfo("PhysicsWorld shutdown complete");
 	}
 
-	void PhysicsWorld::Step(float deltaTime)
+	void PhysicsWorld::Step(float delta_time)
 	{
-		if (!m_initialized || !m_dynamicsWorld)
+		if (!m_initialized || !m_dynamics_world)
 			return;
 
 		// Step the simulation
-		// Parameters: timeStep, maxSubSteps
-		m_dynamicsWorld->stepSimulation(deltaTime, 10);
+		m_dynamics_world->stepSimulation(delta_time, 10);
 	}
 
 	std::shared_ptr<PhysicsBody> PhysicsWorld::CreateBody(const RigidBodyDesc& desc)
 	{
-		if (!m_initialized || !m_dynamicsWorld)
+		if (!m_initialized || !m_dynamics_world)
 		{
 			Log::CoreError("Cannot create body: PhysicsWorld not initialized!");
 			return nullptr;
 		}
 
-		auto body = std::make_shared<PhysicsBody>(desc, m_dynamicsWorld);
+		auto body = std::make_shared<PhysicsBody>(desc, m_dynamics_world);
 		m_bodies.push_back(body);
 
 		Log::CoreTrace("Created physics body (total: {})", m_bodies.size());
@@ -141,17 +140,17 @@ namespace ignis {
 
 	void PhysicsWorld::SetGravity(const glm::vec3& gravity)
 	{
-		if (m_dynamicsWorld)
+		if (m_dynamics_world)
 		{
-			m_dynamicsWorld->setGravity(PhysicsUtils::ToBullet(gravity));
+			m_dynamics_world->setGravity(PhysicsUtils::ToBullet(gravity));
 		}
 	}
 
 	glm::vec3 PhysicsWorld::GetGravity() const
 	{
-		if (m_dynamicsWorld)
+		if (m_dynamics_world)
 		{
-			return PhysicsUtils::ToGLM(m_dynamicsWorld->getGravity());
+			return PhysicsUtils::ToGLM(m_dynamics_world->getGravity());
 		}
 		return glm::vec3(0.0f, -9.81f, 0.0f);
 	}

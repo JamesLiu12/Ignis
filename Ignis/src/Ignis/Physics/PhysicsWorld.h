@@ -34,9 +34,9 @@ namespace ignis {
 
 		/**
 		 * @brief Step the physics simulation forward
-		 * @param deltaTime Time step in seconds
+		 * @param delta_time Time step in seconds
 		 */
-		void Step(float deltaTime);
+		void Step(float delta_time);
 
 		/**
 		 * @brief Create a rigid body in the physics world
@@ -74,11 +74,11 @@ namespace ignis {
 
 	private:
 		// Bullet Physics components
-		btDefaultCollisionConfiguration* m_collisionConfiguration;
+		btDefaultCollisionConfiguration* m_collision_configuration;
 		btCollisionDispatcher* m_dispatcher;
 		btBroadphaseInterface* m_broadphase;
 		btSequentialImpulseConstraintSolver* m_solver;
-		btDiscreteDynamicsWorld* m_dynamicsWorld;
+		btDiscreteDynamicsWorld* m_dynamics_world;
 
 		// All bodies in the world
 		std::vector<std::shared_ptr<PhysicsBody>> m_bodies;

@@ -50,8 +50,8 @@ namespace ignis {
 		bool m_show_debug_window = true;  // Set to true to show debug window by default
 
 		void CreatePhysicsTestScene();
-		std::unique_ptr<class PhysicsWorld> m_physicsWorld;
-		std::unique_ptr<class PhysicsDebugPanel> m_physicsDebugPanel;
+		std::unique_ptr<class PhysicsWorld> m_physics_world;
+		std::unique_ptr<class PhysicsDebugPanel> m_physics_debug_panel;
 		bool m_show_physics_debug = true;
 		std::vector<EventDispatcher::Subscription> m_subscriptions;
 	};
