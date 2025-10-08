@@ -7,6 +7,9 @@
 [submodule "Ignis/external/imgui"]
 	path = Ignis/external/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "Ignis/external/bullet3"]
+	path = Ignis/external/bullet3
+	url = https://github.com/bulletphysics/bullet3.git
 [submodule "Ignis/external/glm"]
 	path = Ignis/external/glm
 	url = https://github.com/g-truc/glm

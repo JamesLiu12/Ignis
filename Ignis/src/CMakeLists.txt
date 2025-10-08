@@ -13,6 +13,13 @@ target_link_libraries(Ignis
         glfw
         glad
         glm
+        BulletDynamics 
+        BulletCollision 
+        LinearMath
+)
+
+target_include_directories(Ignis PUBLIC
+    ${BULLET_PHYSICS_SOURCE_DIR}/src
 )
 
 # Platform-specific OpenGL linking
