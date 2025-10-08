@@ -4,7 +4,7 @@
 namespace ignis {
 
 	PhysicsBody::PhysicsBody(const RigidBodyDesc& desc, btDiscreteDynamicsWorld* world)
-		: m_rigidBody(nullptr)
+		: m_rigid_body(nullptr)
 		, m_shape(nullptr)
 		, m_world(world)
 		, m_type(desc.type)
@@ -14,58 +14,58 @@ namespace ignis {
 		CreateCollisionShape(desc);
 
 		// Calculate local inertia
-		btVector3 localInertia(0, 0, 0);
+		btVector3 local_inertia(0, 0, 0);
 		float mass = (desc.type == BodyType::Dynamic) ? desc.mass : 0.0f;
 		if (mass > 0.0f && m_shape)
 		{
-			m_shape->calculateLocalInertia(mass, localInertia);
+			m_shape->calculateLocalInertia(mass, local_inertia);
 		}
 
 		// Create motion state
-		btTransform startTransform;
-		startTransform.setIdentity();
-		startTransform.setOrigin(PhysicsUtils::ToBullet(desc.position));
-		startTransform.setRotation(PhysicsUtils::ToBullet(desc.rotation));
+		btTransform start_transform;
+		start_transform.setIdentity();
+		start_transform.setOrigin(PhysicsUtils::ToBullet(desc.position));
+		start_transform.setRotation(PhysicsUtils::ToBullet(desc.rotation));
 
-		btDefaultMotionState* motionState = new btDefaultMotionState(startTransform);
+		btDefaultMotionState* motion_state = new btDefaultMotionState(start_transform);
 
 		// Create rigid body
-		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, m_shape, localInertia);
-		rbInfo.m_friction = desc.friction;
-		rbInfo.m_restitution = desc.restitution;
+		btRigidBody::btRigidBodyConstructionInfo rb_info(mass, motion_state, m_shape, local_inertia);
+		rb_info.m_friction = desc.friction;
+		rb_info.m_restitution = desc.restitution;
 
-		m_rigidBody = new btRigidBody(rbInfo);
+		m_rigid_body = new btRigidBody(rb_info);
 
 		// Set kinematic flag if needed
 		if (desc.type == BodyType::Kinematic)
 		{
-			m_rigidBody->setCollisionFlags(m_rigidBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-			m_rigidBody->setActivationState(DISABLE_DEACTIVATION);
+			m_rigid_body->setCollisionFlags(m_rigid_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			m_rigid_body->setActivationState(DISABLE_DEACTIVATION);
 		}
 
 		// Add to world
 		if (m_world)
 		{
-			m_world->addRigidBody(m_rigidBody);
+			m_world->addRigidBody(m_rigid_body);
 		}
 	}
 
 	PhysicsBody::~PhysicsBody()
 	{
 		// Remove from world
-		if (m_world && m_rigidBody)
+		if (m_world && m_rigid_body)
 		{
-			m_world->removeRigidBody(m_rigidBody);
+			m_world->removeRigidBody(m_rigid_body);
 		}
 
 		// Delete rigid body
-		if (m_rigidBody)
+		if (m_rigid_body)
 		{
-			if (m_rigidBody->getMotionState())
+			if (m_rigid_body->getMotionState())
 			{
-				delete m_rigidBody->getMotionState();
+				delete m_rigid_body->getMotionState();
 			}
-			delete m_rigidBody;
+			delete m_rigid_body;
 		}
 
 		// Delete collision shape
@@ -81,8 +81,8 @@ namespace ignis {
 		{
 			case ShapeType::Box:
 			{
-				btVector3 halfExtents = PhysicsUtils::ToBullet(desc.size * 0.5f);
-				m_shape = new btBoxShape(halfExtents);
+				btVector3 half_extents = PhysicsUtils::ToBullet(desc.size * 0.5f);
+				m_shape = new btBoxShape(half_extents);
 				break;
 			}
 			case ShapeType::Sphere:
@@ -107,154 +107,154 @@ namespace ignis {
 
 	void PhysicsBody::SetPosition(const glm::vec3& position)
 	{
-		if (!m_rigidBody) return;
+		if (!m_rigid_body) return;
 
-		btTransform transform = m_rigidBody->getWorldTransform();
+		btTransform transform = m_rigid_body->getWorldTransform();
 		transform.setOrigin(PhysicsUtils::ToBullet(position));
-		m_rigidBody->setWorldTransform(transform);
+		m_rigid_body->setWorldTransform(transform);
 
 		if (m_type == BodyType::Dynamic)
 		{
-			m_rigidBody->activate();
+			m_rigid_body->activate();
 		}
 	}
 
 	glm::vec3 PhysicsBody::GetPosition() const
 	{
-		if (!m_rigidBody) return glm::vec3(0.0f);
+		if (!m_rigid_body) return glm::vec3(0.0f);
 
-		btVector3 origin = m_rigidBody->getWorldTransform().getOrigin();
+		btVector3 origin = m_rigid_body->getWorldTransform().getOrigin();
 		return PhysicsUtils::ToGLM(origin);
 	}
 
 	void PhysicsBody::SetRotation(const glm::quat& rotation)
 	{
-		if (!m_rigidBody) return;
+		if (!m_rigid_body) return;
 
-		btTransform transform = m_rigidBody->getWorldTransform();
+		btTransform transform = m_rigid_body->getWorldTransform();
 		transform.setRotation(PhysicsUtils::ToBullet(rotation));
-		m_rigidBody->setWorldTransform(transform);
+		m_rigid_body->setWorldTransform(transform);
 
 		if (m_type == BodyType::Dynamic)
 		{
-			m_rigidBody->activate();
+			m_rigid_body->activate();
 		}
 	}
 
 	glm::quat PhysicsBody::GetRotation() const
 	{
-		if (!m_rigidBody) return glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+		if (!m_rigid_body) return glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 
-		btQuaternion rotation = m_rigidBody->getWorldTransform().getRotation();
+		btQuaternion rotation = m_rigid_body->getWorldTransform().getRotation();
 		return PhysicsUtils::ToGLM(rotation);
 	}
 
 	void PhysicsBody::SetMass(float mass)
 	{
-		if (!m_rigidBody || !m_shape) return;
+		if (!m_rigid_body || !m_shape) return;
 
-		btVector3 localInertia(0, 0, 0);
+		btVector3 local_inertia(0, 0, 0);
 		if (mass > 0.0f)
 		{
-			m_shape->calculateLocalInertia(mass, localInertia);
+			m_shape->calculateLocalInertia(mass, local_inertia);
 		}
 
-		m_rigidBody->setMassProps(mass, localInertia);
-		m_rigidBody->updateInertiaTensor();
+		m_rigid_body->setMassProps(mass, local_inertia);
+		m_rigid_body->updateInertiaTensor();
 	}
 
 	float PhysicsBody::GetMass() const
 	{
-		if (!m_rigidBody) return 0.0f;
+		if (!m_rigid_body) return 0.0f;
 
-		float invMass = m_rigidBody->getInvMass();
-		return (invMass == 0.0f) ? 0.0f : 1.0f / invMass;
+		float inv_mass = m_rigid_body->getInvMass();
+		return (inv_mass == 0.0f) ? 0.0f : 1.0f / inv_mass;
 	}
 
 	void PhysicsBody::SetLinearVelocity(const glm::vec3& velocity)
 	{
-		if (!m_rigidBody || m_type != BodyType::Dynamic) return;
+		if (!m_rigid_body || m_type != BodyType::Dynamic) return;
 
-		m_rigidBody->setLinearVelocity(PhysicsUtils::ToBullet(velocity));
-		m_rigidBody->activate();
+		m_rigid_body->setLinearVelocity(PhysicsUtils::ToBullet(velocity));
+		m_rigid_body->activate();
 	}
 
 	glm::vec3 PhysicsBody::GetLinearVelocity() const
 	{
-		if (!m_rigidBody) return glm::vec3(0.0f);
+		if (!m_rigid_body) return glm::vec3(0.0f);
 
-		return PhysicsUtils::ToGLM(m_rigidBody->getLinearVelocity());
+		return PhysicsUtils::ToGLM(m_rigid_body->getLinearVelocity());
 	}
 
 	void PhysicsBody::SetAngularVelocity(const glm::vec3& velocity)
 	{
-		if (!m_rigidBody || m_type != BodyType::Dynamic) return;
+		if (!m_rigid_body || m_type != BodyType::Dynamic) return;
 
-		m_rigidBody->setAngularVelocity(PhysicsUtils::ToBullet(velocity));
-		m_rigidBody->activate();
+		m_rigid_body->setAngularVelocity(PhysicsUtils::ToBullet(velocity));
+		m_rigid_body->activate();
 	}
 
 	glm::vec3 PhysicsBody::GetAngularVelocity() const
 	{
-		if (!m_rigidBody) return glm::vec3(0.0f);
+		if (!m_rigid_body) return glm::vec3(0.0f);
 
-		return PhysicsUtils::ToGLM(m_rigidBody->getAngularVelocity());
+		return PhysicsUtils::ToGLM(m_rigid_body->getAngularVelocity());
 	}
 
-	void PhysicsBody::ApplyForce(const glm::vec3& force, const glm::vec3& relativePos)
+	void PhysicsBody::ApplyForce(const glm::vec3& force, const glm::vec3& relative_pos)
 	{
-		if (!m_rigidBody || m_type != BodyType::Dynamic) return;
+		if (!m_rigid_body || m_type != BodyType::Dynamic) return;
 
-		m_rigidBody->applyForce(PhysicsUtils::ToBullet(force), PhysicsUtils::ToBullet(relativePos));
-		m_rigidBody->activate();
+		m_rigid_body->applyForce(PhysicsUtils::ToBullet(force), PhysicsUtils::ToBullet(relative_pos));
+		m_rigid_body->activate();
 	}
 
-	void PhysicsBody::ApplyImpulse(const glm::vec3& impulse, const glm::vec3& relativePos)
+	void PhysicsBody::ApplyImpulse(const glm::vec3& impulse, const glm::vec3& relative_pos)
 	{
-		if (!m_rigidBody || m_type != BodyType::Dynamic) return;
+		if (!m_rigid_body || m_type != BodyType::Dynamic) return;
 
-		m_rigidBody->applyImpulse(PhysicsUtils::ToBullet(impulse), PhysicsUtils::ToBullet(relativePos));
-		m_rigidBody->activate();
+		m_rigid_body->applyImpulse(PhysicsUtils::ToBullet(impulse), PhysicsUtils::ToBullet(relative_pos));
+		m_rigid_body->activate();
 	}
 
 	void PhysicsBody::ApplyCentralForce(const glm::vec3& force)
 	{
-		if (!m_rigidBody || m_type != BodyType::Dynamic) return;
+		if (!m_rigid_body || m_type != BodyType::Dynamic) return;
 
-		m_rigidBody->applyCentralForce(PhysicsUtils::ToBullet(force));
-		m_rigidBody->activate();
+		m_rigid_body->applyCentralForce(PhysicsUtils::ToBullet(force));
+		m_rigid_body->activate();
 	}
 
 	void PhysicsBody::ApplyCentralImpulse(const glm::vec3& impulse)
 	{
-		if (!m_rigidBody || m_type != BodyType::Dynamic) return;
+		if (!m_rigid_body || m_type != BodyType::Dynamic) return;
 
-		m_rigidBody->applyCentralImpulse(PhysicsUtils::ToBullet(impulse));
-		m_rigidBody->activate();
+		m_rigid_body->applyCentralImpulse(PhysicsUtils::ToBullet(impulse));
+		m_rigid_body->activate();
 	}
 
 	void PhysicsBody::SetFriction(float friction)
 	{
-		if (!m_rigidBody) return;
-		m_rigidBody->setFriction(friction);
+		if (!m_rigid_body) return;
+		m_rigid_body->setFriction(friction);
 	}
 
 	float PhysicsBody::GetFriction() const
 	{
-		if (!m_rigidBody) return 0.0f;
-		return m_rigidBody->getFriction();
+		if (!m_rigid_body) return 0.0f;
+		return m_rigid_body->getFriction();
 	}
 
 	void PhysicsBody::SetRestitution(float restitution)
 	{
-		if (!m_rigidBody) return;
-		m_rigidBody->setRestitution(restitution);
+		if (!m_rigid_body) return;
+		m_rigid_body->setRestitution(restitution);
 	}
 
 	float PhysicsBody::GetRestitution() const
 	{
-		if (!m_rigidBody) return 0.0f;
-		return m_rigidBody->getRestitution();
+		if (!m_rigid_body) return 0.0f;
+		return m_rigid_body->getRestitution();
 	}
 
 }

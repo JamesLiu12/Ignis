@@ -36,8 +36,8 @@ namespace ignis {
 		glm::vec3 GetAngularVelocity() const;
 
 		// Force methods
-		void ApplyForce(const glm::vec3& force, const glm::vec3& relativePos = glm::vec3(0.0f));
-		void ApplyImpulse(const glm::vec3& impulse, const glm::vec3& relativePos = glm::vec3(0.0f));
+		void ApplyForce(const glm::vec3& force, const glm::vec3& relative_pos = glm::vec3(0.0f));
+		void ApplyImpulse(const glm::vec3& impulse, const glm::vec3& relative_pos = glm::vec3(0.0f));
 		void ApplyCentralForce(const glm::vec3& force);
 		void ApplyCentralImpulse(const glm::vec3& impulse);
 
@@ -53,7 +53,7 @@ namespace ignis {
 		bool IsKinematic() const { return m_type == BodyType::Kinematic; }
 
 	private:
-		btRigidBody* m_rigidBody;
+		btRigidBody* m_rigid_body;
 		btCollisionShape* m_shape;
 		btDiscreteDynamicsWorld* m_world;
 		BodyType m_type;

@@ -11,15 +11,15 @@ namespace ignis {
 		PhysicsDebugPanel() = default;
 		~PhysicsDebugPanel() = default;
 
-		void OnImGuiRender(PhysicsWorld* world, bool& isOpen);
+		void OnImGuiRender(PhysicsWorld* world, bool& is_open);
 
 	private:
 		void ShowBodyInfo(PhysicsBody* body, int index);
 		void ShowWorldInfo(PhysicsWorld* world);
 		void ShowControls(PhysicsWorld* world);
 
-		bool m_showDetails = true;
-		int m_selectedBody = -1;
+		bool m_show_details = true;
+		int m_selected_body = -1;
 	};
 
 }
