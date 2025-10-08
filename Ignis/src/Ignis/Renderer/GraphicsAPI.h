@@ -2,7 +2,6 @@
 
 namespace ignis
 {
-
 	class GraphicsAPI
 	{
 	public:

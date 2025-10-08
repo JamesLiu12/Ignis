@@ -1,4 +1,3 @@
-#include <glad/glad.h>
 #include "Application.h"
 #include "Ignis/ImGui/ImGuiLayer.h"
 #include "Ignis/Debug/EngineStatsPanel.h"
@@ -31,6 +30,8 @@ namespace ignis
 
 		m_window = Window::Create();
 		m_window->SetEventCallback([this](EventBase& e) { OnEvent(e); });
+
+		m_renderer = Renderer::Create();
 
 		// Initialize ImGui layer
 		auto imgui_layer = ImGuiLayer::Create();
@@ -70,6 +71,7 @@ namespace ignis
 	{
 		Log::CoreInfoTag("Core", "Application main loop started");
 
+
 		glfwMakeContextCurrent(static_cast<GLFWwindow*>(m_window->GetNativeWindow()));
 		std::unique_ptr<RendererContext> context = RendererContext::Create();
 		context->Init();
@@ -108,9 +110,7 @@ namespace ignis
 			float delta_time = time - last_frame_time;
 			last_frame_time = time;
 
-			// Clear the screen buffer
-			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);  // Dark gray background
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			m_renderer->Clear();
 
 			if (m_physics_world)
 			{
@@ -119,7 +119,7 @@ namespace ignis
 
 			shader->Bind();
 			va->Bind();
-			glDrawElements(GL_TRIANGLES, va->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
+			m_renderer->DrawIndexed(*va);
 
 			// Update all layers
 			for (auto& layer : m_layer_stack)
