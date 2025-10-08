@@ -13,22 +13,14 @@ target_link_libraries(Ignis
         glfw
         glad
         glm
+        BulletDynamics 
+        BulletCollision 
+        LinearMath
 )
 
-# Link Bullet Physics libraries if available
-if(TARGET BulletDynamics AND TARGET BulletCollision AND TARGET LinearMath)
-    target_link_libraries(Ignis 
-        PUBLIC
-            BulletDynamics 
-            BulletCollision 
-            LinearMath
-    )
-    
-    # Add Bullet include directories
-    target_include_directories(Ignis PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/../external/bullet3/src
-    )
-endif()
+target_include_directories(Ignis PUBLIC
+    ${BULLET_PHYSICS_SOURCE_DIR}/src
+)
 
 # Platform-specific OpenGL linking
 if(APPLE)
