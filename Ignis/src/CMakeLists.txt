@@ -23,6 +23,11 @@ if(TARGET BulletDynamics AND TARGET BulletCollision AND TARGET LinearMath)
             BulletCollision 
             LinearMath
     )
+    
+    # Add Bullet include directories
+    target_include_directories(Ignis PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/../external/bullet3/src
+    )
 endif()
 
 # Platform-specific OpenGL linking
