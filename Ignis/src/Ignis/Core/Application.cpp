@@ -9,6 +9,8 @@
 #include "Ignis/Renderer/RendererContext.h"
 #include "Ignis/Renderer/VertexArray.h"
 #include "Ignis/Renderer/IndexBuffer.h"
+#include "Ignis/Physics/PhysicsWorld.h"
+#include "Ignis/Debug/PhysicsDebugPanel.h"
 
 
 namespace ignis 
@@ -40,6 +42,13 @@ namespace ignis
 		Log::CoreInfo("Debug panel created successfully");
 		Log::CoreInfo("Debug window initial state: {}", m_show_debug_window ? "VISIBLE" : "HIDDEN");
 
+		// Initialize physics
+		m_physicsWorld = std::make_unique<PhysicsWorld>();
+		m_physicsWorld->Init();
+		m_physicsDebugPanel = std::make_unique<PhysicsDebugPanel>();
+		CreatePhysicsTestScene();
+		Log::CoreInfo("Physics system initialized");
+
 		m_subscriptions.emplace_back(
 			m_dispatcher.Subscribe<WindowResizeEvent>(
 				[this](WindowResizeEvent& e) { OnWindowResize(e); }
@@ -49,6 +58,10 @@ namespace ignis
 
 	Application::~Application()
 	{
+		if (m_physicsWorld)
+		{
+			m_physicsWorld->Shutdown();
+		}
 		Log::CoreInfo("Application shutting down...");
 		Log::Shutdown();
 	}
@@ -87,12 +100,22 @@ namespace ignis
 		
 		std::shared_ptr<Shader> shader = Shader::CreateFromFile(shader_path);
 
+		float lastFrameTime = 0.0f;
+
 		while (m_running)
 		{
+			float time = static_cast<float>(glfwGetTime());
+			float deltaTime = time - lastFrameTime;
+			lastFrameTime = time;
+
 			// Clear the screen buffer
 			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);  // Dark gray background
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+			if (m_physicsWorld)
+			{
+				m_physicsWorld->Step(deltaTime);
+			}
 
 			shader->Bind();
 			va->Bind();
@@ -125,6 +148,11 @@ namespace ignis
 				{
 					m_debug_panel->OnImGuiRender(m_show_debug_window);
 				}
+
+				if (m_physicsDebugPanel && m_show_physics_debug)
+				{
+					m_physicsDebugPanel->OnImGuiRender(m_physicsWorld.get(), m_show_physics_debug);
+				}
 			
 				// Render all layer ImGui
 				for (auto& layer : m_layer_stack)
@@ -155,7 +183,7 @@ namespace ignis
 			return;
 		}
 
-		// Handle F1 key for debug window toggle
+		// Handle F# key for debug window toggle
 		if (auto* keyEvent = dynamic_cast<KeyPressedEvent*>(&e))
 		{
 			if (keyEvent->GetKeyCode() == 290)  // GLFW_KEY_F1 = 290
@@ -163,8 +191,14 @@ namespace ignis
 				m_show_debug_window = !m_show_debug_window;
 				Log::CoreInfo("Debug window toggled: {}", m_show_debug_window ? "ON" : "OFF");
 			}
-		}
+			else if (keyEvent->GetKeyCode() == 291)  // GLFW_KEY_F2 = 291
+            {
+                m_show_physics_debug = !m_show_physics_debug;
+                Log::CoreInfo("Physics debug toggled: {}", m_show_physics_debug ? "ON" : "OFF");
+            }
 		
+		}
+
 		for (auto it = m_layer_stack.rbegin(); it != m_layer_stack.rend(); ++it)
 		{
 			if (e.Handled)
@@ -188,5 +222,35 @@ namespace ignis
 	void Application::PushOverlay(std::unique_ptr<Layer> overlay)
 	{
 		m_layer_stack.PushOverlay(std::move(overlay));
+	}
+
+	void Application::CreatePhysicsTestScene()
+	{
+		if (!m_physicsWorld) return;
+
+		Log::CoreInfo("Creating physics test scene...");
+
+		// Create ground plane (static body)
+		RigidBodyDesc groundDesc;
+		groundDesc.type = BodyType::Static;
+		groundDesc.shape = ShapeType::Box;
+		groundDesc.position = glm::vec3(0.0f, -1.0f, 0.0f);
+		groundDesc.size = glm::vec3(10.0f, 0.2f, 10.0f);
+		m_physicsWorld->CreateBody(groundDesc);
+		Log::CoreInfo("Created ground plane");
+
+		// Create single dynamic box
+		RigidBodyDesc boxDesc;
+		boxDesc.type = BodyType::Dynamic;
+		boxDesc.shape = ShapeType::Box;
+		boxDesc.position = glm::vec3(0.0f, 5.0f, 0.0f);
+		boxDesc.size = glm::vec3(1.0f, 1.0f, 1.0f);
+		boxDesc.mass = 1.0f;
+		boxDesc.friction = 0.5f;
+		boxDesc.restitution = 0.4f;
+		m_physicsWorld->CreateBody(boxDesc);
+		Log::CoreInfo("Created dynamic box");
+
+		Log::CoreInfo("Physics test scene created: 1 ground + 1 box");
 	}
 }
