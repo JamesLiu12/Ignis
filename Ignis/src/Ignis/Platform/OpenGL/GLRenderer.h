@@ -10,8 +10,8 @@ namespace ignis
 		GLRenderer() = default;
 		~GLRenderer() override = default;
 
-		void BeginFrame() override;
-		void EndFrame() override;
+		void BeginScene() override;
+		void EndScene() override;
 
 		void SetClearColor(float r, float g, float b, float a) override;
 		void SetClearColor(const glm::vec4& color) override;

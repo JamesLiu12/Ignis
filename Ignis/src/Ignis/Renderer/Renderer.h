@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include "VertexArray.h"
+#include "Camera.h"
 
 namespace ignis
 {	
@@ -10,8 +11,8 @@ namespace ignis
 	public:
 		virtual ~Renderer() = default;
 
-		virtual void BeginFrame() = 0;
-		virtual void EndFrame() = 0;
+		virtual void BeginScene() = 0;
+		virtual void EndScene() = 0;
 
 		virtual void SetClearColor(float r, float g, float b, float a) = 0;
 		virtual void SetClearColor(const glm::vec4& color) = 0;

@@ -4,11 +4,11 @@
 
 namespace ignis
 {
-	void GLRenderer::BeginFrame()
+	void GLRenderer::BeginScene()
 	{
 		// TODO
 	}
-	void GLRenderer::EndFrame()
+	void GLRenderer::EndScene()
 	{
 		// TODO
 	}
