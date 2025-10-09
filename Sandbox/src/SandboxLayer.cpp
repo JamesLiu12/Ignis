@@ -44,8 +44,6 @@ void SandBoxLayer::OnUpdate(float dt)
 		m_camera.RecalculateViewMatrix();
 		auto camera_position = m_camera.GetPosition();
 		ignis::Log::CoreInfo("Camera Position: {}, {}, {}", camera_position.x, camera_position.y, camera_position.z);
-		auto vertex0_position = m_camera.GetViewProjection() * glm::vec4(-0.5f, 0.5f, -1.0f, 1.0f);
-		ignis::Log::CoreInfo("Vertex 0 Position: {}, {}, {}", vertex0_position.x, vertex0_position.y, vertex0_position.z);
 	}
 	else if (ignis::Input::IsKeyPressed(ignis::KeyCode::S))
 	{
@@ -54,9 +52,22 @@ void SandBoxLayer::OnUpdate(float dt)
 		m_camera.RecalculateViewMatrix();
 		auto position = m_camera.GetPosition();
 		ignis::Log::CoreInfo("Position {}, {}, {}", position.x, position.y, position.z);
-		auto vertex0_position = m_camera.GetViewProjection() * glm::vec4(-0.5f, 0.5f, -1.0f, 1.0f);
-		ignis::Log::CoreInfo("Vertex 0 Position: {}, {}, {}", vertex0_position.x, vertex0_position.y, vertex0_position.z);
-		//ignis::Log::CoreInfo("ViewProjection {}", m_camera.GetViewProjection());
+	}
+	else if (ignis::Input::IsKeyPressed(ignis::KeyCode::A))
+	{
+		glm::vec3 right = m_camera.GetRightDirection();
+		m_camera.SetPosition(m_camera.GetPosition() - right * dt);
+		m_camera.RecalculateViewMatrix();
+		auto position = m_camera.GetPosition();
+		ignis::Log::CoreInfo("Position {}, {}, {}", position.x, position.y, position.z);
+	}
+	else if (ignis::Input::IsKeyPressed(ignis::KeyCode::D))
+	{
+		glm::vec3 right = m_camera.GetRightDirection();
+		m_camera.SetPosition(m_camera.GetPosition() + right * dt);
+		m_camera.RecalculateViewMatrix();
+		auto position = m_camera.GetPosition();
+		ignis::Log::CoreInfo("Position {}, {}, {}", position.x, position.y, position.z);
 	}
 
 	m_renderer.Clear();
