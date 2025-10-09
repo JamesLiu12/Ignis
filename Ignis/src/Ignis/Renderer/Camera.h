@@ -28,10 +28,12 @@ namespace ignis
 
 		void SetProjection(const glm::mat4& projection) { m_projection = projection; }
 		void SetView(const glm::mat4& view) { m_view = view; }
+		void SetPosition(const glm::vec3& position) { m_position = position; }
+		void SetOrientation(const glm::quat& orientation) { m_orientation = orientation; }
 
 		const glm::mat4& GetProjection() const { return m_projection; }
-		const glm::vec3& GetPosition() const { return m_position; }
 		const glm::mat4& GetView() const { return m_view; }
+		const glm::vec3& GetPosition() const { return m_position; }
 		
 		glm::mat4 GetViewProjection() const { return m_projection * m_view; }
 		
