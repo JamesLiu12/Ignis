@@ -3,14 +3,10 @@
 #include "Ignis/Debug/EngineStatsPanel.h"
 #include "Ignis/Core/Events/KeyEvents.h"
 #include "Input.h"
-#include "Ignis/Renderer/VertexBuffer.h"
-#include "Ignis/Renderer/Shader.h"
-#include "Ignis/Renderer/RendererContext.h"
-#include "Ignis/Renderer/VertexArray.h"
-#include "Ignis/Renderer/IndexBuffer.h"
 #include "Ignis/Physics/PhysicsWorld.h"
 #include "Ignis/Debug/PhysicsDebugPanel.h"
 #include "Ignis/Renderer/Camera.h"
+#include "Ignis/Renderer/RendererContext.h"
 
 namespace ignis 
 {
@@ -30,6 +26,10 @@ namespace ignis
 
 		m_window = Window::Create();
 		m_window->SetEventCallback([this](EventBase& e) { OnEvent(e); });
+
+		glfwMakeContextCurrent(static_cast<GLFWwindow*>(m_window->GetNativeWindow()));
+		std::unique_ptr<RendererContext> context = RendererContext::Create();
+		context->Init();
 
 		m_renderer = Renderer::Create();
 
@@ -71,39 +71,6 @@ namespace ignis
 	{
 		Log::CoreInfoTag("Core", "Application main loop started");
 
-
-		glfwMakeContextCurrent(static_cast<GLFWwindow*>(m_window->GetNativeWindow()));
-		std::unique_ptr<RendererContext> context = RendererContext::Create();
-		context->Init();
-
-		float vertices[] = {
-			-0.5f, 0.5f, -1.0f,
-			-0.5, -0.5f, -1.0f,
-			0.5f, -0.5f, -1.0f,
-			0.5f, 0.5f, -1.0f
-		};
-
-		uint32_t indices [] = {
-			0, 1, 2,
-			2, 3, 0
-		};
-
-		std::shared_ptr<VertexBuffer> vb = VertexBuffer::Create(vertices, sizeof(vertices));
-		vb->SetLayout(VertexBuffer::Layout({ VertexBuffer::Attribute(0, Shader::DataType::Float3) }));
-
-		std::shared_ptr<IndexBuffer> ib;
-		ib = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
-
-		std::shared_ptr<VertexArray> va = VertexArray::Create();
-		va->AddVertexBuffer(vb);
-		va->SetIndexBuffer(ib);
-
-		std::string shader_path = "assets/shaders/example.glsl";
-		
-		std::shared_ptr<Shader> shader = Shader::CreateFromFile(shader_path);
-
-		Camera camera(45.0f, 1280.0f / 720.0f, 0.1f, 100.0f);
-
 		float last_frame_time = 0.0f;
 
 		while (m_running)
@@ -112,17 +79,10 @@ namespace ignis
 			float delta_time = time - last_frame_time;
 			last_frame_time = time;
 
-			m_renderer->Clear();
-
 			if (m_physics_world)
 			{
 				m_physics_world->Step(delta_time);
 			}
-
-			shader->Bind();
-			shader->Set("uViewProjection", camera.GetViewProjection());
-			va->Bind();
-			m_renderer->DrawIndexed(*va);
 
 			// Update all layers
 			for (auto& layer : m_layer_stack)
@@ -210,6 +170,12 @@ namespace ignis
 		}
 
 		m_dispatcher.Dispatch(e);
+	}
+
+	void Application::OnWindowClose(WindowCloseEvent& e)
+	{
+		Log::CoreInfoTag("Core", "Window close event received");
+		m_running = false;
 	}
 
 	void Application::OnWindowResize(WindowResizeEvent& e)

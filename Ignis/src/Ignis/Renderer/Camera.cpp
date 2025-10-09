@@ -3,13 +3,11 @@
 namespace ignis
 {
 	Camera::Camera(float fov_deg, float aspect, float near_clip, float far_clip)
-	{
-		Camera(glm::perspective(glm::radians(fov_deg), aspect, near_clip, far_clip));
+		: Camera(glm::perspective(glm::radians(fov_deg), aspect, near_clip, far_clip)) {
 	}
 
 	Camera::Camera(float left, float right, float bottom, float top, float near_clip, float far_clip)
-	{
-		Camera(glm::ortho(left, right, bottom, top, near_clip, far_clip));
+		: Camera(glm::ortho(left, right, bottom, top, near_clip, far_clip)) {
 	}
 
 	Camera::Camera(const glm::mat4& projection)
