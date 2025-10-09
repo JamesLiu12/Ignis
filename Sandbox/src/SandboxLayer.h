@@ -10,7 +10,7 @@ public:
 	~SandBoxLayer() override = default;
 
 	void OnAttach() override;
-	void OnUpdate() override;
+	void OnUpdate(float dt) override;
 	void OnEvent(ignis::EventBase& event) override;
 
 private:

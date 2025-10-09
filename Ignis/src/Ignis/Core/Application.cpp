@@ -87,7 +87,7 @@ namespace ignis
 			// Update all layers
 			for (auto& layer : m_layer_stack)
 			{
-				layer->OnUpdate();
+				layer->OnUpdate(delta_time);
 			}
 
 			if (Input::IsKeyPressed(KeyCode::A))

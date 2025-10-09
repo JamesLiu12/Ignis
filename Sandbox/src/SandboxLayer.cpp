@@ -35,12 +35,12 @@ void SandBoxLayer::OnAttach()
 	m_camera = ignis::Camera(45.0f, 1280.0f / 720.0f, 0.1f, 100.0f);
 }
 
-void SandBoxLayer::OnUpdate()
+void SandBoxLayer::OnUpdate(float dt)
 {
 	if (ignis::Input::IsKeyPressed(ignis::KeyCode::W))
 	{
 		glm::vec3 forward = m_camera.GetForwardDirection();
-		m_camera.SetPosition(m_camera.GetPosition() + forward * 0.01f);
+		m_camera.SetPosition(m_camera.GetPosition() + forward * dt);
 		m_camera.RecalculateViewMatrix();
 		auto camera_position = m_camera.GetPosition();
 		ignis::Log::CoreInfo("Camera Position: {}, {}, {}", camera_position.x, camera_position.y, camera_position.z);
@@ -50,7 +50,7 @@ void SandBoxLayer::OnUpdate()
 	else if (ignis::Input::IsKeyPressed(ignis::KeyCode::S))
 	{
 		glm::vec3 forward = m_camera.GetForwardDirection();
-		m_camera.SetPosition(m_camera.GetPosition() - forward * 0.01f);
+		m_camera.SetPosition(m_camera.GetPosition() - forward * dt);
 		m_camera.RecalculateViewMatrix();
 		auto position = m_camera.GetPosition();
 		ignis::Log::CoreInfo("Position {}, {}, {}", position.x, position.y, position.z);
