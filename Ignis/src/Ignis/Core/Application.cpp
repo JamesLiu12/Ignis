@@ -10,7 +10,7 @@
 #include "Ignis/Renderer/IndexBuffer.h"
 #include "Ignis/Physics/PhysicsWorld.h"
 #include "Ignis/Debug/PhysicsDebugPanel.h"
-
+#include "Ignis/Renderer/Camera.h"
 
 namespace ignis 
 {
@@ -77,10 +77,10 @@ namespace ignis
 		context->Init();
 
 		float vertices[] = {
-			-0.5f, 0.5f, 0.0f,
-			-0.5, -0.5f, 0.0f,
-			0.5f, -0.5f, 0.0f,
-			0.5f, 0.5f, 0.0f
+			-0.5f, 0.5f, -1.0f,
+			-0.5, -0.5f, -1.0f,
+			0.5f, -0.5f, -1.0f,
+			0.5f, 0.5f, -1.0f
 		};
 
 		uint32_t indices [] = {
@@ -102,6 +102,8 @@ namespace ignis
 		
 		std::shared_ptr<Shader> shader = Shader::CreateFromFile(shader_path);
 
+		Camera camera(45.0f, 1280.0f / 720.0f, 0.1f, 100.0f);
+
 		float last_frame_time = 0.0f;
 
 		while (m_running)
@@ -118,6 +120,7 @@ namespace ignis
 			}
 
 			shader->Bind();
+			shader->Set("uViewProjection", camera.GetViewProjection());
 			va->Bind();
 			m_renderer->DrawIndexed(*va);
 
