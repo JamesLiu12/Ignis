@@ -1,17 +1,12 @@
-#include <glad/glad.h>
 #include "Application.h"
 #include "Ignis/ImGui/ImGuiLayer.h"
 #include "Ignis/Debug/EngineStatsPanel.h"
 #include "Ignis/Core/Events/KeyEvents.h"
 #include "Input.h"
-#include "Ignis/Renderer/VertexBuffer.h"
-#include "Ignis/Renderer/Shader.h"
-#include "Ignis/Renderer/RendererContext.h"
-#include "Ignis/Renderer/VertexArray.h"
-#include "Ignis/Renderer/IndexBuffer.h"
 #include "Ignis/Physics/PhysicsWorld.h"
 #include "Ignis/Debug/PhysicsDebugPanel.h"
-
+#include "Ignis/Renderer/Camera.h"
+#include "Ignis/Renderer/RendererContext.h"
 
 namespace ignis 
 {
@@ -31,6 +26,12 @@ namespace ignis
 
 		m_window = Window::Create();
 		m_window->SetEventCallback([this](EventBase& e) { OnEvent(e); });
+
+		glfwMakeContextCurrent(static_cast<GLFWwindow*>(m_window->GetNativeWindow()));
+		std::unique_ptr<RendererContext> context = RendererContext::Create();
+		context->Init();
+
+		m_renderer = Renderer::Create();
 
 		// Initialize ImGui layer
 		auto imgui_layer = ImGuiLayer::Create();
@@ -70,36 +71,6 @@ namespace ignis
 	{
 		Log::CoreInfoTag("Core", "Application main loop started");
 
-		glfwMakeContextCurrent(static_cast<GLFWwindow*>(m_window->GetNativeWindow()));
-		std::unique_ptr<RendererContext> context = RendererContext::Create();
-		context->Init();
-
-		float vertices[] = {
-			-0.5f, 0.5f, 0.0f,
-			-0.5, -0.5f, 0.0f,
-			0.5f, -0.5f, 0.0f,
-			0.5f, 0.5f, 0.0f
-		};
-
-		uint32_t indices [] = {
-			0, 1, 2,
-			2, 3, 0
-		};
-
-		std::shared_ptr<VertexBuffer> vb = VertexBuffer::Create(vertices, sizeof(vertices));
-		vb->SetLayout(VertexBuffer::Layout({ VertexBuffer::Attribute(0, Shader::DataType::Float3) }));
-
-		std::shared_ptr<IndexBuffer> ib;
-		ib = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
-
-		std::shared_ptr<VertexArray> va = VertexArray::Create();
-		va->AddVertexBuffer(vb);
-		va->SetIndexBuffer(ib);
-
-		std::string shader_path = "assets/shaders/example.glsl";
-		
-		std::shared_ptr<Shader> shader = Shader::CreateFromFile(shader_path);
-
 		float last_frame_time = 0.0f;
 
 		while (m_running)
@@ -108,23 +79,15 @@ namespace ignis
 			float delta_time = time - last_frame_time;
 			last_frame_time = time;
 
-			// Clear the screen buffer
-			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);  // Dark gray background
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 			if (m_physics_world)
 			{
 				m_physics_world->Step(delta_time);
 			}
 
-			shader->Bind();
-			va->Bind();
-			glDrawElements(GL_TRIANGLES, va->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
-
 			// Update all layers
 			for (auto& layer : m_layer_stack)
 			{
-				layer->OnUpdate();
+				layer->OnUpdate(delta_time);
 			}
 
 			if (Input::IsKeyPressed(KeyCode::A))
@@ -199,19 +162,26 @@ namespace ignis
 		
 		}
 
+		m_dispatcher.Dispatch(e);
+
 		for (auto it = m_layer_stack.rbegin(); it != m_layer_stack.rend(); ++it)
 		{
 			if (e.Handled)
 				break;
 			(*it)->OnEvent(e);
 		}
+	}
 
-		m_dispatcher.Dispatch(e);
+	void Application::OnWindowClose(WindowCloseEvent& e)
+	{
+		Log::CoreInfoTag("Core", "Window close event received");
+		m_running = false;
 	}
 
 	void Application::OnWindowResize(WindowResizeEvent& e)
 	{
 		Log::CoreInfoTag("Core", "Window resize event received");
+		m_renderer->SetViewport(0, 0, e.GetWidth(), e.GetHeight());
 	}
 
 	void Application::PushLayer(std::unique_ptr<Layer> layer)

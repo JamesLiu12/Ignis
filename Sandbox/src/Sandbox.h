@@ -5,6 +5,9 @@
 class Sandbox : public ignis::Application
 {
 public:
-	Sandbox() {}
-	~Sandbox() {}
+	Sandbox();
+	~Sandbox() = default;
+
+private:
+
 };
