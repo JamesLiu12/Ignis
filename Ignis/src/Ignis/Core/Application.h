@@ -6,6 +6,7 @@
 #include "Ignis/Core/Events/WindowEvents.h"
 #include "Ignis/Physics/PhysicsWorld.h"
 #include "Ignis/Debug/PhysicsDebugPanel.h"
+#include "Ignis/Renderer/Renderer.h"
 
 namespace ignis {
 
@@ -33,11 +34,14 @@ namespace ignis {
 		void PushOverlay(std::unique_ptr<Layer> overlay);
 		Window& GetWindow() { return *m_window; }
 		
+		Renderer& GetRenderer() { return *m_renderer; }
+		const Renderer& GetRenderer() const { return *m_renderer; }
+
 		static std::unique_ptr<Application> Create();
 
 	protected:
 		Application();
-
+	
 	private:
 		bool m_running = true;
 		inline static Application* s_instance = nullptr;
@@ -54,5 +58,7 @@ namespace ignis {
 		std::unique_ptr<class PhysicsDebugPanel> m_physics_debug_panel;
 		bool m_show_physics_debug = true;
 		std::vector<EventDispatcher::Subscription> m_subscriptions;
+
+		std::unique_ptr<Renderer> m_renderer;
 	};
 }
