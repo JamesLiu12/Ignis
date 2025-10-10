@@ -80,5 +80,10 @@ void SandBoxLayer::OnUpdate(float dt)
 
 void SandBoxLayer::OnEvent(ignis::EventBase& event)
 {
-
+	if (auto* resize_event = dynamic_cast<ignis::WindowResizeEvent*>(&event))
+	{
+		float aspect_ratio = static_cast<float>(resize_event->GetWidth()) / static_cast<float>(resize_event->GetHeight());
+		m_camera.SetPerspective(45.0f, aspect_ratio, 0.1f, 100.0f);
+		m_camera.RecalculateViewMatrix();
+	}
 }
