@@ -35,6 +35,9 @@ namespace ignis
 			: WindowEvent(WindowEventType::WindowResize, "WindowResize"), 
 			m_width(width), m_height(height) {}
 		virtual ~WindowResizeEvent() = default;
+
+		unsigned GetWidth() const { return m_width; }
+		unsigned GetHeight() const { return m_height; }
 		
 	private:
 		unsigned m_width, m_height;
@@ -61,6 +64,9 @@ namespace ignis
 			: WindowEvent(WindowEventType::WindowMoved, "WindowMoved"), 
 			m_x_pos(x_pos), m_y_pos(y_pos) {}
 		virtual ~WindowMovedEvent() = default;
+
+		unsigned GetXPos() const { return m_x_pos; }
+		unsigned GetYPos() const { return m_y_pos; }
 		
 	private:
 		unsigned m_x_pos, m_y_pos;

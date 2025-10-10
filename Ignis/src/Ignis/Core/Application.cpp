@@ -162,14 +162,14 @@ namespace ignis
 		
 		}
 
+		m_dispatcher.Dispatch(e);
+
 		for (auto it = m_layer_stack.rbegin(); it != m_layer_stack.rend(); ++it)
 		{
 			if (e.Handled)
 				break;
 			(*it)->OnEvent(e);
 		}
-
-		m_dispatcher.Dispatch(e);
 	}
 
 	void Application::OnWindowClose(WindowCloseEvent& e)
@@ -181,6 +181,7 @@ namespace ignis
 	void Application::OnWindowResize(WindowResizeEvent& e)
 	{
 		Log::CoreInfoTag("Core", "Window resize event received");
+		m_renderer->SetViewport(0, 0, e.GetWidth(), e.GetHeight());
 	}
 
 	void Application::PushLayer(std::unique_ptr<Layer> layer)
