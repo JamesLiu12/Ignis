@@ -22,7 +22,6 @@ namespace ignis
 		// Initialize VFS
 		VFS::Init();
 		VFS::Mount("assets", "assets");
-		VFS::Mount("shaders", "assets/shaders");
 
 		// VFS Test
 		Log::CoreInfo("\n=== VFS Test Start===");
