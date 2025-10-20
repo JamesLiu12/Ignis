@@ -7,3 +7,6 @@
 #include "Ignis/Renderer/Shader.h"
 #include "Ignis/Renderer/VertexArray.h"
 #include "Ignis/Renderer/IndexBuffer.h"
+
+#include "Ignis/Core/FileSystem.h"
+#include "Ignis/Asset/VFS.h"

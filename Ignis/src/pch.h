@@ -35,3 +35,6 @@
 #include <spdlog/sinks/basic_file_sink.h>
 
 #include "Ignis/Core/Log.h"
+
+#include "Ignis/Core/FileSystem.h"
+#include "Ignis/Asset/VFS.h"

@@ -7,6 +7,7 @@
 #include "Ignis/Debug/PhysicsDebugPanel.h"
 #include "Ignis/Renderer/Camera.h"
 #include "Ignis/Renderer/RendererContext.h"
+#include "Ignis/Asset/VFS.h"
 
 namespace ignis 
 {
@@ -16,6 +17,12 @@ namespace ignis
 
 		// Initialize logging system
 		Log::Init();
+
+		// Initialize VFS
+		VFS::Init();
+		VFS::Mount("assets", "assets");
+		VFS::Mount("shaders", "assets/shaders");
+		Log::CoreInfo("VFS initialized");
 		
 		// Test logging system
 		Log::CoreInfo("Ignis Engine initialized!");
@@ -64,6 +71,7 @@ namespace ignis
 			m_physics_world->Shutdown();
 		}
 		Log::CoreInfo("Application shutting down...");
+		VFS::Shutdown();
 		Log::Shutdown();
 	}
 
