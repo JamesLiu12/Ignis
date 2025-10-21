@@ -14,6 +14,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 #include <unordered_map>
 #include <unordered_set>
 #include <queue>
