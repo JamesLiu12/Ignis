@@ -1,6 +1,8 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <memory>
 #include <algorithm>
 #include <functional>
@@ -14,6 +16,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 #include <unordered_map>
 #include <unordered_set>
 #include <queue>
@@ -35,3 +38,6 @@
 #include <spdlog/sinks/basic_file_sink.h>
 
 #include "Ignis/Core/Log.h"
+
+#include "Ignis/Core/FileSystem.h"
+#include "Ignis/Asset/VFS.h"
