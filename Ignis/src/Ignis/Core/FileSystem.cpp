@@ -1,7 +1,5 @@
 #include "FileSystem.h"
 #include "Ignis/Core/Log.h"
-#include <fstream>
-#include <sstream>
 
 namespace ignis {
 
