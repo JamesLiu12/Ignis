@@ -1,10 +1,5 @@
 #pragma once
 
-#include <filesystem>
-#include <string>
-#include <vector>
-#include <unordered_map>
-
 namespace ignis {
 
     class VFS
