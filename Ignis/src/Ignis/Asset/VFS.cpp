@@ -1,7 +1,6 @@
 #include "VFS.h"
 #include "Ignis/Core/FileSystem.h"
 #include "Ignis/Core/Log.h"
-#include <algorithm>
 
 namespace ignis {
 
