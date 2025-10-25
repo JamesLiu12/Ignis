@@ -21,52 +21,6 @@ namespace ignis
 
 		// Initialize VFS
 		VFS::Init();
-		VFS::Mount("assets", "assets");
-
-		// VFS Test
-		Log::CoreInfo("\n=== VFS Test Start===");
-
-		// Test 1: Write a test file
-		std::string test_data = "Hello from VFS!\nTest successful.";
-		if (VFS::WriteText("assets://vfs_test.txt", test_data))
-		{
-			Log::CoreInfo("Write test passed");
-			
-			// Test 2: Read it back
-			std::string read_data = VFS::ReadText("assets://vfs_test.txt");
-			if (read_data == test_data)
-			{
-				Log::CoreInfo("Read test passed");
-			}
-			
-			// Test 3: Check file exists
-			if (VFS::Exists("assets://vfs_test.txt"))
-			{
-				Log::CoreInfo("Exists check passed");
-			}
-			
-			// Test 4: List directory
-			auto files = VFS::ListFiles("assets://");
-			Log::CoreInfo("Found {} files in assets/", files.size());
-		}
-
-		// Test 5: Cleanup - Delete test file
-		auto test_file_path = VFS::Resolve("assets://vfs_test.txt");
-		if (FileSystem::Delete(test_file_path))
-		{
-			Log::CoreInfo("Cleanup: Test file deleted");
-		}
-
-		Log::CoreInfo("=== VFS Test End ===\n");
-
-		Log::CoreInfo("VFS initialized");
-		
-		// Test logging system
-		Log::CoreInfo("Ignis Engine initialized!");
-		Log::CoreInfoTag("Core", "Application constructor called");
-		Log::Info("Client application starting...");
-		Log::WarnTag("Test", "This is a warning message with tag");
-		Log::Error("This is an error message");
 
 		m_window = Window::Create();
 		m_window->SetEventCallback([this](EventBase& e) { OnEvent(e); });

@@ -4,22 +4,22 @@
 
 namespace ignis
 {
-	std::shared_ptr<Shader> Shader::Create(const std::string& vertex_source, const std::string& fragment_source)
+	std::unique_ptr<Shader> Shader::Create(const std::string& name, const std::string & vertex_source, const std::string& fragment_source)
 	{
 		switch (GraphicsAPI::GetType())
 		{
 		case GraphicsAPI::Type::OpenGL:
-			return std::make_shared<GLShader>(vertex_source, fragment_source);
+			return std::make_unique<GLShader>(name, vertex_source, fragment_source);
 		default:
 			return nullptr;
 		}
 	}
-	std::shared_ptr<Shader> Shader::CreateFromFile(const std::string& filepath)
+	std::unique_ptr<Shader> Shader::CreateFromFile(const std::string& filepath)
 	{
 		switch (GraphicsAPI::GetType())
 		{
 		case GraphicsAPI::Type::OpenGL:
-			return std::make_shared<GLShader>(filepath);
+			return std::make_unique<GLShader>(filepath);
 		default:
 			return nullptr;
 		}

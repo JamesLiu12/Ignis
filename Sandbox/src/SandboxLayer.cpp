@@ -28,9 +28,8 @@ void SandBoxLayer::OnAttach()
 	m_va->AddVertexBuffer(m_vb);
 	m_va->SetIndexBuffer(m_ib);
 
-	std::string shader_path = "assets/shaders/example.glsl";
-
-	m_shader = ignis::Shader::CreateFromFile(shader_path);
+	m_shader_library = ignis::ShaderLibrary();
+	m_shader_library.Load("assets://shaders/example.glsl");
 
 	m_camera = ignis::Camera(45.0f, 1280.0f / 720.0f, 0.1f, 100.0f);
 }
@@ -72,8 +71,10 @@ void SandBoxLayer::OnUpdate(float dt)
 
 	m_renderer.Clear();
 
-	m_shader->Bind();
-	m_shader->Set("uViewProjection", m_camera.GetViewProjection());
+	ignis::Shader& shader = m_shader_library.Get("assets://shaders/example.glsl");
+	
+	shader.Bind();
+	shader.Set("uViewProjection", m_camera.GetViewProjection());
 	m_va->Bind();
 	m_renderer.DrawIndexed(*m_va);
 }
