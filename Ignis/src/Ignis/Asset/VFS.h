@@ -1,5 +1,7 @@
 #pragma once
 
+#include "File.h"
+
 namespace ignis {
 
     class VFS
@@ -18,10 +20,7 @@ namespace ignis {
         static bool Exists(const std::string& virtual_path);
 
         // File operations through VFS
-        static std::vector<uint8_t> ReadBinary(const std::string& virtual_path);
-        static std::string ReadText(const std::string& virtual_path);
-        static bool Write(const std::string& virtual_path, const std::vector<uint8_t>& data);
-        static bool WriteText(const std::string& virtual_path, const std::string& text);
+        static File Open(const std::string& virtual_path);
 
         // Directory operations
         static std::vector<std::string> ListFiles(const std::string& virtual_directory, const std::string& filter = "*");
