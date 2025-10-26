@@ -21,6 +21,7 @@
 #include <unordered_set>
 #include <queue>
 #include <map>
+#include <span>
 
 // Platform-specific includes
 #ifdef _WIN32
