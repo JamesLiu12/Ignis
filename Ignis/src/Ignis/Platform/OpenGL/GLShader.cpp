@@ -1,4 +1,5 @@
 #include "GLShader.h"
+#include "Ignis/Asset/VFS.h"
 #include <glad/glad.h>
 
 namespace ignis
@@ -141,16 +142,14 @@ namespace ignis
 
 	std::string ReadFileToString(const std::string& filepath)
 	{
-		std::ifstream file(filepath, std::ios::in | std::ios::binary);
-		if (!file.is_open())
+		auto file = VFS::Open(filepath);
+		if (!file.IsOpen())
 		{
-			Log::Error("ERROR::SHADER::IO::FAILED_TO_OPEN_FILE {0}", filepath);
+			Log::Error("ERROR::SHADER::IO::FAILED_TO_OPEN_FILE {0}: {1}", filepath, file.GetError());
 			return {};
 		}
 
-		std::ostringstream ss;
-		ss << file.rdbuf();
-		return ss.str();
+		return file.ReadText();
 	}
 
 	GLShader::GLShader(const std::string& vertex_source, const std::string& fragment_source)

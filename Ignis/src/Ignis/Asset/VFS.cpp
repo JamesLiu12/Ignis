@@ -135,52 +135,18 @@ namespace ignis {
         return FileSystem::Exists(physical_path);
     }
 
-    std::vector<uint8_t> VFS::ReadBinary(const std::string& virtual_path)
+    File VFS::Open(const std::string& virtual_path)
     {
         auto physical_path = Resolve(virtual_path);
         if (physical_path.empty())
         {
             Log::CoreError("VFS: Failed to resolve path: {}", virtual_path);
-            return {};
+            // Return a File object with an invalid path
+            return File("");
         }
 
-        return FileSystem::ReadBinaryFile(physical_path);
-    }
-
-    std::string VFS::ReadText(const std::string& virtual_path)
-    {
-        auto physical_path = Resolve(virtual_path);
-        if (physical_path.empty())
-        {
-            Log::CoreError("VFS: Failed to resolve path: {}", virtual_path);
-            return "";
-        }
-
-        return FileSystem::ReadTextFile(physical_path);
-    }
-
-    bool VFS::Write(const std::string& virtual_path, const std::vector<uint8_t>& data)
-    {
-        auto physical_path = Resolve(virtual_path);
-        if (physical_path.empty())
-        {
-            Log::CoreError("VFS: Failed to resolve path: {}", virtual_path);
-            return false;
-        }
-
-        return FileSystem::WriteBinaryFile(physical_path, data);
-    }
-
-    bool VFS::WriteText(const std::string& virtual_path, const std::string& text)
-    {
-        auto physical_path = Resolve(virtual_path);
-        if (physical_path.empty())
-        {
-            Log::CoreError("VFS: Failed to resolve path: {}", virtual_path);
-            return false;
-        }
-
-        return FileSystem::WriteTextFile(physical_path, text);
+        Log::CoreTrace("VFS: Opening file '{}'", virtual_path);
+        return File(physical_path);
     }
 
     std::vector<std::string> VFS::ListFiles(const std::string& virtual_directory, const std::string& filter)
