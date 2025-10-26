@@ -8,19 +8,22 @@ SandBoxLayer::SandBoxLayer(ignis::Renderer& renderer)
 void SandBoxLayer::OnAttach()
 {
 	float vertices[] = {
-		-0.5f, 0.5f, -1.0f,
-		-0.5, -0.5f, -1.0f,
-		0.5f, -0.5f, -1.0f,
-		0.5f, 0.5f, -1.0f
+		 0.5f,  0.5f, 0.0f,   1.0f, 1.0f,   // top right
+		 0.5f, -0.5f, 0.0f,   1.0f, 0.0f,   // bottom right
+		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f,   // bottom left
+		-0.5f,  0.5f, 0.0f,   0.0f, 1.0f    // top left 
 	};
 
 	uint32_t indices[] = {
-		0, 1, 2,
-		2, 3, 0
+		0, 1, 3,
+		1, 2, 3
 	};
 
 	m_vb = ignis::VertexBuffer::Create(vertices, sizeof(vertices));
-	m_vb->SetLayout(ignis::VertexBuffer::Layout({ ignis::VertexBuffer::Attribute(0, ignis::Shader::DataType::Float3) }));
+	m_vb->SetLayout(ignis::VertexBuffer::Layout({
+		{0, ignis::Shader::DataType::Float3, false, 0},
+		{1, ignis::Shader::DataType::Float2, false, sizeof(float) * 3}
+	}));
 
 	m_ib = ignis::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
 
@@ -28,10 +31,21 @@ void SandBoxLayer::OnAttach()
 	m_va->AddVertexBuffer(m_vb);
 	m_va->SetIndexBuffer(m_ib);
 
+	m_texture = ignis::Texture2D::CreateFromFile(
+		ignis::TextureSpecs{
+			.SourceFormat = ignis::ImageFormat::RGBA,
+			.InternalFormat = ignis::ImageFormat::RGB,
+		},
+		"assets://images/awesomeface.png",
+		true
+	);
+
 	m_shader_library = ignis::ShaderLibrary();
 	m_shader_library.Load("assets://shaders/example.glsl");
 
 	m_camera = ignis::Camera(45.0f, 1280.0f / 720.0f, 0.1f, 100.0f);
+	m_camera.SetPosition({ 0.0f, 0.0f, 3.0f });
+	m_camera.RecalculateViewMatrix();
 }
 
 void SandBoxLayer::OnUpdate(float dt)
@@ -73,8 +87,10 @@ void SandBoxLayer::OnUpdate(float dt)
 
 	ignis::Shader& shader = m_shader_library.Get("assets://shaders/example.glsl");
 	
+	m_texture->Bind(0);
 	shader.Bind();
 	shader.Set("uViewProjection", m_camera.GetViewProjection());
+	shader.Set("uTexture", 0);
 	m_va->Bind();
 	m_renderer.DrawIndexed(*m_va);
 }

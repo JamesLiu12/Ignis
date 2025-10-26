@@ -8,7 +8,12 @@
 #include "Ignis/Renderer/VertexArray.h"
 #include "Ignis/Renderer/IndexBuffer.h"
 #include "Ignis/Renderer/ShaderLibrary.h"
+#include "Ignis/Renderer/Texture.h"
 
 #include "Ignis/Core/FileSystem.h"
+<<<<<<< HEAD
 #include "Ignis/Asset/File.h"
 #include "Ignis/Asset/VFS.h"
+=======
+#include "Ignis/Asset/VFS.h"
+>>>>>>> a3c0d53 (feat: added texture)
