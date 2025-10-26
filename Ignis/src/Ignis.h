@@ -7,6 +7,8 @@
 #include "Ignis/Renderer/Shader.h"
 #include "Ignis/Renderer/VertexArray.h"
 #include "Ignis/Renderer/IndexBuffer.h"
+#include "Ignis/Renderer/ShaderLibrary.h"
+#include "Ignis/Renderer/Texture.h"
 
 #include "Ignis/Core/FileSystem.h"
 #include "Ignis/Asset/File.h"

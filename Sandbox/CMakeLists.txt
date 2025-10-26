@@ -8,3 +8,15 @@ add_executable(Sandbox ${SANDBOX_SOURCES})
 target_link_libraries(Sandbox
 	PRIVATE Ignis::Ignis
 )
+
+set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+set(DEST_DIR   "${CMAKE_CURRENT_BINARY_DIR}/assets")
+
+add_custom_command(
+    OUTPUT "${DEST_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${SOURCE_DIR}" "${DEST_DIR}"
+    DEPENDS "${SOURCE_DIR}"
+    COMMENT "Copying asset directory"
+)
+
+add_custom_target(copy_assets ALL DEPENDS "${DEST_DIR}")

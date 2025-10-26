@@ -77,6 +77,8 @@ namespace ignis
 		virtual void Bind() = 0;
 		virtual void UnBind() = 0;
 
+		virtual const std::string& GetName() const = 0;
+
 		virtual void Set(const std::string& name, float value) = 0;
 		virtual void Set(const std::string& name, const glm::vec2& vector) = 0;
 		virtual void Set(const std::string& name, const glm::vec3& vector) = 0;
@@ -92,7 +94,7 @@ namespace ignis
 		virtual void Set(const std::string& name, const glm::mat3& matrix) = 0;
 		virtual void Set(const std::string& name, const glm::mat4& matrix) = 0;
 
-		static std::shared_ptr<Shader> Create(const std::string& vertex_source, const std::string& fragment_source);
-		static std::shared_ptr<Shader> CreateFromFile(const std::string& filepath);
+		static std::unique_ptr<Shader> Create(const std::string& name, const std::string& vertex_source, const std::string& fragment_source);
+		static std::unique_ptr<Shader> CreateFromFile(const std::string& filepath);
 	};
 }

@@ -21,81 +21,8 @@ namespace ignis
 
 		// Initialize VFS
 		VFS::Init();
-		VFS::Mount("assets", "assets");
 
-		// VFS Test
-		Log::CoreInfo("\n=== VFS Test Start===");
-
-		// Test 1: Open file for writing
-		std::string test_data = "Hello from VFS!\nTest successful.";
-		auto write_file = VFS::Open("assets://vfs_test.txt");
-		if (write_file.IsOpen())
-		{
-			Log::CoreInfo("File opened for writing");
-			
-			// Write test data
-			if (write_file.WriteText(test_data))
-			{
-				Log::CoreInfo("Write test passed");
-			}
-			else
-			{
-				Log::CoreError("Write test failed");
-			}
-		}
-		else
-		{
-			Log::CoreError("Cannot open file for writing: {}", write_file.GetError());
-		}
-		
-		// Test 2: Open file for reading
-		auto read_file = VFS::Open("assets://vfs_test.txt");
-		if (read_file.IsOpen())
-		{
-			Log::CoreInfo("File opened for reading - IsReadable: {}", read_file.IsReadable());
-			
-			std::string read_data = read_file.ReadText();
-			if (read_data == test_data)
-			{
-				Log::CoreInfo("Read test passed");
-			}
-			else
-			{
-				Log::CoreError("Read test failed - data mismatch");
-			}
-		}
-		else
-		{
-			Log::CoreError("Cannot open file for reading: {}", read_file.GetError());
-		}
-		
-		// Test 3: Check file exists
-		if (VFS::Exists("assets://vfs_test.txt"))
-		{
-			Log::CoreInfo("Exists check passed");
-		}
-		
-		// Test 4: List directory
-		auto files = VFS::ListFiles("assets://");
-		Log::CoreInfo("Found {} files in assets/", files.size());
-
-		// Test 5: Cleanup - Delete test file
-		auto test_file_path = VFS::Resolve("assets://vfs_test.txt");
-		if (FileSystem::Delete(test_file_path))
-		{
-			Log::CoreInfo("Cleanup: Test file deleted");
-		}
-
-		Log::CoreInfo("=== VFS Test End ===\n");
-
-		Log::CoreInfo("VFS initialized");
-		
-		// Test logging system
-		Log::CoreInfo("Ignis Engine initialized!");
-		Log::CoreInfoTag("Core", "Application constructor called");
-		Log::Info("Client application starting...");
-		Log::WarnTag("Test", "This is a warning message with tag");
-		Log::Error("This is an error message");
+		ignis::Log::CoreInfo("VFS initialized");
 
 		m_window = Window::Create();
 		m_window->SetEventCallback([this](EventBase& e) { OnEvent(e); });
