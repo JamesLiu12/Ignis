@@ -1,4 +1,4 @@
-﻿#include "Ignis/Core/Application.h"
+#include "Ignis/Core/Application.h"
 #include "Ignis/Core/Input.h"
 #include "Ignis/Core/KeyCodes.h"
 #include "Ignis/Core/Log.h"
@@ -9,4 +9,5 @@
 #include "Ignis/Renderer/IndexBuffer.h"
 
 #include "Ignis/Core/FileSystem.h"
+#include "Ignis/Asset/File.h"
 #include "Ignis/Asset/VFS.h"
