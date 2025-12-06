@@ -13,3 +13,7 @@
 #include "Ignis/Core/FileSystem.h"
 #include "Ignis/Asset/File.h"
 #include "Ignis/Asset/VFS.h"
+
+#include "Ignis/Scene/Scene.h"
+#include "Ignis/Scene/Entity.h"
+#include "Ignis/Scene/Components.h"
