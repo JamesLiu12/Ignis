@@ -50,6 +50,8 @@ void SandBoxLayer::OnAttach()
 	m_scene = ignis::Scene();
 
 	auto face = m_scene.CreateEntity("Smiling Face");
+	face.RemoveComponent<ignis::TagComponent>();
+	ignis::Log::CoreInfo("Has TagComponent: {}", face.HasComponent<ignis::TagComponent>());
 }
 
 void SandBoxLayer::OnUpdate(float dt)
