@@ -25,7 +25,7 @@ add_library(imgui STATIC
     # Platform backends
     imgui/backends/imgui_impl_glfw.cpp
     imgui/backends/imgui_impl_opengl3.cpp
- "stb/stb_image.cpp" "stb/stb_image.h")
+)
 
 target_include_directories(imgui PUBLIC 
     imgui/
@@ -53,3 +53,5 @@ add_subdirectory(glad)
 add_subdirectory(glm)
 
 add_subdirectory(stb)
+
+add_subdirectory(entt)

@@ -16,6 +16,8 @@ target_link_libraries(Ignis
         BulletDynamics 
         BulletCollision 
         LinearMath
+        stb
+        entt
 )
 
 target_include_directories(Ignis PUBLIC

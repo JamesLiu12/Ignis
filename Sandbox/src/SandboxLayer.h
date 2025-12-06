@@ -25,4 +25,5 @@ private:
 	
 	ignis::Camera m_camera;
 
+	ignis::Scene m_scene;
 };
