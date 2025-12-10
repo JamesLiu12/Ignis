@@ -55,3 +55,7 @@ add_subdirectory(glm)
 add_subdirectory(stb)
 
 add_subdirectory(entt)
+
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
+add_subdirectory(assimp)
