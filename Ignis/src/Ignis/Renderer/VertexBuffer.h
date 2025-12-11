@@ -45,13 +45,13 @@ namespace ignis
 		virtual void Bind() = 0;
 		virtual void UnBind() = 0;
 
-		virtual void SetData(float* data, size_t size) = 0;
+		virtual void SetData(const void* data, size_t size) = 0;
 
 		virtual const Layout& GetLayout() const { return m_layout; }
 		virtual void SetLayout(const Layout& layout) { m_layout = layout; }
 
 		static std::shared_ptr<VertexBuffer> Create(size_t size, Usage usage = Usage::Dynamic);
-		static std::shared_ptr<VertexBuffer> Create(float* vertices, size_t size, Usage usage = Usage::Static);
+		static std::shared_ptr<VertexBuffer> Create(const void* vertices, size_t size, Usage usage = Usage::Static);
 
 	protected:
 		Layout m_layout = {};

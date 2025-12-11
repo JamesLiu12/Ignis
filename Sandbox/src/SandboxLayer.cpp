@@ -25,7 +25,7 @@ void SandBoxLayer::OnAttach()
 		{1, ignis::Shader::DataType::Float2, false, sizeof(float) * 3}
 	}));
 
-	m_ib = ignis::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
+	m_ib = ignis::IndexBuffer::Create(indices, sizeof(indices));
 
 	m_va = ignis::VertexArray::Create();
 	m_va->AddVertexBuffer(m_vb);
@@ -52,6 +52,8 @@ void SandBoxLayer::OnAttach()
 	auto face = m_scene.CreateEntity("Smiling Face");
 	face.RemoveComponent<ignis::TagComponent>();
 	ignis::Log::CoreInfo("Has TagComponent: {}", face.HasComponent<ignis::TagComponent>());
+
+	m_mesh = ignis::MeshImporter::ImportMesh("assets://models/backpack/backpack.obj");
 }
 
 void SandBoxLayer::OnUpdate(float dt)
