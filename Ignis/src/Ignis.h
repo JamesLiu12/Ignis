@@ -17,3 +17,6 @@
 #include "Ignis/Scene/Scene.h"
 #include "Ignis/Scene/Entity.h"
 #include "Ignis/Scene/Components.h"
+
+#include "Ignis/Asset/MeshImporter.h"
+#include "Ignis/Renderer/Mesh.h"

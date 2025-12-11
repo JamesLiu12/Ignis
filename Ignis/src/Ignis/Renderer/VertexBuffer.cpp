@@ -25,7 +25,7 @@ namespace ignis
 		}
 	}
 
-	std::shared_ptr<VertexBuffer> VertexBuffer::Create(float* vertices, size_t size, Usage usage)
+	std::shared_ptr<VertexBuffer> VertexBuffer::Create(const void* vertices, size_t size, Usage usage)
 	{
 		switch (GraphicsAPI::GetType())
 		{

@@ -7,7 +7,7 @@ namespace ignis
 	class GLIndexBuffer : public IndexBuffer
 	{
 	public:
-		GLIndexBuffer(uint32_t* indices, uint32_t count);
+		GLIndexBuffer(const uint32_t* indices, size_t size);
 		~GLIndexBuffer() override;
 
 		void Bind() override;
