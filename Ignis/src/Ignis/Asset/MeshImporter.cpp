@@ -118,6 +118,8 @@ namespace ignis
 			aiProcess_Triangulate
 			| aiProcess_GenSmoothNormals
 			| aiProcess_FlipUVs
+			| aiProcess_CalcTangentSpace
+
 		);
 
 		if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode)
@@ -186,6 +188,17 @@ namespace ignis
 					vertex.TexCoords = glm::vec2(0.0f);
 				}
 
+				if (aimesh->HasTangentsAndBitangents())
+				{
+					vertex.Tangent = glm::vec3(aimesh->mTangents[v].x, aimesh->mTangents[v].y, aimesh->mTangents[v].z);
+					vertex.Bitangent = glm::vec3(aimesh->mBitangents[v].x, aimesh->mBitangents[v].y, aimesh->mBitangents[v].z);
+				}
+				else
+				{
+					vertex.Tangent = glm::vec3(1.0f, 0.0f, 0.0f);
+					vertex.Bitangent = glm::vec3(0.0f, 1.0f, 0.0f);
+				}
+
 				mesh->m_vertices.push_back(vertex);
 			}			
 
@@ -215,6 +228,8 @@ namespace ignis
 			{0, Shader::DataType::Float3, false, (uint32_t)offsetof(Vertex, Position)},
 			{1, Shader::DataType::Float3, false, (uint32_t)offsetof(Vertex, Normal)},
 			{2, Shader::DataType::Float2, false, (uint32_t)offsetof(Vertex, TexCoords)},
+			{3, Shader::DataType::Float3, false, (uint32_t)offsetof(Vertex, Tangent)},
+			{4, Shader::DataType::Float3, false, (uint32_t)offsetof(Vertex, Bitangent)},
 			}));
 
 		mesh->m_index_buffer = IndexBuffer::Create(mesh->m_indices.data(),
