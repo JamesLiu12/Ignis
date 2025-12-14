@@ -18,90 +18,88 @@ namespace ignis
 		return result;
 	}
 
-	int MeshImporter::BuildMeshNodeHierarchy(const void* ainode, int parentIndex, Mesh& mesh)
+	uint32_t MeshImporter::BuildMeshNodeHierarchy(const void* ainode, uint32_t parent_index, Mesh& mesh)
 	{
-		const aiNode* actualNode = static_cast<const aiNode*>(ainode);
-		MeshNode node;
-		node.ParentIndex = parentIndex;
-		node.Transform = AIToGLMMat4(actualNode->mTransformation);
+		const aiNode* actual_node = static_cast<const aiNode*>(ainode);
+		MeshNode mesh_node;
+		mesh_node.ParentIndex = parent_index;
+		mesh_node.Transform = AIToGLMMat4(actual_node->mTransformation);
 
-		int thisIndex = static_cast<int>(mesh.m_nodes.size());
-		mesh.m_nodes.push_back(node);
+		uint32_t this_index = mesh.m_nodes.size();
+		mesh.m_nodes.push_back(mesh_node);
 
-		if (parentIndex >= 0)
-			mesh.m_nodes[parentIndex].ChildrenIndices.push_back(thisIndex);
+		if (parent_index != 0xffffffff)
+			mesh.m_nodes[parent_index].ChildrenIndices.push_back(this_index);
 
-		for (unsigned int i = 0; i < actualNode->mNumChildren; ++i)
+		for (uint32_t i = 0; i < actual_node->mNumChildren; ++i)
 		{
-			const aiNode* child = actualNode->mChildren[i];
-			MeshImporter::BuildMeshNodeHierarchy(child, thisIndex, mesh);
+			const aiNode* child = actual_node->mChildren[i];
+			MeshImporter::BuildMeshNodeHierarchy(child, this_index, mesh);
 		}
 
-		return thisIndex;
+		return this_index;
 	}
-	// 仍然复用之前的 LoadMaterialTextures 辅助函数
+
+	// TODO put in TextureImporter
 	static void LoadMaterialTextures(
 		const aiMaterial* aimat,
-		const std::filesystem::path& modelDir,
-		Material& outMaterial
+		const std::filesystem::path& model_dir,
+		Material& out_material
 	)
 	{
 		TextureSpecs specs;
 		bool flipVertical = true;
 
-		auto loadTexture = [&](const aiString& relPath) -> std::shared_ptr<Texture2D>
+		auto loadTexture = [&](const aiString& rel_path) -> std::shared_ptr<Texture2D>
 			{
-				std::filesystem::path texPath = modelDir / relPath.C_Str();
-				texPath = texPath.lexically_normal();
+				std::filesystem::path tex_path = model_dir / rel_path.C_Str();
+				tex_path = tex_path.lexically_normal();
 
-				if (!std::filesystem::exists(texPath))
+				if (!std::filesystem::exists(tex_path))
 				{
-					Log::Warn("Texture file does not exist: {}", texPath.string());
+					Log::Warn("Texture file does not exist: {}", tex_path.string());
 					return nullptr;
 				}
 
-				return Texture2D::CreateFromFile(specs, texPath.string(), flipVertical);
+				return Texture2D::CreateFromFile(specs, tex_path.string(), flipVertical);
 			};
 
-		// Diffuse
 		if (aimat->GetTextureCount(aiTextureType_DIFFUSE) > 0)
 		{
-			aiString texPath;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath))
+			aiString tex_path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_DIFFUSE, 0, &tex_path))
 			{
-				if (auto tex = loadTexture(texPath))
-					outMaterial.SetTexture(MaterialType::Diffuse, tex);
+				if (auto tex = loadTexture(tex_path))
+					out_material.SetTexture(MaterialType::Diffuse, tex);
 			}
 		}
 
-		// Specular
 		if (aimat->GetTextureCount(aiTextureType_SPECULAR) > 0)
 		{
-			aiString texPath;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_SPECULAR, 0, &texPath))
+			aiString tex_path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_SPECULAR, 0, &tex_path))
 			{
-				if (auto tex = loadTexture(texPath))
-					outMaterial.SetTexture(MaterialType::Specular, tex);
+				if (auto tex = loadTexture(tex_path))
+					out_material.SetTexture(MaterialType::Specular, tex);
 			}
 		}
 
-		// Normal / Height -> Normal
 		if (aimat->GetTextureCount(aiTextureType_NORMALS) > 0)
 		{
-			aiString texPath;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_NORMALS, 0, &texPath))
+			aiString tex_path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_NORMALS, 0, &tex_path))
 			{
-				if (auto tex = loadTexture(texPath))
-					outMaterial.SetTexture(MaterialType::Normal, tex);
+				if (auto tex = loadTexture(tex_path))
+					out_material.SetTexture(MaterialType::Normal, tex);
 			}
 		}
 		else if (aimat->GetTextureCount(aiTextureType_HEIGHT) > 0)
 		{
-			aiString texPath;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_HEIGHT, 0, &texPath))
+			aiString tex_path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_HEIGHT, 0, &tex_path))
 			{
-				if (auto tex = loadTexture(texPath))
-					outMaterial.SetTexture(MaterialType::Normal, tex);
+				if (auto tex = loadTexture(tex_path))
+					out_material.SetTexture(MaterialType::Normal, tex);
 			}
 		}
 	}
@@ -112,11 +110,11 @@ namespace ignis
 
 		Assimp::Importer importer;
 		auto resolved = VFS::Resolve(filepath);
-		std::filesystem::path modelPath = resolved;
-		std::filesystem::path modelDir = modelPath.parent_path();
+		std::filesystem::path model_path = resolved;
+		std::filesystem::path model_dir = model_path.parent_path();
 
 		const aiScene* scene = importer.ReadFile(
-			modelPath.string(),
+			model_path.string(),
 			aiProcess_Triangulate
 			| aiProcess_GenSmoothNormals
 			| aiProcess_FlipUVs
@@ -129,38 +127,34 @@ namespace ignis
 			return nullptr;
 		}
 
-		// 1. 节点层级（略：跟之前一样）
-		mesh->m_nodes.reserve(64);
-		MeshImporter::BuildMeshNodeHierarchy(scene->mRootNode, -1, *mesh);
+		mesh->m_nodes.reserve(scene->mNumMeshes);
+		MeshImporter::BuildMeshNodeHierarchy(scene->mRootNode, 0xffffffff, *mesh);
 
-		// 2. 材质数组：一个 aiMaterial 对应一个 Material
 		mesh->m_materials.clear();
 		mesh->m_materials.resize(scene->mNumMaterials);
 
 		for (unsigned int i = 0; i < scene->mNumMaterials; ++i)
 		{
 			aiMaterial* aimat = scene->mMaterials[i];
-			LoadMaterialTextures(aimat, modelDir, mesh->m_materials[i]);
+			LoadMaterialTextures(aimat, model_dir, mesh->m_materials[i]);
 		}
 
-		// 3. 顶点 + 索引 + Submesh（注意记录 MaterialIndex）
 		mesh->m_vertices.clear();
 		mesh->m_indices.clear();
 		mesh->m_submeshes.clear();
 
-		uint32_t baseVertex = 0;
-		uint32_t baseIndex = 0;
+		uint32_t base_vertex = 0;
+		uint32_t base_index = 0;
 
-		for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+		for (unsigned int mesh_index = 0; mesh_index < scene->mNumMeshes; ++mesh_index)
 		{
-			aiMesh* aimesh = scene->mMeshes[meshIndex];
+			aiMesh* aimesh = scene->mMeshes[mesh_index];
 
 			Submesh sub;
-			sub.BaseVertex = baseVertex;
-			sub.BaseIndex = baseIndex;
-			sub.MaterialIndex = aimesh->mMaterialIndex; // 直接映射到 m_materials 的下标
+			sub.BaseVertex = base_vertex;
+			sub.BaseIndex = base_index;
+			sub.MaterialIndex = aimesh->mMaterialIndex;
 
-			// 顶点
 			for (unsigned int v = 0; v < aimesh->mNumVertices; ++v)
 			{
 				Vertex vertex{};
@@ -194,21 +188,23 @@ namespace ignis
 				}
 
 				mesh->m_vertices.push_back(vertex);
-			}
+			}			
 
-			// 索引
 			for (unsigned int f = 0; f < aimesh->mNumFaces; ++f)
 			{
 				const aiFace& face = aimesh->mFaces[f];
 				for (unsigned int i = 0; i < face.mNumIndices; ++i)
-					mesh->m_indices.push_back(baseVertex + face.mIndices[i]);
+				{
+					mesh->m_indices.push_back(base_vertex + face.mIndices[i]);
+				}
 			}
 
+			sub.VertexCount = static_cast<uint32_t>(mesh->m_vertices.size()) - sub.BaseVertex;
 			sub.IndexCount = static_cast<uint32_t>(mesh->m_indices.size()) - sub.BaseIndex;
 			mesh->m_submeshes.push_back(sub);
 
-			baseVertex = static_cast<uint32_t>(mesh->m_vertices.size());
-			baseIndex = static_cast<uint32_t>(mesh->m_indices.size());
+			base_vertex = static_cast<uint32_t>(mesh->m_vertices.size());
+			base_index = static_cast<uint32_t>(mesh->m_indices.size());
 		}
 
 		mesh->m_vertex_buffer = VertexBuffer::Create(

@@ -18,8 +18,8 @@ namespace ignis
 
 	struct MeshNode
 	{
-		int32_t ParentIndex = -1;
-		std::vector<int32_t> ChildrenIndices;
+		uint32_t ParentIndex = 0xffffffff;
+		std::vector<uint32_t> ChildrenIndices;
 		glm::mat4 Transform{ 1.0f };
 	};
 
@@ -27,6 +27,7 @@ namespace ignis
 	{
 		uint32_t BaseVertex = 0;
 		uint32_t BaseIndex = 0;
+		uint32_t VertexCount = 0;
 		uint32_t IndexCount = 0;
 		uint32_t MaterialIndex = 0;
 	};
