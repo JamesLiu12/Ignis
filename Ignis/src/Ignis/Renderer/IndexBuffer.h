@@ -12,6 +12,6 @@ namespace ignis
 
 		virtual unsigned int GetCount() const = 0;
 
-		static std::shared_ptr<IndexBuffer> Create(const uint32_t* indices, size_t size);
+		static std::shared_ptr<IndexBuffer> Create(const uint32_t* indices, uint32_t size);
 	};
 }
