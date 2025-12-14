@@ -9,6 +9,7 @@
 #include "Ignis/Renderer/IndexBuffer.h"
 #include "Ignis/Renderer/ShaderLibrary.h"
 #include "Ignis/Renderer/Texture.h"
+#include "Ignis/Renderer/Material.h"
 
 #include "Ignis/Core/FileSystem.h"
 #include "Ignis/Asset/File.h"

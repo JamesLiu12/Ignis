@@ -118,7 +118,6 @@ namespace ignis
 			aiProcess_Triangulate
 			| aiProcess_GenSmoothNormals
 			| aiProcess_FlipUVs
-			| aiProcess_JoinIdenticalVertices
 		);
 
 		if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode)
@@ -207,15 +206,22 @@ namespace ignis
 			base_index = static_cast<uint32_t>(mesh->m_indices.size());
 		}
 
-		mesh->m_vertex_buffer = VertexBuffer::Create(
-			mesh->m_vertices.data(),
-			mesh->m_vertices.size() * sizeof(Vertex)
-		);
+		mesh->m_vertex_array = VertexArray::Create();
 
-		mesh->m_index_buffer = IndexBuffer::Create(
-			mesh->m_indices.data(),
-			mesh->m_indices.size() * sizeof(uint32_t)
-		);
+		mesh->m_vertex_buffer = VertexBuffer::Create(mesh->m_vertices.data(),
+			(uint32_t)(mesh->m_vertices.size() * sizeof(Vertex)));
+
+		mesh->m_vertex_buffer->SetLayout(VertexBuffer::Layout({
+			{0, Shader::DataType::Float3, false, (uint32_t)offsetof(Vertex, Position)},
+			{1, Shader::DataType::Float3, false, (uint32_t)offsetof(Vertex, Normal)},
+			{2, Shader::DataType::Float2, false, (uint32_t)offsetof(Vertex, TexCoords)},
+			}));
+
+		mesh->m_index_buffer = IndexBuffer::Create(mesh->m_indices.data(),
+			(uint32_t)(mesh->m_indices.size() * sizeof(uint32_t)));
+
+		mesh->m_vertex_array->AddVertexBuffer(mesh->m_vertex_buffer);
+		mesh->m_vertex_array->SetIndexBuffer(mesh->m_index_buffer);
 
 		return mesh;
 	}
