@@ -18,6 +18,6 @@ namespace ignis
 		MeshImporter() = default;
 		~MeshImporter() = default;
 
-		static int BuildMeshNodeHierarchy(const void* ainode, int parentIndex, Mesh& mesh);
+		static uint32_t BuildMeshNodeHierarchy(const void* ainode, uint32_t parent_index, Mesh& mesh);
 	};
 }
