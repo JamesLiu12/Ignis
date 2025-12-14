@@ -30,6 +30,7 @@ void SandBoxLayer::OnAttach()
 	m_va = ignis::VertexArray::Create();
 	m_va->AddVertexBuffer(m_vb);
 	m_va->SetIndexBuffer(m_ib);
+	m_va->UnBind();
 
 	m_texture = ignis::Texture2D::CreateFromFile(
 		ignis::TextureSpecs{

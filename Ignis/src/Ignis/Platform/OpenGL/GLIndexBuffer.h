@@ -7,16 +7,16 @@ namespace ignis
 	class GLIndexBuffer : public IndexBuffer
 	{
 	public:
-		GLIndexBuffer(const uint32_t* indices, size_t size);
+		GLIndexBuffer(const uint32_t* indices, uint32_t size);
 		~GLIndexBuffer() override;
 
 		void Bind() override;
 		void Unbind() override;
 
-		unsigned int GetCount() const override { return m_count; }
+		unsigned int GetCount() const override { return m_size / sizeof(uint32_t); }
 
 	private:
 		uint32_t m_id;
-		uint32_t m_count;
+		uint32_t m_size;
 	};
 }
