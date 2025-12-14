@@ -43,6 +43,7 @@ void SandBoxLayer::OnAttach()
 
 	m_shader_library = ignis::ShaderLibrary();
 	m_shader_library.Load("assets://shaders/example.glsl");
+	m_shader_library.Load("assets://shaders/blinn.glsl");
 
 	m_camera = ignis::Camera(45.0f, 1280.0f / 720.0f, 0.1f, 100.0f);
 	m_camera.SetPosition({ 0.0f, 0.0f, 3.0f });
@@ -55,6 +56,7 @@ void SandBoxLayer::OnAttach()
 	ignis::Log::CoreInfo("Has TagComponent: {}", face.HasComponent<ignis::TagComponent>());
 
 	m_mesh = ignis::MeshImporter::ImportMesh("assets://models/backpack/backpack.obj");
+	m_renderer.BeginScene();
 }
 
 void SandBoxLayer::OnUpdate(float dt)
@@ -94,14 +96,24 @@ void SandBoxLayer::OnUpdate(float dt)
 
 	m_renderer.Clear();
 
-	ignis::Shader& shader = m_shader_library.Get("assets://shaders/example.glsl");
+	//ignis::Shader& shader = m_shader_library.Get("assets://shaders/example.glsl");
+	ignis::Shader& shader = m_shader_library.Get("assets://shaders/blinn.glsl");
 	
-	m_texture->Bind(0);
+	//m_texture->Bind(0);
 	shader.Bind();
-	shader.Set("uViewProjection", m_camera.GetViewProjection());
-	shader.Set("uTexture", 0);
+	//shader.Set("uViewProjection", m_camera.GetViewProjection());
+	//shader.Set("uTexture", 0);
+	shader.Set("view", m_camera.GetView());
+	shader.Set("projection", m_camera.GetProjection());
+	shader.Set("model", glm::mat4(1.0f));
+	shader.Set("viewPos", m_camera.GetPosition());
+	shader.Set("dirLight.direction", glm::normalize(glm::vec3(-0.2f, -1.0f, -0.3f)));
+	shader.Set("dirLight.ambient", glm::vec3(0.10f));
+	shader.Set("dirLight.diffuse", glm::vec3(0.80f));
+	shader.Set("dirLight.specular", glm::vec3(1.00f));
 	m_va->Bind();
-	m_renderer.DrawIndexed(*m_va);
+	//m_renderer.DrawIndexed(*m_va);
+	m_renderer.RenderMesh(m_mesh, shader);
 }
 
 void SandBoxLayer::OnEvent(ignis::EventBase& event)

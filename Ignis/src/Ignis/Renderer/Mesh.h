@@ -2,6 +2,7 @@
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 #include "Texture.h"
 #include "Material.h"
 
@@ -39,6 +40,16 @@ namespace ignis
 		Mesh() = default;
 		MeshNode& GetRootNode() { return m_nodes[0]; }
 
+		const std::vector<Vertex>& GetVertices() const { return m_vertices; }
+		const std::vector<uint32_t>& GetIndices() const { return m_indices; }
+		const std::vector<Material>& GetMaterials() const { return m_materials; }
+		const std::vector<MeshNode>& GetNodes() const { return m_nodes; }
+		const std::vector<Submesh>& GetSubmeshes() const { return m_submeshes; }
+
+		std::shared_ptr<VertexArray> GetVertexArray() const { return m_vertex_array; }
+		std::shared_ptr<VertexBuffer> GetVertexBuffer() const { return m_vertex_buffer; }
+		std::shared_ptr<IndexBuffer> GetIndexBuffer() const { return m_index_buffer; }
+
 		~Mesh() = default;
 
 	private:
@@ -50,6 +61,7 @@ namespace ignis
 		std::vector<MeshNode> m_nodes;
 		std::vector<Submesh>  m_submeshes;
 
+		std::shared_ptr<VertexArray> m_vertex_array;
 		std::shared_ptr<VertexBuffer> m_vertex_buffer;
 		std::shared_ptr<IndexBuffer> m_index_buffer;
 

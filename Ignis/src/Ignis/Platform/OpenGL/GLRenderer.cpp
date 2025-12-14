@@ -1,4 +1,5 @@
 #include "GLRenderer.h"
+#include "Ignis/Renderer/Shader.h"
 
 #include <glad/glad.h>
 
@@ -7,6 +8,7 @@ namespace ignis
 	void GLRenderer::BeginScene()
 	{
 		// TODO
+		glEnable(GL_DEPTH_TEST);
 	}
 	void GLRenderer::EndScene()
 	{
@@ -38,6 +40,37 @@ namespace ignis
 		va.Bind();
 		glDrawElements(GL_TRIANGLES, va.GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
 		va.UnBind();
+	}
+
+	void GLRenderer::RenderMesh(const std::shared_ptr<Mesh>& mesh, Shader& shader)
+	{
+		auto vao = mesh->GetVertexArray();
+		vao->Bind();
+
+		const auto& materials = mesh->GetMaterials();
+
+		for (const auto& sm : mesh->GetSubmeshes())
+		{
+			const auto& mat = materials[sm.MaterialIndex];
+
+			auto diffuse = mat.GetTexture(ignis::MaterialType::Diffuse);
+			// if (!diffuse) diffuse = m_whiteTexture;
+
+			if (diffuse)
+			{
+				diffuse->Bind(0);
+				shader.Set("material.diffuse", 0);
+			}
+
+			glDrawElements(
+				GL_TRIANGLES,
+				sm.IndexCount,
+				GL_UNSIGNED_INT,
+				(void*)(sm.BaseIndex * sizeof(uint32_t))
+			);
+		}
+
+		vao->UnBind();
 	}
 
 	void GLRenderer::Clear()
