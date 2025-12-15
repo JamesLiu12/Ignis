@@ -43,7 +43,6 @@ void main()
 #endif
 
 #ifdef FRAGMENT_STAGE
-#version 330 core
 out vec4 FragColor;
 
 in VS_OUT {
