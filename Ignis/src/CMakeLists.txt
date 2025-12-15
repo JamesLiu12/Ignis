@@ -19,6 +19,7 @@ target_link_libraries(Ignis
         stb
         entt
         assimp
+        stduuid
 )
 
 target_include_directories(Ignis PUBLIC
