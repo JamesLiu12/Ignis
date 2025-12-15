@@ -61,6 +61,7 @@ void SandBoxLayer::OnAttach()
 
 void SandBoxLayer::OnUpdate(float dt)
 {
+	static glm::mat4 model = glm::mat4(1.0f);
 	if (ignis::Input::IsKeyPressed(ignis::KeyCode::W))
 	{
 		glm::vec3 forward = m_camera.GetForwardDirection();
@@ -105,7 +106,8 @@ void SandBoxLayer::OnUpdate(float dt)
 	//shader.Set("uTexture", 0);
 	shader.Set("view", m_camera.GetView());
 	shader.Set("projection", m_camera.GetProjection());
-	shader.Set("model", glm::mat4(1.0f));
+	model = glm::rotate(model, glm::radians(-55.0f) * dt, glm::vec3(0.0f, 1.0f, 0.0f));
+	shader.Set("model", model);
 	shader.Set("viewPos", m_camera.GetPosition());
 	shader.Set("dirLight.direction", glm::normalize(glm::vec3(-0.2f, -1.0f, -0.3f)));
 	shader.Set("dirLight.ambient", glm::vec3(0.10f));
