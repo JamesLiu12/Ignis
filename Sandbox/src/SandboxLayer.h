@@ -26,4 +26,6 @@ private:
 	ignis::Camera m_camera;
 
 	ignis::Scene m_scene;
+
+	std::shared_ptr<ignis::Mesh> m_mesh;
 };

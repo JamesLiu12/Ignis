@@ -11,7 +11,7 @@ namespace ignis
 		glBufferData(GL_ARRAY_BUFFER, size, nullptr, usage == Usage::Dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
 	}
 
-	GLVertexBuffer::GLVertexBuffer(float* vertices, size_t size, Usage usage)
+	GLVertexBuffer::GLVertexBuffer(const void* vertices, size_t size, Usage usage)
 	{
 		glGenBuffers(1, &m_id);
 		glBindBuffer(GL_ARRAY_BUFFER, m_id);
@@ -33,7 +33,7 @@ namespace ignis
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	void GLVertexBuffer::SetData(float* data, size_t size)
+	void GLVertexBuffer::SetData(const void* data, size_t size)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, m_id);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);

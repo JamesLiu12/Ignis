@@ -18,6 +18,7 @@ target_link_libraries(Ignis
         LinearMath
         stb
         entt
+        assimp
 )
 
 target_include_directories(Ignis PUBLIC
