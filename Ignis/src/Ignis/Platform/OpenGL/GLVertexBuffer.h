@@ -9,14 +9,14 @@ namespace ignis
 	{
 	public:
 		GLVertexBuffer(size_t size, Usage usage);
-		GLVertexBuffer(float* vertices, size_t size, Usage usage);
+		GLVertexBuffer(const void* vertices, size_t size, Usage usage);
 
 		~GLVertexBuffer() override;
 
 		void Bind() override;
 		void UnBind() override;
 
-		void SetData(float* data, size_t size) override;
+		void SetData(const void* data, size_t size) override;
 
 	private:
 		uint32_t m_id = 0;

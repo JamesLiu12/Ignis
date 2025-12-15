@@ -13,3 +13,6 @@
 [submodule "Ignis/external/glm"]
 	path = Ignis/external/glm
 	url = https://github.com/g-truc/glm
+[submodule "Ignis/external/assimp"]
+	path = Ignis/external/assimp
+	url = https://github.com/assimp/assimp

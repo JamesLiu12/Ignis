@@ -4,12 +4,12 @@
 
 namespace ignis
 {
-	GLIndexBuffer::GLIndexBuffer(uint32_t* indices, uint32_t count)
-		: m_count(count)
+	GLIndexBuffer::GLIndexBuffer(const uint32_t* indices, uint32_t size)
+		: m_size(size)
 	{
 		glGenBuffers(1, &m_id);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint32_t), indices, GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, indices, GL_STATIC_DRAW);
 	}
 
 	GLIndexBuffer::~GLIndexBuffer()
