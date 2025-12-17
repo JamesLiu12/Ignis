@@ -2,6 +2,7 @@
 #include "Ignis/Core/Input.h"
 #include "Ignis/Core/KeyCodes.h"
 #include "Ignis/Core/Log.h"
+#include "Ignis/Core/UUID.h"
 
 #include "Ignis/Renderer/VertexBuffer.h"
 #include "Ignis/Renderer/Shader.h"
