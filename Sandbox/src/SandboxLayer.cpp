@@ -57,6 +57,12 @@ void SandBoxLayer::OnAttach()
 
 	m_mesh = ignis::MeshImporter::ImportMesh("assets://models/backpack/backpack.obj");
 	m_renderer.BeginScene();
+
+	auto test_id = ignis::UUID();
+	ignis::Log::CoreInfo("Generated UUID: {}", test_id.ToString());
+	ignis::Log::CoreInfo("Generated UUID is valid: {}", test_id.IsValid());
+	test_id = ignis::UUID("Invalid ID");
+	ignis::Log::CoreInfo("Generated UUID is valid: {}", test_id.IsValid());
 }
 
 void SandBoxLayer::OnUpdate(float dt)
