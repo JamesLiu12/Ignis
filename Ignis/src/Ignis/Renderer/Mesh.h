@@ -5,6 +5,7 @@
 #include "VertexArray.h"
 #include "Texture.h"
 #include "Material.h"
+#include "Ignis/Asset/Asset.h"
 
 #include <glm/glm.hpp>
 
@@ -35,11 +36,14 @@ namespace ignis
 		uint32_t MaterialIndex = 0;
 	};
 
-	class Mesh
+	class Mesh : public Asset
 	{
 	public:
 		Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
 		Mesh() = default;
+
+		AssetType GetAssetType() const override { return AssetType::Mesh; }
+
 		MeshNode& GetRootNode() { return m_nodes[0]; }
 
 		const std::vector<Vertex>& GetVertices() const { return m_vertices; }

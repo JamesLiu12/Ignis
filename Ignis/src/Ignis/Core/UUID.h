@@ -19,7 +19,21 @@ namespace ignis
 
 		bool IsValid() const;
 
+		uuids::uuid GetRaw() const { return m_uuid; }
+
 	private:
 		uuids::uuid m_uuid;
+	};
+}
+
+namespace std
+	{
+	template<>
+	struct hash<ignis::UUID>
+	{
+		std::size_t operator()(const ignis::UUID& uuid) const
+		{
+			return std::hash<uuids::uuid>{}(uuid.GetRaw());
+		}
 	};
 }
