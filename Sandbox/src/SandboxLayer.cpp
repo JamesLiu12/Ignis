@@ -55,10 +55,12 @@ void SandBoxLayer::OnAttach()
 	face.RemoveComponent<ignis::TagComponent>();
 	ignis::Log::CoreInfo("Has TagComponent: {}", face.HasComponent<ignis::TagComponent>());
 
-	m_mesh = ignis::MeshImporter::ImportMesh("assets://models/backpack/backpack.obj");
+	ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/backpack/backpack.obj");
+	m_mesh = ignis::AssetManager::GetAsset<ignis::Mesh>(mesh_handle);
+	m_mesh = ignis::AssetManager::GetAsset<ignis::Mesh>(mesh_handle);
 	m_renderer.BeginScene();
 
-	auto test_id = ignis::UUID();
+	ignis::UUID test_id = ignis::UUID();
 	ignis::Log::CoreInfo("Generated UUID: {}", test_id.ToString());
 	ignis::Log::CoreInfo("Generated UUID is valid: {}", test_id.IsValid());
 	test_id = ignis::UUID("Invalid ID");
