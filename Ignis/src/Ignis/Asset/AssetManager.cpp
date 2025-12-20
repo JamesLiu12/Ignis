@@ -28,19 +28,71 @@ namespace ignis
 
 	AssetHandle AssetManager::ImportAsset(const std::filesystem::path& path)
 	{
-		AssetHandle handle = AssetHandle();
-		AssetMetadata metadata;
-		metadata.FilePath = path;
-		metadata.Type = DetermineTypeFromExtension(path);
+		const AssetMetadata* metadata = GetMetadata(path);
 
-		s_asset_registry[handle] = metadata;
+		if (metadata)
+		{
+			return metadata->handle;
+		}
+		
+		AssetHandle handle = AssetHandle();
+		AssetMetadata new_metadata;
+		new_metadata.FilePath = path;
+		new_metadata.Type = DetermineTypeFromExtension(path);
+		new_metadata.handle = handle;
+
+		s_asset_registry[handle] = new_metadata;
 
 		return handle;
 	}
 
-	const AssetMetadata& AssetManager::GetMetadata(AssetHandle handle)
+	const AssetMetadata* AssetManager::GetMetadata(AssetHandle handle)
 	{
-		
-		return s_asset_registry.at(handle);
+		auto it = s_asset_registry.find(handle);
+		if (it != s_asset_registry.end()) {
+			return &it->second;
+		}
+		return nullptr;
+	}
+
+	const AssetMetadata* AssetManager::GetMetadata(std::filesystem::path path)
+	{
+		for (const auto& [handle, metadata] : s_asset_registry)
+		{
+			if (metadata.FilePath == path)
+			{
+				return &metadata;
+			}
+		}
+
+		return nullptr;
+	}
+
+	std::shared_ptr<Asset> AssetManager::LoadAssetFromFile(const AssetMetadata& metadata)
+	{
+		if (!VFS::Exists(metadata.FilePath.string()))
+		{
+			Log::CoreError("Asset file does not exist: {}", metadata.FilePath.string());
+			return nullptr;
+		}
+
+		switch (metadata.Type)
+		{
+		case AssetType::Texture:
+		{
+			// return TextureImporter::LoadTexture(metadata.FilePath.string());
+			return nullptr;
+		}
+		case AssetType::Mesh:
+		{
+			return MeshImporter::ImportMesh(metadata.FilePath.string());
+		}
+		case AssetType::Unknown:
+		{
+			Log::CoreError("Unknown asset type for file: {}", metadata.FilePath.string());
+			return nullptr;
+		}
+		}
+		return nullptr;
 	}
 }
