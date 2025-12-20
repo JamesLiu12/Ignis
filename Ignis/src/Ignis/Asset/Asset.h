@@ -27,6 +27,6 @@ namespace ignis
 
 		friend class AssetManager;
 	private:
-		AssetHandle m_handle;
+		AssetHandle m_handle = AssetHandle::InvalidUUID;
 	};
 }

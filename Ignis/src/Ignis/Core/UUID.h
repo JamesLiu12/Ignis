@@ -21,6 +21,8 @@ namespace ignis
 
 		uuids::uuid GetRaw() const { return m_uuid; }
 
+		inline static const uuids::uuid InvalidUUID = {};
+
 	private:
 		uuids::uuid m_uuid;
 	};
