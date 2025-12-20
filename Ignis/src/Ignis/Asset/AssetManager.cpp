@@ -46,6 +46,12 @@ namespace ignis
 		return handle;
 	}
 
+	void AssetManager::RemoveAsset(AssetHandle handle)
+	{
+		s_loaded_assets.erase(handle);
+		s_asset_registry.erase(handle);
+	}
+
 	const AssetMetadata* AssetManager::GetMetadata(AssetHandle handle)
 	{
 		auto it = s_asset_registry.find(handle);
