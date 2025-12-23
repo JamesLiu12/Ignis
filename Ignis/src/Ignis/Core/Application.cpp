@@ -1,5 +1,6 @@
 #include "Application.h"
 #include "Ignis/ImGui/ImGuiLayer.h"
+#include "Ignis/Editor/EditorLayer.h"
 #include "Ignis/Debug/EngineStatsPanel.h"
 #include "Ignis/Core/Events/KeyEvents.h"
 #include "Input.h"
@@ -38,17 +39,28 @@ namespace ignis
 		m_imgui_layer = imgui_layer.get();
 		PushOverlay(std::move(imgui_layer));
 
-		// Create debug panel
-		m_debug_panel = std::make_unique<EngineStatsPanel>();
-		Log::CoreInfo("Debug panel created successfully");
-		Log::CoreInfo("Debug window initial state: {}", m_show_debug_window ? "VISIBLE" : "HIDDEN");
-
 		// Initialize physics
 		m_physics_world = std::make_unique<PhysicsWorld>();
 		m_physics_world->Init();
-		m_physics_debug_panel = std::make_unique<PhysicsDebugPanel>();
 		CreatePhysicsTestScene();
 		Log::CoreInfo("Physics system initialized");
+
+		// Initialize Editor Layer (manages all panels)
+		auto editor_layer = std::make_unique<EditorLayer>();
+		m_editor_layer = editor_layer.get();
+		PushOverlay(std::move(editor_layer));
+
+		// Register debug panels with EditorLayer's PanelManager
+		auto& panel_manager = m_editor_layer->GetPanelManager();
+		
+		// Add Engine Stats panel
+		auto engine_stats = panel_manager.AddPanel<EngineStatsPanel>("EngineStats", "Engine Statistics", true);
+		
+		// Add Physics Debug panel
+		auto physics_debug = panel_manager.AddPanel<PhysicsDebugPanel>("PhysicsDebug", "Physics Debug", true);
+		physics_debug->SetPhysicsWorld(m_physics_world.get());
+		
+		Log::CoreInfo("Editor panels registered");
 
 		m_subscriptions.emplace_back(
 			m_dispatcher.Subscribe<WindowResizeEvent>(
@@ -107,18 +119,7 @@ namespace ignis
 			{
 				m_imgui_layer->Begin();
 				
-				// Render debug window only if enabled
-				if (m_debug_panel && m_show_debug_window)
-				{
-					m_debug_panel->OnImGuiRender(m_show_debug_window);
-				}
-
-				if (m_physics_debug_panel && m_show_physics_debug)
-				{
-					m_physics_debug_panel->OnImGuiRender(m_physics_world.get(), m_show_physics_debug);
-				}
-			
-				// Render all layer ImGui
+				// Render all layer ImGui (including EditorLayer which manages panels)
 				for (auto& layer : m_layer_stack)
 				{
 					layer->OnImGuiRender();
@@ -147,22 +148,8 @@ namespace ignis
 			return;
 		}
 
-		// Handle F# key for debug window toggle
-		if (auto* key_event = dynamic_cast<KeyPressedEvent*>(&e))
-		{
-			if (key_event->GetKeyCode() == 290)  // GLFW_KEY_F1 = 290
-			{
-				m_show_debug_window = !m_show_debug_window;
-				Log::CoreInfo("Debug window toggled: {}", m_show_debug_window ? "ON" : "OFF");
-			}
-			else if (key_event->GetKeyCode() == 291)  // GLFW_KEY_F2 = 291
-            {
-                m_show_physics_debug = !m_show_physics_debug;
-                Log::CoreInfo("Physics debug toggled: {}", m_show_physics_debug ? "ON" : "OFF");
-            }
+		// Panel visibility is now controlled via View menu in EditorLayer
 		
-		}
-
 		m_dispatcher.Dispatch(e);
 
 		for (auto it = m_layer_stack.rbegin(); it != m_layer_stack.rend(); ++it)
