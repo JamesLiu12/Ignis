@@ -11,6 +11,10 @@ namespace ignis {
 		EngineStatsPanel();
 		void OnImGuiRender(bool& is_open) override;
 
+		// EditorPanel interface
+		const char* GetName() const override { return "Engine Statistics"; }
+		const char* GetID() const override { return "EngineStats"; }
+
 	private:
 		void UpdateFrameStats();
 		
