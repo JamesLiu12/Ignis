@@ -50,13 +50,10 @@ namespace ignis {
 		EventDispatcher m_dispatcher;
 		LayerStack m_layer_stack;
 		class ImGuiLayer* m_imgui_layer;
-		std::unique_ptr<class EngineStatsPanel> m_debug_panel;
-		bool m_show_debug_window = true;  // Set to true to show debug window by default
+		class EditorLayer* m_editor_layer;  // Editor layer manages all panels
 
 		void CreatePhysicsTestScene();
 		std::unique_ptr<class PhysicsWorld> m_physics_world;
-		std::unique_ptr<class PhysicsDebugPanel> m_physics_debug_panel;
-		bool m_show_physics_debug = true;
 		std::vector<EventDispatcher::Subscription> m_subscriptions;
 
 		std::unique_ptr<Renderer> m_renderer;
