@@ -8,7 +8,63 @@ std::unique_ptr<ignis::Application> ignis::Application::Create()
 
 Sandbox::Sandbox()
 {
-	ignis::VFS::Mount("assets", "assets");
+	// Mount assets directory relative to executable location
+	// This ensures assets are found regardless of current working directory
+	
+	// Get the executable's actual path (not current working directory)
+	std::filesystem::path exe_dir;
+	
+	#if defined(__APPLE__)
+		// macOS: Use _NSGetExecutablePath
+		char path[1024];
+		uint32_t size = sizeof(path);
+		if (_NSGetExecutablePath(path, &size) == 0) {
+			exe_dir = std::filesystem::path(path).parent_path();
+		} else {
+			exe_dir = std::filesystem::current_path(); // Fallback
+		}
+	#elif defined(_WIN32)
+		// Windows: Use GetModuleFileName
+		char path[MAX_PATH];
+		GetModuleFileNameA(NULL, path, MAX_PATH);
+		exe_dir = std::filesystem::path(path).parent_path();
+	#else
+		// Linux: Read /proc/self/exe
+		char path[1024];
+		ssize_t len = readlink("/proc/self/exe", path, sizeof(path) - 1);
+		if (len != -1) {
+			path[len] = '\0';
+			exe_dir = std::filesystem::path(path).parent_path();
+		} else {
+			exe_dir = std::filesystem::current_path(); // Fallback
+		}
+	#endif
+	
+	ignis::Log::CoreInfo("Executable directory: {}", exe_dir.string());
+	
+	// Try to find the assets directory
+	// Executable is in: out/build/arm64-debug/Sandbox/
+	// Assets are in: Sandbox/assets/
+	// So we need to go up 4 levels and then into Sandbox/assets
+	std::filesystem::path assets_path;
+	
+	// Try: exe_dir/../../../Sandbox/assets (from out/build/arm64-debug/Sandbox/ -> Sandbox/assets/)
+	auto project_root = exe_dir.parent_path().parent_path().parent_path().parent_path();
+	assets_path = project_root / "Sandbox" / "assets";
+	
+	if (std::filesystem::exists(assets_path))
+	{
+		ignis::Log::CoreInfo("Found assets at: {}", assets_path.string());
+		ignis::VFS::Mount("assets", assets_path.string());
+	}
+	else
+	{
+		ignis::Log::CoreError("Failed to find assets directory! Tried: {}", assets_path.string());
+		ignis::Log::CoreError("Executable directory: {}", exe_dir.string());
+		ignis::Log::CoreError("Project root: {}", project_root.string());
+		// Fallback to relative path
+		ignis::VFS::Mount("assets", "Sandbox/assets");
+	}
 
 	// VFS Test
 	ignis::Log::CoreInfo("\n=== VFS Test Start===");
