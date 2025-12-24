@@ -25,3 +25,4 @@
 
 #include "Ignis/Asset/MeshImporter.h"
 #include "Ignis/Renderer/Mesh.h"
+#include "Ignis/Asset/TextureImporter.h"

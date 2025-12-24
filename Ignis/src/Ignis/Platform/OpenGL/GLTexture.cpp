@@ -56,15 +56,13 @@ namespace ignis
 	{
 		switch (format)
 		{
-		case ImageFormat::RED: 		return GL_RED;
-		case ImageFormat::RG: 		return GL_RG;
-		case ImageFormat::RGB: 		return GL_RGB;
-		case ImageFormat::BGR: 		return GL_BGR;
-		case ImageFormat::RGBA: 	return GL_RGBA;
-		case ImageFormat::BGRA: 	return GL_BGRA;
+		case ImageFormat::R8:      return GL_RED;
+		case ImageFormat::RGB8:    return GL_RGB;
+		case ImageFormat::RGBA8:   return GL_RGBA;
+		case ImageFormat::RGBA32F: return GL_RGBA;
 		default:
 			Log::CoreWarn("Unknown base ImageFormat ({}). Falling back to GL_RGBA.", static_cast<int>(format));
-			return GL_RGBA;
+			return 0;
 		}
 	}
 
@@ -87,32 +85,6 @@ namespace ignis
 		{
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
-	}
-
-	GLTexture2D::GLTexture2D(const TextureSpecs& specs, const std::string& filepath, bool flip_vertical)
-		: m_specs(specs)
-	{
-		Image image(filepath, specs.SourceFormat, flip_vertical);
-
-		if (!image.IsLoaded())
-		{
-			Log::CoreError("Failed to load texture from file: {}", filepath);
-			return;
-		}
-
-		m_specs.Width = m_specs.Width == 0 ? image.GetWidth() : m_specs.Width;
-		m_specs.Height = m_specs.Height == 0 ? image.GetHeight() : m_specs.Height;
-		m_specs.SourceFormat = specs.SourceFormat;
-		m_specs.InternalFormat = specs.InternalFormat;
-
-		glGenTextures(1, &m_id);
-		glBindTexture(GL_TEXTURE_2D, m_id);
-
-		ApplyTextureParameters(m_specs);
-
-		AllocateTextureStorage(m_specs, static_cast<const void*>(image.GetPixels().data()));
-
-		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
 	GLTexture2D::GLTexture2D(const TextureSpecs& specs, std::span<const std::byte> data)

@@ -32,14 +32,18 @@ void SandBoxLayer::OnAttach()
 	m_va->SetIndexBuffer(m_ib);
 	m_va->UnBind();
 
-	m_texture = ignis::Texture2D::CreateFromFile(
+	/*m_texture = ignis::Texture2D::CreateFromFile(
 		ignis::TextureSpecs{
 			.SourceFormat = ignis::ImageFormat::RGBA,
 			.InternalFormat = ignis::ImageFormat::RGB,
 		},
 		"assets://images/awesomeface.png",
 		true
-	);
+	);*/
+	m_texture = ignis::TextureImporter::ImportTexture2D("assets://images/awesomeface.png", 
+		ignis::TextureImportOptions{
+			.InternalFormat = ignis::ImageFormat::RGB8
+		});
 
 	m_shader_library = ignis::ShaderLibrary();
 	m_shader_library.Load("assets://shaders/example.glsl");

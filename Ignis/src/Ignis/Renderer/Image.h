@@ -4,23 +4,20 @@ namespace ignis
 {
 	enum class ImageFormat
 	{
-		RED,
-		RG,
-		RGB,
-		BGR,
-		RGBA,
-		BGRA
+		None = 0,
+		R8,
+		RGB8,
+		RGBA8,
+		RGBA32F
 	};
 
 	constexpr std::uint32_t Channels(ImageFormat format) noexcept {
 		switch (format) {
-		case ImageFormat::RED:  return 1;
-		case ImageFormat::RG:   return 2;
-		case ImageFormat::RGB:
-		case ImageFormat::BGR:  return 3;
-		case ImageFormat::RGBA:
-		case ImageFormat::BGRA: return 4;
-		default:                return 0;
+		case ImageFormat::R8:		return 1;
+		case ImageFormat::RGB8:     return 3;
+		case ImageFormat::RGBA8:    return 4;
+		case ImageFormat::RGBA32F:  return 4;
+		default:                    return 0;
 		}
 		return 0;
 	}
@@ -28,7 +25,10 @@ namespace ignis
 	class Image
 	{
 	public:
-		Image(const std::string& filepath, ImageFormat image_format = ImageFormat::RGBA, bool flip_vertical = true);
+		Image() = default;
+		Image(uint32_t width, uint32_t height, ImageFormat format, const void* data = nullptr);
+
+		static std::shared_ptr<Image> LoadFromFile(const std::filesystem::path& filepath, bool flip_vertical = true);
 
 		uint32_t GetWidth() const noexcept { return m_width; }
 		uint32_t GetHeight() const noexcept { return m_height; }
@@ -40,8 +40,8 @@ namespace ignis
 	private:
 		uint32_t m_width = 0;
 		uint32_t m_height = 0;
-		ImageFormat m_format;
+		ImageFormat m_format = ImageFormat::None;
 		std::vector<std::byte> m_pixels;
 		bool m_loaded = false;
-	};;
+	};
 }

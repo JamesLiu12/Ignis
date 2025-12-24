@@ -3,41 +3,57 @@
 
 namespace ignis
 {
-	Image::Image(const std::string& filepath, ImageFormat image_format, bool flip_vertical)
-		: m_format(image_format)
+	Image::Image(uint32_t width, uint32_t height, ImageFormat format, const void* data)
+	{
+		if (data) {
+			m_width = width;
+			m_height = height;
+			m_format = format;
+			m_pixels.resize(width * height * Channels(format));
+			std::memcpy(m_pixels.data(), data, width * height * Channels(format));
+			m_loaded = true;
+		}
+	}
+
+	std::shared_ptr<Image> Image::LoadFromFile(const std::filesystem::path& filepath, bool flip_vertical)
 	{
 		stbi_set_flip_vertically_on_load(flip_vertical);
 
-		int width = 0;
-		int height = 0;
-		int num_channels = 0;
+		int width, height, channels;
 
-		unsigned char* raw_pixels = stbi_load(
-			VFS::Resolve(filepath).string().c_str(), 
-			&width, 
-			&height, 
-			&num_channels, 
-			static_cast<int>(Channels(image_format))
-		);
+		stbi_uc* data = stbi_load(filepath.string().c_str(), &width, &height, &channels, 0);
 
-		if (!raw_pixels) {
-			m_loaded = false;
-			return;
+		if (!data) return nullptr;
+
+		auto image = std::make_shared<Image>();
+		image->m_width = width;
+		image->m_height = height;
+
+		if (channels == 4)
+		{
+			image->m_format = ImageFormat::RGBA8;
+		}
+		else if (channels == 3)
+		{
+			image->m_format = ImageFormat::RGB8;
+		}
+		else if (channels == 1)
+		{
+			image->m_format = ImageFormat::R8;
+		}
+		else
+		{
+			stbi_image_free(data);
+			data = stbi_load(filepath.string().c_str(), &width, &height, &channels, 4);
+			image->m_format = ImageFormat::RGBA8;
 		}
 
-		m_width = static_cast<uint32_t>(width);
-		m_height = static_cast<uint32_t>(height);
+		size_t size = width * height * channels;
+		image->m_pixels.resize(size);
+		memcpy(image->m_pixels.data(), data, size);
 
-		const std::size_t total_bytes =
-			static_cast<std::size_t>(m_width) *
-			static_cast<std::size_t>(m_height) *
-			static_cast<std::size_t>(Channels(m_format));
-
-		m_pixels.resize(total_bytes);
-		std::memcpy(m_pixels.data(), raw_pixels, total_bytes);
-
-		m_loaded = true;
-
-		stbi_image_free(raw_pixels);
+		stbi_image_free(data);
+		return image;
 	}
+
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Image.h"
+#include "Ignis/Asset/Asset.h"
 
 namespace ignis
 {
@@ -26,8 +27,8 @@ namespace ignis
 	{
 		uint32_t Width = 0;
 		uint32_t Height = 0;
-		ImageFormat SourceFormat = ImageFormat::RGBA;
-		ImageFormat InternalFormat = ImageFormat::RGBA;
+		ImageFormat SourceFormat = ImageFormat::RGBA8;
+		ImageFormat InternalFormat = ImageFormat::RGBA8;
 		TextureWrap WrapS = TextureWrap::Repeat;
 		TextureWrap WrapT = TextureWrap::Repeat;
 		TextureFilter MinFilter = TextureFilter::LinearMipmapLinear;
@@ -35,7 +36,7 @@ namespace ignis
 		bool GenMipmaps = true;
 	};
 
-	class Texture
+	class Texture : public Asset
 	{
 	public:
 		virtual ~Texture() = default;
@@ -48,7 +49,6 @@ namespace ignis
 	class Texture2D : public Texture
 	{
 	public:
-		static std::shared_ptr<Texture2D> CreateFromFile(const TextureSpecs& specs, const std::string& filepath, bool flip_vertical = true);
 		static std::shared_ptr<Texture2D> Create(const TextureSpecs& specs, std::span<const std::byte> data);
 	};
 }
