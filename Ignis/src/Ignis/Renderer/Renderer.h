@@ -27,5 +27,10 @@ namespace ignis
 		virtual void Clear() = 0;
 
 		static std::unique_ptr<Renderer> Create();
+
+		static const std::shared_ptr<Texture2D> GetWhiteTexture();
+		static const std::shared_ptr<Texture2D> GetBlackTexture();
+
+	private:
 	};
 }
