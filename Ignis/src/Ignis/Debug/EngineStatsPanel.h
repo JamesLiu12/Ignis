@@ -9,11 +9,11 @@ namespace ignis {
 	{
 	public:
 		EngineStatsPanel();
-		void OnImGuiRender(bool& is_open) override;
+		void OnImGuiRender() override;
 
 		// EditorPanel interface
-		const char* GetName() const override { return "Engine Statistics"; }
-		const char* GetID() const override { return "EngineStats"; }
+		std::string_view GetName() const override { return "Engine Statistics"; }
+		std::string_view GetID() const override { return "EngineStats"; }
 
 	private:
 		void UpdateFrameStats();

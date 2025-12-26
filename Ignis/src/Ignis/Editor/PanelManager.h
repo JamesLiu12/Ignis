@@ -32,11 +32,9 @@ namespace ignis {
 		/// Add a panel to the manager
 		/// </summary>
 		template<typename TPanel, typename... TArgs>
+		requires std::derived_from<TPanel, EditorPanel>
 		std::shared_ptr<TPanel> AddPanel(const std::string& id, const std::string& name, bool isOpenByDefault, TArgs&&... args)
 		{
-			static_assert(std::is_base_of<EditorPanel, TPanel>::value, 
-				"PanelManager::AddPanel requires TPanel to inherit from EditorPanel");
-
 			// Create the panel
 			auto panel = std::make_shared<TPanel>(std::forward<TArgs>(args)...);
 
@@ -69,40 +67,17 @@ namespace ignis {
 		/// <summary>
 		/// Render all open panels
 		/// </summary>
-		void OnImGuiRender()
-		{
-			for (auto& panelData : m_panels)
-			{
-				if (panelData.IsOpen && panelData.Panel)
-				{
-					panelData.Panel->OnImGuiRender(panelData.IsOpen);
-				}
-			}
-		}
+		void OnImGuiRender();
 
 		/// <summary>
 		/// Forward events to all panels
 		/// </summary>
-		void OnEvent(EventBase& e)
-		{
-			for (auto& panelData : m_panels)
-			{
-				if (panelData.Panel)
-					panelData.Panel->OnEvent(e);
-			}
-		}
+		void OnEvent(EventBase& e);
 
 		/// <summary>
 		/// Set scene context for all panels
 		/// </summary>
-		void SetSceneContext(class Scene* scene)
-		{
-			for (auto& panelData : m_panels)
-			{
-				if (panelData.Panel)
-					panelData.Panel->SetSceneContext(scene);
-			}
-		}
+		void SetSceneContext(class Scene* scene);
 
 		/// <summary>
 		/// Get all panels for menu/UI display

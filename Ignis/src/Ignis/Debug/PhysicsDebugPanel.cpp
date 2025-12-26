@@ -5,19 +5,19 @@
 namespace ignis {
 
 	// EditorPanel interface implementation
-	void PhysicsDebugPanel::OnImGuiRender(bool& is_open)
+	void PhysicsDebugPanel::OnImGuiRender()
 	{
 		// Delegate to the legacy method with stored physics world
-		OnImGuiRender(m_physics_world, is_open);
+		OnImGuiRender(m_physics_world);
 	}
 
 	// Legacy method implementation
-	void PhysicsDebugPanel::OnImGuiRender(PhysicsWorld* world, bool& is_open)
+	void PhysicsDebugPanel::OnImGuiRender(PhysicsWorld* world)
 	{
-		if (!is_open || !world)
+		if (!world)
 			return;
 
-		ImGui::Begin("Physics Debug", &is_open);
+		ImGui::Begin("Physics Debug");
 
 		ShowWorldInfo(world);
 		ImGui::Separator();
