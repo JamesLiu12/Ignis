@@ -32,14 +32,18 @@ void SandBoxLayer::OnAttach()
 	m_va->SetIndexBuffer(m_ib);
 	m_va->UnBind();
 
-	m_texture = ignis::Texture2D::CreateFromFile(
+	/*m_texture = ignis::Texture2D::CreateFromFile(
 		ignis::TextureSpecs{
 			.SourceFormat = ignis::ImageFormat::RGBA,
 			.InternalFormat = ignis::ImageFormat::RGB,
 		},
 		"assets://images/awesomeface.png",
 		true
-	);
+	);*/
+	m_texture = ignis::TextureImporter::ImportTexture2D("assets://images/awesomeface.png", 
+		ignis::TextureImportOptions{
+			.InternalFormat = ignis::ImageFormat::RGB8
+		});
 
 	m_shader_library = ignis::ShaderLibrary();
 	m_shader_library.Load("assets://shaders/example.glsl");
@@ -55,8 +59,16 @@ void SandBoxLayer::OnAttach()
 	face.RemoveComponent<ignis::TagComponent>();
 	ignis::Log::CoreInfo("Has TagComponent: {}", face.HasComponent<ignis::TagComponent>());
 
-	m_mesh = ignis::MeshImporter::ImportMesh("assets://models/backpack/backpack.obj");
+	ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/backpack/backpack.obj");
+	m_mesh = ignis::AssetManager::GetAsset<ignis::Mesh>(mesh_handle);
+	m_mesh = ignis::AssetManager::GetAsset<ignis::Mesh>(mesh_handle);
 	m_renderer.BeginScene();
+
+	ignis::UUID test_id = ignis::UUID();
+	ignis::Log::CoreInfo("Generated UUID: {}", test_id.ToString());
+	ignis::Log::CoreInfo("Generated UUID is valid: {}", test_id.IsValid());
+	test_id = ignis::UUID("Invalid ID");
+	ignis::Log::CoreInfo("Generated UUID is valid: {}", test_id.IsValid());
 }
 
 void SandBoxLayer::OnUpdate(float dt)

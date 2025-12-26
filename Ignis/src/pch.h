@@ -22,6 +22,7 @@
 #include <queue>
 #include <map>
 #include <span>
+#include <concepts>
 
 // Platform-specific includes
 #ifdef _WIN32
