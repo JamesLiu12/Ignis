@@ -13,12 +13,12 @@ namespace ignis {
 		~PhysicsDebugPanel() = default;
 
 		// EditorPanel interface
-		void OnImGuiRender(bool& is_open) override;
-		const char* GetName() const override { return "Physics Debug"; }
-		const char* GetID() const override { return "PhysicsDebug"; }
+		void OnImGuiRender() override;
+		std::string_view GetName() const override { return "Physics Debug"; }
+		std::string_view GetID() const override { return "PhysicsDebug"; }
 
-		// Legacy method for direct PhysicsWorld access (will be refactored in Step 8)
-		void OnImGuiRender(PhysicsWorld* world, bool& is_open);
+		// Legacy method for direct PhysicsWorld access (for backward compatibility)
+		void OnImGuiRender(PhysicsWorld* world);
 
 		// Set the physics world reference for the panel
 		void SetPhysicsWorld(PhysicsWorld* world) { m_physics_world = world; }

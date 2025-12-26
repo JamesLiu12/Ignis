@@ -13,9 +13,9 @@ namespace ignis {
 	{
 	}
 
-	void EngineStatsPanel::OnImGuiRender(bool& is_open)
+	void EngineStatsPanel::OnImGuiRender()
 	{
-		if (!ImGui::Begin("Engine Statistics", &is_open))
+		if (!ImGui::Begin("Engine Statistics"))
 		{
 			ImGui::End();
 			return;
