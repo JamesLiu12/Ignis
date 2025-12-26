@@ -5,7 +5,6 @@ namespace ignis
 	class GLTexture2D : public Texture2D
 	{
 	public:
-		GLTexture2D(const TextureSpecs& specs, const std::string& filepath, bool flip_vertical);
 		GLTexture2D(const TextureSpecs& specs, std::span<const std::byte> data);
 		~GLTexture2D() override = default;
 

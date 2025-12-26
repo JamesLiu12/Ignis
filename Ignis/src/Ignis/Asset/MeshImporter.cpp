@@ -1,6 +1,7 @@
 #include "MeshImporter.h"
 #include "Ignis/Renderer/VertexBuffer.h"
 #include "Ignis/Renderer/IndexBuffer.h"
+#include "TextureImporter.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -40,16 +41,12 @@ namespace ignis
 		return this_index;
 	}
 
-	// TODO put in TextureImporter
 	static void LoadMaterialTextures(
 		const aiMaterial* aimat,
 		const std::filesystem::path& model_dir,
 		Material& out_material
 	)
 	{
-		TextureSpecs specs;
-		bool flipVertical = true;
-
 		auto loadTexture = [&](const aiString& rel_path) -> std::shared_ptr<Texture2D>
 			{
 				std::filesystem::path tex_path = model_dir / rel_path.C_Str();
@@ -61,7 +58,7 @@ namespace ignis
 					return nullptr;
 				}
 
-				return Texture2D::CreateFromFile(specs, tex_path.string(), flipVertical);
+				return TextureImporter::ImportTexture2D(tex_path);
 			};
 
 		if (aimat->GetTextureCount(aiTextureType_DIFFUSE) > 0)
