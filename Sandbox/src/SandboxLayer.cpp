@@ -50,7 +50,7 @@ void SandBoxLayer::OnAttach()
 	m_shader_library.Load("assets://shaders/blinn.glsl");
 
 	m_camera = ignis::Camera(45.0f, 1280.0f / 720.0f, 0.1f, 100.0f);
-	m_camera.SetPosition({ 0.0f, 0.0f, 3.0f });
+	m_camera.SetPosition({ 1.5f, 0.0f, 8.0f });
 	m_camera.RecalculateViewMatrix();
 
 	m_scene = ignis::Scene();
