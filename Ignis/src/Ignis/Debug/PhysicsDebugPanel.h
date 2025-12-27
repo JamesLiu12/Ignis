@@ -2,7 +2,6 @@
 
 #include "Ignis/Editor/EditorPanel.h"
 #include "Ignis/Physics/PhysicsWorld.h"
-#include <memory>
 
 namespace ignis {
 

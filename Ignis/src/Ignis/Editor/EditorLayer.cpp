@@ -54,7 +54,7 @@ namespace ignis {
 				auto& panels = m_panel_manager->GetPanels();
 				for (auto& panel_data : panels)
 				{
-					ImGui::MenuItem(panel_data.name.c_str(), nullptr, &panel_data.is_open);
+					ImGui::MenuItem(panel_data.Name.c_str(), nullptr, &panel_data.IsOpen);
 				}
 				ImGui::EndMenu();
 			}
