@@ -20,7 +20,7 @@ namespace ignis
 		void SetViewport(const glm::ivec4& viewport) override;
 
 		void DrawIndexed(VertexArray& va) override;
-		void RenderMesh(const std::shared_ptr<Mesh>& mesh, Shader& shader) override;
+		void RenderMesh(const std::shared_ptr<Pipeline> pipeline, const std::shared_ptr<Mesh>& mesh) override;
 
 		void Clear() override;
 	};
