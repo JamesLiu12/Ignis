@@ -1,6 +1,8 @@
 #include "Application.h"
 #include "Ignis/ImGui/ImGuiLayer.h"
 #include "Ignis/Editor/EditorLayer.h"
+#include "Ignis/Editor/EditorConsolePanel.h"
+#include "Ignis/Editor/PropertiesPanel.h"
 #include "Ignis/Debug/EngineStatsPanel.h"
 #include "Ignis/Core/Events/KeyEvents.h"
 #include "Input.h"
@@ -59,6 +61,17 @@ namespace ignis
 		// Add Physics Debug panel
 		auto physics_debug = panel_manager.AddPanel<PhysicsDebugPanel>("PhysicsDebug", "Physics Debug", true);
 		physics_debug->SetPhysicsWorld(m_physics_world.get());
+		
+		// Add Console panel (bottom section)
+		auto console_panel = panel_manager.AddPanel<EditorConsolePanel>("Console", "Console", true);
+		
+		// Add Properties panel (right section)
+		auto properties_panel = panel_manager.AddPanel<PropertiesPanel>("Properties", "Properties", true);
+		
+		// Add some test messages to the console
+		console_panel->AddMessage(ConsoleMessageLevel::Info, "Ignis Editor initialized");
+		console_panel->AddMessage(ConsoleMessageLevel::Info, "Console panel ready");
+		console_panel->AddMessage(ConsoleMessageLevel::Info, "Properties panel ready");
 		
 		Log::CoreInfo("Editor panels registered");
 
