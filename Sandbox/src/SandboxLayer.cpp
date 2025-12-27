@@ -45,9 +45,9 @@ void SandBoxLayer::OnAttach()
 			.InternalFormat = ignis::ImageFormat::RGB8
 		});
 
-	m_shader_library = ignis::ShaderLibrary();
-	m_shader_library.Load("assets://shaders/example.glsl");
-	m_shader_library.Load("assets://shaders/blinn.glsl");
+	m_shader_library = std::make_shared<ignis::ShaderLibrary>();
+	m_shader_library->Load("assets://shaders/example.glsl");
+	m_shader_library->Load("assets://shaders/blinn.glsl");
 
 	m_camera = ignis::Camera(45.0f, 1280.0f / 720.0f, 0.1f, 100.0f);
 	m_camera.SetPosition({ 1.5f, 0.0f, 8.0f });
@@ -69,6 +69,7 @@ void SandBoxLayer::OnAttach()
 	ignis::Log::CoreInfo("Generated UUID is valid: {}", test_id.IsValid());
 	test_id = ignis::UUID("Invalid ID");
 	ignis::Log::CoreInfo("Generated UUID is valid: {}", test_id.IsValid());
+	m_pipeline = std::make_shared<ignis::PBRPipeline>(m_shader_library);
 }
 
 void SandBoxLayer::OnUpdate(float dt)
@@ -110,24 +111,24 @@ void SandBoxLayer::OnUpdate(float dt)
 	m_renderer.Clear();
 
 	//ignis::Shader& shader = m_shader_library.Get("assets://shaders/example.glsl");
-	ignis::Shader& shader = m_shader_library.Get("assets://shaders/blinn.glsl");
+	auto shader = m_shader_library->Get("assets://shaders/blinn.glsl");
 	
 	//m_texture->Bind(0);
-	shader.Bind();
+	shader->Bind();
 	//shader.Set("uViewProjection", m_camera.GetViewProjection());
 	//shader.Set("uTexture", 0);
-	shader.Set("view", m_camera.GetView());
-	shader.Set("projection", m_camera.GetProjection());
+	//shader.Set("view", m_camera.GetView());
+	//shader.Set("projection", m_camera.GetProjection());
 	model = glm::rotate(model, glm::radians(-55.0f) * dt, glm::vec3(0.0f, 1.0f, 0.0f));
-	shader.Set("model", model);
-	shader.Set("viewPos", m_camera.GetPosition());
-	shader.Set("dirLight.direction", glm::normalize(glm::vec3(-0.2f, -1.0f, -0.3f)));
-	shader.Set("dirLight.ambient", glm::vec3(0.10f));
-	shader.Set("dirLight.diffuse", glm::vec3(0.80f));
-	shader.Set("dirLight.specular", glm::vec3(1.00f));
+	//shader.Set("model", model);
+	//shader.Set("viewPos", m_camera.GetPosition());
+	//shader.Set("dirLight.direction", glm::normalize(glm::vec3(-0.2f, -1.0f, -0.3f)));
+	//shader.Set("dirLight.ambient", glm::vec3(0.10f));
+	//shader.Set("dirLight.diffuse", glm::vec3(0.80f));
+	//shader.Set("dirLight.specular", glm::vec3(1.00f));
 	m_va->Bind();
 	//m_renderer.DrawIndexed(*m_va);
-	m_renderer.RenderMesh(m_mesh, shader);
+	m_renderer.RenderMesh(m_pipeline, m_mesh);
 }
 
 void SandBoxLayer::OnEvent(ignis::EventBase& event)

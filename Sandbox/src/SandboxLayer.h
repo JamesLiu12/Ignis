@@ -16,7 +16,7 @@ public:
 private:
 	ignis::Renderer& m_renderer;
 
-	ignis::ShaderLibrary m_shader_library;
+	std::shared_ptr<ignis::ShaderLibrary> m_shader_library;
 
 	std::shared_ptr<ignis::VertexArray> m_va;
 	std::shared_ptr<ignis::VertexBuffer> m_vb;
@@ -28,4 +28,6 @@ private:
 	ignis::Scene m_scene;
 
 	std::shared_ptr<ignis::Mesh> m_mesh;
+
+	std::shared_ptr<ignis::Pipeline> m_pipeline;
 };

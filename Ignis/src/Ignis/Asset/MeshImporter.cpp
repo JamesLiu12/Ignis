@@ -2,6 +2,7 @@
 #include "Ignis/Renderer/VertexBuffer.h"
 #include "Ignis/Renderer/IndexBuffer.h"
 #include "TextureImporter.h"
+#include "AssetManager.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -44,10 +45,10 @@ namespace ignis
 	static void LoadMaterialTextures(
 		const aiMaterial* aimat,
 		const std::filesystem::path& model_dir,
-		Material& out_material
+		MaterialData& out_material_data
 	)
 	{
-		auto loadTexture = [&](const aiString& rel_path) -> std::shared_ptr<Texture2D>
+		auto loadTexture = [&](const aiString& rel_path) -> AssetHandle
 			{
 				std::filesystem::path tex_path = model_dir / rel_path.C_Str();
 				tex_path = tex_path.lexically_normal();
@@ -55,48 +56,86 @@ namespace ignis
 				if (!std::filesystem::exists(tex_path))
 				{
 					Log::Warn("Texture file does not exist: {}", tex_path.string());
-					return nullptr;
+					return AssetHandle::InvalidUUID;
 				}
-
-				return TextureImporter::ImportTexture2D(tex_path);
+				return AssetManager::ImportAsset(tex_path);
 			};
 
 		if (aimat->GetTextureCount(aiTextureType_DIFFUSE) > 0)
 		{
-			aiString tex_path;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_DIFFUSE, 0, &tex_path))
+			aiString texture_path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_DIFFUSE, 0, &texture_path))
 			{
-				if (auto tex = loadTexture(tex_path))
-					out_material.SetTexture(MaterialType::Diffuse, tex);
-			}
-		}
-
-		if (aimat->GetTextureCount(aiTextureType_SPECULAR) > 0)
-		{
-			aiString tex_path;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_SPECULAR, 0, &tex_path))
-			{
-				if (auto tex = loadTexture(tex_path))
-					out_material.SetTexture(MaterialType::Specular, tex);
+				AssetHandle texture_handle = loadTexture(texture_path);
+				if (texture_handle.IsValid())
+				{
+					out_material_data.AlbedoMap = texture_handle;
+				}
 			}
 		}
 
 		if (aimat->GetTextureCount(aiTextureType_NORMALS) > 0)
 		{
-			aiString tex_path;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_NORMALS, 0, &tex_path))
+			aiString texture_path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_NORMALS, 0, &texture_path))
 			{
-				if (auto tex = loadTexture(tex_path))
-					out_material.SetTexture(MaterialType::Normal, tex);
+				AssetHandle texture_handle = loadTexture(texture_path);
+				if (texture_handle.IsValid())
+				{
+					out_material_data.NormalMap = texture_handle;
+				}
 			}
 		}
-		else if (aimat->GetTextureCount(aiTextureType_HEIGHT) > 0)
+
+		if (aimat->GetTextureCount(aiTextureType_METALNESS) > 0)
 		{
-			aiString tex_path;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_HEIGHT, 0, &tex_path))
+			aiString texture_path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_METALNESS, 0, &texture_path))
 			{
-				if (auto tex = loadTexture(tex_path))
-					out_material.SetTexture(MaterialType::Normal, tex);
+				AssetHandle texture_handle = loadTexture(texture_path);
+				if (texture_handle.IsValid())
+				{
+					out_material_data.MetalnessMap = texture_handle;
+				}
+			}
+		}
+
+		if (aimat->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0)
+		{
+			aiString texture_path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texture_path))
+			{
+				AssetHandle texture_handle = loadTexture(texture_path);
+				if (texture_handle.IsValid())
+				{
+					out_material_data.RoughnessMap = texture_handle;
+				}
+			}
+		}
+
+		if (aimat->GetTextureCount(aiTextureType_EMISSIVE) > 0)
+		{
+			aiString texture_path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_EMISSIVE, 0, &texture_path))
+			{
+				AssetHandle texture_handle = loadTexture(texture_path);
+				if (texture_handle.IsValid())
+				{
+					out_material_data.EmissiveMap = texture_handle;
+				}
+			}
+		}
+
+		if (aimat->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION) > 0)
+		{
+			aiString texture_path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &texture_path))
+			{
+				AssetHandle texture_handle = loadTexture(texture_path);
+				if (texture_handle.IsValid())
+				{
+					out_material_data.AOMap = texture_handle;
+				}
 			}
 		}
 	}

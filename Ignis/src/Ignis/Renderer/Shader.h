@@ -79,22 +79,7 @@ namespace ignis
 
 		virtual const std::string& GetName() const = 0;
 
-		virtual void Set(const std::string& name, float value) = 0;
-		virtual void Set(const std::string& name, const glm::vec2& vector) = 0;
-		virtual void Set(const std::string& name, const glm::vec3& vector) = 0;
-		virtual void Set(const std::string& name, const glm::vec4& vector) = 0;
-		virtual void Set(const std::string& name, int value) = 0;
-		virtual void Set(const std::string& name, const glm::ivec2& vector) = 0;
-		virtual void Set(const std::string& name, const glm::ivec3& vector) = 0;
-		virtual void Set(const std::string& name, const glm::ivec4& vector) = 0;
-		virtual void Set(const std::string& name, unsigned int value) = 0;
-		virtual void Set(const std::string& name, const glm::uvec2& vector) = 0;
-		virtual void Set(const std::string& name, const glm::uvec3& vector) = 0;
-		virtual void Set(const std::string& name, const glm::uvec4& vector) = 0;
-		virtual void Set(const std::string& name, const glm::mat3& matrix) = 0;
-		virtual void Set(const std::string& name, const glm::mat4& matrix) = 0;
-
-		static std::unique_ptr<Shader> Create(const std::string& name, const std::string& vertex_source, const std::string& fragment_source);
-		static std::unique_ptr<Shader> CreateFromFile(const std::string& filepath);
+		static std::shared_ptr<Shader> Create(const std::string& name, const std::string& vertex_source, const std::string& fragment_source);
+		static std::shared_ptr<Shader> CreateFromFile(const std::string& filepath);
 	};
 }
