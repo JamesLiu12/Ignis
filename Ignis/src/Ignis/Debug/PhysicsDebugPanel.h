@@ -1,12 +1,12 @@
 #pragma once
 
-#include "DebugPanel.h"
+#include "Ignis/Editor/EditorPanel.h"
 #include "Ignis/Physics/PhysicsWorld.h"
 #include <memory>
 
 namespace ignis {
 
-	class PhysicsDebugPanel : public DebugPanel
+	class PhysicsDebugPanel : public EditorPanel
 	{
 	public:
 		PhysicsDebugPanel() = default;
