@@ -4,10 +4,7 @@
 
 namespace ignis {
 
-	/// <summary>
-	/// Properties panel for displaying and editing object properties
-	/// Currently empty - positioned on right side
-	/// </summary>
+	// Properties panel for displaying and editing object properties
 	class PropertiesPanel : public EditorPanel
 	{
 	public:

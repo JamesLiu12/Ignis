@@ -15,9 +15,6 @@ namespace ignis {
 
 		// Create panel manager
 		m_panel_manager = std::make_unique<PanelManager>();
-
-		// Register existing debug panels
-		// Note: We'll populate these panels in the next step when we refactor Application.cpp
 		
 		Log::CoreInfo("EditorLayer initialized with PanelManager");
 	}
@@ -29,7 +26,7 @@ namespace ignis {
 
 	void EditorLayer::OnUpdate(float dt)
 	{
-		// Editor layer doesn't need per-frame updates for now
+
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -55,9 +52,9 @@ namespace ignis {
 			{
 				// Toggle panels on/off
 				auto& panels = m_panel_manager->GetPanels();
-				for (auto& panelData : panels)
+				for (auto& panel_data : panels)
 				{
-					ImGui::MenuItem(panelData.Name.c_str(), nullptr, &panelData.IsOpen);
+					ImGui::MenuItem(panel_data.name.c_str(), nullptr, &panel_data.is_open);
 				}
 				ImGui::EndMenu();
 			}

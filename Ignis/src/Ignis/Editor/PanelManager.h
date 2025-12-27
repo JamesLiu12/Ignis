@@ -7,81 +7,64 @@
 
 namespace ignis {
 
-	/// <summary>
-	/// Stores metadata and state for a single editor panel
-	/// </summary>
+	// Stores metadata and state for a single editor panel
 	struct PanelData
 	{
-		std::string ID;                          // Unique identifier
-		std::string Name;                        // Display name
-		std::shared_ptr<EditorPanel> Panel;      // The actual panel instance
-		bool IsOpen = false;                     // Visibility state
+		std::string id;                          // Unique identifier
+		std::string name;                        // Display name
+		std::shared_ptr<EditorPanel> panel;      // The actual panel instance
+		bool is_open = false;                    // Visibility state
 	};
 
-	/// <summary>
-	/// Manages the lifecycle and rendering of all editor panels
-	/// Simplified version without docking/serialization
-	/// </summary>
+	// Manages the lifecycle and rendering of all editor panels
 	class PanelManager
 	{
 	public:
 		PanelManager() = default;
 		~PanelManager() = default;
 
-		/// <summary>
-		/// Add a panel to the manager
-		/// </summary>
+		// Add a panel to the manager
 		template<typename TPanel, typename... TArgs>
 		requires std::derived_from<TPanel, EditorPanel>
-		std::shared_ptr<TPanel> AddPanel(const std::string& id, const std::string& name, bool isOpenByDefault, TArgs&&... args)
+		std::shared_ptr<TPanel> AddPanel(const std::string& id, const std::string& name, bool is_open_by_default, TArgs&&... args)
 		{
 			// Create the panel
-			auto panel = std::make_shared<TPanel>(std::forward<TArgs>(args)...);
+			auto panel_instance = std::make_shared<TPanel>(std::forward<TArgs>(args)...);
 
 			// Store panel data
 			PanelData data;
-			data.ID = id;
-			data.Name = name;
-			data.Panel = panel;
-			data.IsOpen = isOpenByDefault;
+			data.id = id;
+			data.name = name;
+			data.panel = panel_instance;
+			data.is_open = is_open_by_default;
 
 			m_panels.push_back(data);
 
-			return panel;
+			return panel_instance;
 		}
 
-		/// <summary>
-		/// Get a panel by its ID
-		/// </summary>
+		// Get a panel by its ID
 		template<typename TPanel>
 		std::shared_ptr<TPanel> GetPanel(const std::string& id)
 		{
-			for (auto& panelData : m_panels)
+			for (auto& panel_data : m_panels)
 			{
-				if (panelData.ID == id)
-					return std::static_pointer_cast<TPanel>(panelData.Panel);
+				if (panel_data.id == id)
+					return std::static_pointer_cast<TPanel>(panel_data.panel);
 			}
 			return nullptr;
 		}
 
-		/// <summary>
-		/// Render all open panels
-		/// </summary>
+		// Render all open panels
 		void OnImGuiRender();
 
-		/// <summary>
-		/// Forward events to all panels
-		/// </summary>
+		// Forward events to all panels
 		void OnEvent(EventBase& e);
 
-		/// <summary>
-		/// Set scene context for all panels
-		/// </summary>
+		// Set scene context for all panels
 		void SetSceneContext(class Scene* scene);
 
-		/// <summary>
-		/// Get all panels for menu/UI display
-		/// </summary>
+		// Get all panels for menu/UI display
 		std::vector<PanelData>& GetPanels() { return m_panels; }
 		const std::vector<PanelData>& GetPanels() const { return m_panels; }
 

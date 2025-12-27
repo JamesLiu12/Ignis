@@ -17,7 +17,6 @@ namespace ignis {
 		std::string_view GetName() const override { return "Physics Debug"; }
 		std::string_view GetID() const override { return "PhysicsDebug"; }
 
-		// Legacy method for direct PhysicsWorld access (for backward compatibility)
 		void OnImGuiRender(PhysicsWorld* world);
 
 		// Set the physics world reference for the panel

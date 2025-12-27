@@ -7,11 +7,9 @@ namespace ignis {
 	// EditorPanel interface implementation
 	void PhysicsDebugPanel::OnImGuiRender()
 	{
-		// Delegate to the legacy method with stored physics world
 		OnImGuiRender(m_physics_world);
 	}
 
-	// Legacy method implementation
 	void PhysicsDebugPanel::OnImGuiRender(PhysicsWorld* world)
 	{
 		if (!world)
