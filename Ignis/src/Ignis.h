@@ -4,6 +4,9 @@
 #include "Ignis/Core/Log.h"
 #include "Ignis/Core/UUID.h"
 
+#include "Ignis/Editor/EditorConsolePanel.h"
+#include "Ignis/Editor/PropertiesPanel.h"
+
 #include "Ignis/Renderer/VertexBuffer.h"
 #include "Ignis/Renderer/Shader.h"
 #include "Ignis/Renderer/VertexArray.h"

@@ -1,15 +1,18 @@
 #pragma once
 
-#include "DebugPanel.h"
-#include "pch.h"
+#include "Ignis/Editor/EditorPanel.h"
 
 namespace ignis {
 
-	class EngineStatsPanel : public DebugPanel
+	class EngineStatsPanel : public EditorPanel
 	{
 	public:
 		EngineStatsPanel();
-		void OnImGuiRender(bool& is_open) override;
+		void OnImGuiRender() override;
+
+		// EditorPanel interface
+		std::string_view GetName() const override { return "Engine Statistics"; }
+		std::string_view GetID() const override { return "EngineStats"; }
 
 	private:
 		void UpdateFrameStats();
