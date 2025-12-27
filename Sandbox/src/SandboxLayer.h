@@ -16,7 +16,7 @@ public:
 private:
 	ignis::Renderer& m_renderer;
 
-	ignis::ShaderLibrary m_shader_library;
+	std::shared_ptr<ignis::ShaderLibrary> m_shader_library;
 
 	std::shared_ptr<ignis::VertexArray> m_va;
 	std::shared_ptr<ignis::VertexBuffer> m_vb;
@@ -31,4 +31,6 @@ private:
 	
 	// Test light entity for properties panel (shared_ptr for weak_ptr compatibility)
 	std::shared_ptr<ignis::Entity> m_light_entity;
+
+	std::shared_ptr<ignis::Pipeline> m_pipeline;
 };

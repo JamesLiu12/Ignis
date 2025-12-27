@@ -42,7 +42,7 @@ namespace ignis
 		va.UnBind();
 	}
 
-	void GLRenderer::RenderMesh(const std::shared_ptr<Mesh>& mesh, Shader& shader)
+	void GLRenderer::RenderMesh(const std::shared_ptr<Pipeline> pipeline, const std::shared_ptr<Mesh>& mesh)
 	{
 		auto vao = mesh->GetVertexArray();
 		vao->Bind();
@@ -51,26 +51,11 @@ namespace ignis
 
 		for (const auto& sm : mesh->GetSubmeshes())
 		{
-			const auto& mat = materials[sm.MaterialIndex];
+			const auto& material_data = materials[sm.MaterialIndex];
 
-			auto diffuse = mat.GetTexture(ignis::MaterialType::Diffuse);
-			auto specular = mat.GetTexture(ignis::MaterialType::Specular);
-			auto normal = mat.GetTexture(ignis::MaterialType::Normal);
+			auto material = pipeline->CreateMaterial(material_data);
 
-			//if (!diffuse)  diffuse = m_whiteTexture;
-			//if (!specular) specular = m_whiteTexture;
-			//if (!normal)   normal = m_flatNormalTexture;
-
-			diffuse->Bind(0);
-			specular->Bind(1);
-			normal->Bind(2);
-
-			shader.Set("material.diffuse", 0);
-			shader.Set("material.specular", 1);
-			shader.Set("material.normal", 2);
-
-			shader.Set("material.shininess", 32.0f);
-			shader.Set("material.hasNormal", normal ? 1 : 0);
+			// TODO Use Material
 
 			glDrawElements(
 				GL_TRIANGLES,

@@ -4,7 +4,7 @@
 
 namespace ignis
 {
-	std::unique_ptr<Shader> Shader::Create(const std::string& name, const std::string & vertex_source, const std::string& fragment_source)
+	std::shared_ptr<Shader> Shader::Create(const std::string& name, const std::string & vertex_source, const std::string& fragment_source)
 	{
 		switch (GraphicsAPI::GetType())
 		{
@@ -14,7 +14,7 @@ namespace ignis
 			return nullptr;
 		}
 	}
-	std::unique_ptr<Shader> Shader::CreateFromFile(const std::string& filepath)
+	std::shared_ptr<Shader> Shader::CreateFromFile(const std::string& filepath)
 	{
 		switch (GraphicsAPI::GetType())
 		{

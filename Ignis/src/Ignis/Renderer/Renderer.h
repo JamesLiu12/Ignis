@@ -4,6 +4,7 @@
 #include "VertexArray.h"
 #include "Camera.h"
 #include "Mesh.h"
+#include "Pipeline.h"
 
 namespace ignis
 {	
@@ -22,7 +23,7 @@ namespace ignis
 		virtual void SetViewport(const glm::ivec4& viewport) = 0;
 
 		virtual void DrawIndexed(VertexArray& va) = 0;
-		virtual void RenderMesh(const std::shared_ptr<Mesh>& mesh, Shader& shader) = 0;
+		virtual void RenderMesh(const std::shared_ptr<Pipeline> pipeline, const std::shared_ptr<Mesh>& mesh) = 0;
 
 		virtual void Clear() = 0;
 
@@ -30,7 +31,5 @@ namespace ignis
 
 		static const std::shared_ptr<Texture2D> GetWhiteTexture();
 		static const std::shared_ptr<Texture2D> GetBlackTexture();
-
-	private:
 	};
 }

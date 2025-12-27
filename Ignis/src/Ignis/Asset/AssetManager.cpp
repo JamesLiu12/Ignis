@@ -1,4 +1,5 @@
 #include "AssetManager.h"
+#include "MeshImporter.h"
 
 namespace ignis
 {
