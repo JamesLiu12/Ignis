@@ -1,11 +1,11 @@
 #pragma once
 
-#include "DebugPanel.h"
+#include "Ignis/Editor/EditorPanel.h"
 #include "pch.h"
 
 namespace ignis {
 
-	class EngineStatsPanel : public DebugPanel
+	class EngineStatsPanel : public EditorPanel
 	{
 	public:
 		EngineStatsPanel();

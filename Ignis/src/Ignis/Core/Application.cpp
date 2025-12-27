@@ -132,7 +132,7 @@ namespace ignis
 			{
 				m_imgui_layer->Begin();
 				
-				// Render all layer ImGui (including EditorLayer which manages panels)
+				// Render all layer ImGui
 				for (auto& layer : m_layer_stack)
 				{
 					layer->OnImGuiRender();
