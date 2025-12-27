@@ -4,12 +4,18 @@
 
 namespace ignis {
 
-	void PhysicsDebugPanel::OnImGuiRender(PhysicsWorld* world, bool& is_open)
+	// EditorPanel interface implementation
+	void PhysicsDebugPanel::OnImGuiRender()
 	{
-		if (!is_open || !world)
+		OnImGuiRender(m_physics_world);
+	}
+
+	void PhysicsDebugPanel::OnImGuiRender(PhysicsWorld* world)
+	{
+		if (!world)
 			return;
 
-		ImGui::Begin("Physics Debug", &is_open);
+		ImGui::Begin("Physics Debug");
 
 		ShowWorldInfo(world);
 		ImGui::Separator();
