@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Ignis/Core/Events/Event.h"
-#include <string_view>
 
 namespace ignis {
 

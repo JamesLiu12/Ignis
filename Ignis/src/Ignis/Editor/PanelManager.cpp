@@ -6,9 +6,9 @@ namespace ignis {
 	{
 		for (auto& panel_data : m_panels)
 		{
-			if (panel_data.is_open && panel_data.panel)
+			if (panel_data.IsOpen && panel_data.Panel)
 			{
-				panel_data.panel->OnImGuiRender();
+				panel_data.Panel->OnImGuiRender();
 			}
 		}
 	}
@@ -17,8 +17,8 @@ namespace ignis {
 	{
 		for (auto& panel_data : m_panels)
 		{
-			if (panel_data.panel)
-				panel_data.panel->OnEvent(e);
+			if (panel_data.Panel)
+				panel_data.Panel->OnEvent(e);
 		}
 	}
 
@@ -26,8 +26,8 @@ namespace ignis {
 	{
 		for (auto& panel_data : m_panels)
 		{
-			if (panel_data.panel)
-				panel_data.panel->SetSceneContext(scene);
+			if (panel_data.Panel)
+				panel_data.Panel->SetSceneContext(scene);
 		}
 	}
 

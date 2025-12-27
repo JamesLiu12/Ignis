@@ -1,8 +1,5 @@
 #include "EditorConsolePanel.h"
 #include <imgui.h>
-#include <chrono>
-#include <sstream>
-#include <iomanip>
 
 namespace ignis {
 

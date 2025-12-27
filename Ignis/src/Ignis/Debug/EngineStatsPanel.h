@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Ignis/Editor/EditorPanel.h"
-#include "pch.h"
 
 namespace ignis {
 

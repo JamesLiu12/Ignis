@@ -1,19 +1,16 @@
 #pragma once
 
 #include "EditorPanel.h"
-#include <memory>
-#include <vector>
-#include <string>
 
 namespace ignis {
 
 	// Stores metadata and state for a single editor panel
 	struct PanelData
 	{
-		std::string id;                          // Unique identifier
-		std::string name;                        // Display name
-		std::shared_ptr<EditorPanel> panel;      // The actual panel instance
-		bool is_open = false;                    // Visibility state
+		std::string ID;                          // Unique identifier
+		std::string Name;                        // Display name
+		std::shared_ptr<EditorPanel> Panel;      // The actual panel instance
+		bool IsOpen = false;                     // Visibility state
 	};
 
 	// Manages the lifecycle and rendering of all editor panels
@@ -33,10 +30,10 @@ namespace ignis {
 
 			// Store panel data
 			PanelData data;
-			data.id = id;
-			data.name = name;
-			data.panel = panel_instance;
-			data.is_open = is_open_by_default;
+			data.ID = id;
+			data.Name = name;
+			data.Panel = panel_instance;
+			data.IsOpen = is_open_by_default;
 
 			m_panels.push_back(data);
 
@@ -49,8 +46,8 @@ namespace ignis {
 		{
 			for (auto& panel_data : m_panels)
 			{
-				if (panel_data.id == id)
-					return std::static_pointer_cast<TPanel>(panel_data.panel);
+				if (panel_data.ID == id)
+					return std::static_pointer_cast<TPanel>(panel_data.Panel);
 			}
 			return nullptr;
 		}

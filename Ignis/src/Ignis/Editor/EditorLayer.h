@@ -2,7 +2,6 @@
 
 #include "Ignis/Core/Layer.h"
 #include "PanelManager.h"
-#include <memory>
 
 namespace ignis {
 
