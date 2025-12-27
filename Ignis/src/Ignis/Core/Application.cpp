@@ -160,8 +160,6 @@ namespace ignis
 			m_running = false;
 			return;
 		}
-
-		// Panel visibility is now controlled via View menu in EditorLayer
 		
 		m_dispatcher.Dispatch(e);
 

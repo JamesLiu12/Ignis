@@ -20,7 +20,7 @@ namespace ignis {
 
 		if (ImGui::Begin("Properties", nullptr, window_flags))
 		{
-			// Empty for now
+
 		}
 		ImGui::End();
 	}

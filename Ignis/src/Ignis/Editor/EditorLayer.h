@@ -6,10 +6,7 @@
 
 namespace ignis {
 
-	/// <summary>
-	/// Main editor layer that manages all editor panels and UI
-	/// This layer is pushed as an overlay in the Application
-	/// </summary>
+	// Main editor layer that manages all editor panels and UI
 	class EditorLayer : public Layer
 	{
 	public:
@@ -22,9 +19,6 @@ namespace ignis {
 		void OnImGuiRender() override;
 		void OnEvent(EventBase& event) override;
 
-		/// <summary>
-		/// Get the panel manager
-		/// </summary>
 		PanelManager& GetPanelManager() { return *m_panel_manager; }
 
 	private:

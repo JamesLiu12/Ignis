@@ -4,30 +4,30 @@ namespace ignis {
 
 	void PanelManager::OnImGuiRender()
 	{
-		for (auto& panelData : m_panels)
+		for (auto& panel_data : m_panels)
 		{
-			if (panelData.IsOpen && panelData.Panel)
+			if (panel_data.is_open && panel_data.panel)
 			{
-				panelData.Panel->OnImGuiRender();
+				panel_data.panel->OnImGuiRender();
 			}
 		}
 	}
 
 	void PanelManager::OnEvent(EventBase& e)
 	{
-		for (auto& panelData : m_panels)
+		for (auto& panel_data : m_panels)
 		{
-			if (panelData.Panel)
-				panelData.Panel->OnEvent(e);
+			if (panel_data.panel)
+				panel_data.panel->OnEvent(e);
 		}
 	}
 
 	void PanelManager::SetSceneContext(class Scene* scene)
 	{
-		for (auto& panelData : m_panels)
+		for (auto& panel_data : m_panels)
 		{
-			if (panelData.Panel)
-				panelData.Panel->SetSceneContext(scene);
+			if (panel_data.panel)
+				panel_data.panel->SetSceneContext(scene);
 		}
 	}
 
