@@ -44,7 +44,7 @@ namespace ignis {
 		ImGui::SetNextWindowPos(ImVec2(work_pos.x, work_pos.y + work_size.y - console_height));
 		ImGui::SetNextWindowSize(ImVec2(work_size.x - properties_panel_width, console_height));
 
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_MenuBar;
 
 		if (ImGui::Begin("Console", nullptr, window_flags))
 		{
