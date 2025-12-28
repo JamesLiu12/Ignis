@@ -44,18 +44,17 @@ namespace ignis
 
 	static void LoadMaterialTextures(
 		const aiMaterial* aimat,
-		const std::filesystem::path& model_dir,
+		const std::string& model_dir,
 		MaterialData& out_material_data
 	)
 	{
 		auto loadTexture = [&](const aiString& rel_path) -> AssetHandle
 			{
-				std::filesystem::path tex_path = model_dir / rel_path.C_Str();
-				tex_path = tex_path.lexically_normal();
+				std::string tex_path = VFS::ConcatPath(model_dir, rel_path.C_Str());
 
-				if (!std::filesystem::exists(tex_path))
+				if (!VFS::Exists(tex_path))
 				{
-					Log::Warn("Texture file does not exist: {}", tex_path.string());
+					Log::Warn("Texture file does not exist: {}", tex_path);
 					return AssetHandle::InvalidUUID;
 				}
 				return AssetManager::ImportAsset(tex_path);
@@ -159,7 +158,6 @@ namespace ignis
 		Assimp::Importer importer;
 		auto resolved = VFS::Resolve(filepath);
 		std::filesystem::path model_path = resolved;
-		std::filesystem::path model_dir = model_path.parent_path();
 
 		const aiScene* scene = importer.ReadFile(
 			model_path.string(),
@@ -179,13 +177,13 @@ namespace ignis
 		mesh->m_nodes.reserve(scene->mNumMeshes);
 		MeshImporter::BuildMeshNodeHierarchy(scene->mRootNode, 0xffffffff, *mesh);
 
-		mesh->m_materials.clear();
-		mesh->m_materials.resize(scene->mNumMaterials);
+		mesh->m_materials_data.clear();
+		mesh->m_materials_data.resize(scene->mNumMaterials);
 
 		for (unsigned int i = 0; i < scene->mNumMaterials; ++i)
 		{
 			aiMaterial* aimat = scene->mMaterials[i];
-			LoadMaterialTextures(aimat, model_dir, mesh->m_materials[i]);
+			LoadMaterialTextures(aimat, VFS::ParentPath(filepath), mesh->m_materials_data[i]);
 		}
 
 		mesh->m_vertices.clear();
