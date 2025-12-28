@@ -42,4 +42,17 @@ namespace ignis
 		case MaterialType::AO:        data.AOMap = texture_handle; break;
 		}
 	}
+
+	void Mesh::FlipUVs()
+	{
+		for (auto& vertex : m_vertices)
+		{
+			vertex.TexCoords.y = 1.0f - vertex.TexCoords.y;
+		}
+
+		if (m_vertex_buffer)
+		{
+			m_vertex_buffer->SetData(m_vertices.data(), m_vertices.size() * sizeof(Vertex));
+		}
+	}
 }

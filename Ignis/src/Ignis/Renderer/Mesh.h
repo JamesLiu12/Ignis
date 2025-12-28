@@ -58,6 +58,8 @@ namespace ignis
 
 		void SetMaterialDataTexture(uint32_t material_index, MaterialType type, AssetHandle texture_handle);
 
+		void FlipUVs();
+
 		~Mesh() = default;
 
 	private:
