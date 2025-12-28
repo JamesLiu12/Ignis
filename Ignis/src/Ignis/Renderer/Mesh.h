@@ -48,7 +48,7 @@ namespace ignis
 
 		const std::vector<Vertex>& GetVertices() const { return m_vertices; }
 		const std::vector<uint32_t>& GetIndices() const { return m_indices; }
-		const std::vector<MaterialData>& GetMaterials() const { return m_materials; }
+		const std::vector<MaterialData>& GetMaterialsData() const { return m_materials; }
 		const std::vector<MeshNode>& GetNodes() const { return m_nodes; }
 		const std::vector<Submesh>& GetSubmeshes() const { return m_submeshes; }
 
