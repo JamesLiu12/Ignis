@@ -20,12 +20,12 @@ namespace ignis
 
 	struct MaterialData
 	{
-		AssetHandle AlbedoMap;
-		AssetHandle NormalMap;
-		AssetHandle MetalnessMap;
-		AssetHandle RoughnessMap;
-		AssetHandle EmissiveMap;
-		AssetHandle AOMap;
+		AssetHandle AlbedoMap = AssetHandle::InvalidUUID;
+		AssetHandle NormalMap = AssetHandle::InvalidUUID;
+		AssetHandle MetalnessMap = AssetHandle::InvalidUUID;
+		AssetHandle RoughnessMap = AssetHandle::InvalidUUID;
+		AssetHandle EmissiveMap = AssetHandle::InvalidUUID;
+		AssetHandle AOMap = AssetHandle::InvalidUUID;
 	};
 
 	class Material
