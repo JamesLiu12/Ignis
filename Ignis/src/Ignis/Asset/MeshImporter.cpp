@@ -86,6 +86,18 @@ namespace ignis
 				}
 			}
 		}
+		else if (aimat->GetTextureCount(aiTextureType_HEIGHT) > 0)
+		{
+			aiString texture_path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_HEIGHT, 0, &texture_path))
+			{
+				AssetHandle texture_handle = loadTexture(texture_path);
+				if (texture_handle.IsValid())
+				{
+					out_material_data.NormalMap = texture_handle;
+				}
+			}
+		}
 
 		if (aimat->GetTextureCount(aiTextureType_METALNESS) > 0)
 		{

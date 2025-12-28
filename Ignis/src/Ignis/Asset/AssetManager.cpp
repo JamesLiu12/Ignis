@@ -1,5 +1,6 @@
 #include "AssetManager.h"
 #include "MeshImporter.h"
+#include "TextureImporter.h"
 
 namespace ignis
 {
@@ -87,8 +88,7 @@ namespace ignis
 		{
 		case AssetType::Texture:
 		{
-			// return TextureImporter::LoadTexture(metadata.FilePath.string());
-			return nullptr;
+			 return TextureImporter::ImportTexture2D(metadata.FilePath.string());
 		}
 		case AssetType::Mesh:
 		{
