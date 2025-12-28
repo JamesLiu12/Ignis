@@ -7,48 +7,6 @@ SandBoxLayer::SandBoxLayer(ignis::Renderer& renderer)
 
 void SandBoxLayer::OnAttach()
 {
-	float vertices[] = {
-		 0.5f,  0.5f, 0.0f,   1.0f, 1.0f,   // top right
-		 0.5f, -0.5f, 0.0f,   1.0f, 0.0f,   // bottom right
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f,   // bottom left
-		-0.5f,  0.5f, 0.0f,   0.0f, 1.0f    // top left 
-	};
-
-	uint32_t indices[] = {
-		0, 1, 3,
-		1, 2, 3
-	};
-
-	m_vb = ignis::VertexBuffer::Create(vertices, sizeof(vertices));
-	m_vb->SetLayout(ignis::VertexBuffer::Layout({
-		{0, ignis::Shader::DataType::Float3, false, 0},
-		{1, ignis::Shader::DataType::Float2, false, sizeof(float) * 3}
-	}));
-
-	m_ib = ignis::IndexBuffer::Create(indices, sizeof(indices));
-
-	m_va = ignis::VertexArray::Create();
-	m_va->AddVertexBuffer(m_vb);
-	m_va->SetIndexBuffer(m_ib);
-	m_va->UnBind();
-
-	/*m_texture = ignis::Texture2D::CreateFromFile(
-		ignis::TextureSpecs{
-			.SourceFormat = ignis::ImageFormat::RGBA,
-			.InternalFormat = ignis::ImageFormat::RGB,
-		},
-		"assets://images/awesomeface.png",
-		true
-	);*/
-	m_texture = ignis::TextureImporter::ImportTexture2D("assets://images/awesomeface.png", 
-		ignis::TextureImportOptions{
-			.InternalFormat = ignis::ImageFormat::RGB8
-		});
-
-	m_shader_library = std::make_shared<ignis::ShaderLibrary>();
-	m_shader_library->Load("assets://shaders/example.glsl");
-	m_shader_library->Load("assets://shaders/blinn.glsl");
-
 	m_camera = ignis::Camera(45.0f, 1280.0f / 720.0f, 0.1f, 100.0f);
 	m_camera.SetPosition({ 1.5f, 0.0f, 8.0f });
 	m_camera.RecalculateViewMatrix();
@@ -133,19 +91,6 @@ void SandBoxLayer::OnUpdate(float dt)
 	}
 
 	m_renderer.Clear();
-
-	//ignis::Shader& shader = m_shader_library.Get("assets://shaders/example.glsl");
-	auto shader = m_shader_library->Get("assets://shaders/blinn.glsl");
-	
-	//m_texture->Bind(0);
-	shader->Bind();
-	//shader.Set("uViewProjection", m_camera.GetViewProjection());
-	//shader.Set("uTexture", 0);
-	//shader.Set("view", m_camera.GetView());
-	//shader.Set("projection", m_camera.GetProjection());
-	model = glm::rotate(model, glm::radians(-55.0f) * dt, glm::vec3(0.0f, 1.0f, 0.0f));
-	shader.Set("model", model);
-	shader.Set("viewPos", m_camera.GetPosition());
 	
 	// Use light component data from the scene
 	if (m_light_entity)
@@ -208,15 +153,7 @@ void SandBoxLayer::OnUpdate(float dt)
 		shader.Set("dirLight.diffuse", glm::vec3(0.80f));
 		shader.Set("dirLight.specular", glm::vec3(1.0f));
 	}
-	//shader.Set("model", model);
-	//shader.Set("viewPos", m_camera.GetPosition());
-	//shader.Set("dirLight.direction", glm::normalize(glm::vec3(-0.2f, -1.0f, -0.3f)));
-	//shader.Set("dirLight.ambient", glm::vec3(0.10f));
-	//shader.Set("dirLight.diffuse", glm::vec3(0.80f));
-	//shader.Set("dirLight.specular", glm::vec3(1.00f));
-	m_va->Bind();
-	//m_renderer.DrawIndexed(*m_va);
-	m_renderer.RenderMesh(m_pipeline, m_mesh);
+	m_renderer.RenderMesh(m_pipeline, m_camera, m_mesh);
 }
 
 void SandBoxLayer::OnEvent(ignis::EventBase& event)

@@ -17,11 +17,6 @@ private:
 	ignis::Renderer& m_renderer;
 
 	std::shared_ptr<ignis::ShaderLibrary> m_shader_library;
-
-	std::shared_ptr<ignis::VertexArray> m_va;
-	std::shared_ptr<ignis::VertexBuffer> m_vb;
-	std::shared_ptr<ignis::IndexBuffer> m_ib;
-	std::shared_ptr<ignis::Texture> m_texture;
 	
 	ignis::Camera m_camera;
 
