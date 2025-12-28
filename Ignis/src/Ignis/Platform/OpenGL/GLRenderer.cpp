@@ -42,20 +42,31 @@ namespace ignis
 		va.UnBind();
 	}
 
-	void GLRenderer::RenderMesh(const std::shared_ptr<Pipeline> pipeline, const std::shared_ptr<Mesh>& mesh)
+	void GLRenderer::RenderMesh(const std::shared_ptr<Pipeline> pipeline, const Camera& camera, const std::shared_ptr<Mesh>& mesh)
 	{
 		auto vao = mesh->GetVertexArray();
 		vao->Bind();
 
-		const auto& materials = mesh->GetMaterials();
+		const auto& materials_data = mesh->GetMaterialsData();
 
 		for (const auto& sm : mesh->GetSubmeshes())
 		{
-			const auto& material_data = materials[sm.MaterialIndex];
+			const auto& material_data = materials_data[sm.MaterialIndex];
 
+			// TODO a performance bottleneck?
 			auto material = pipeline->CreateMaterial(material_data);
+			material->GetShader()->Bind();
 
-			// TODO Use Material
+			material->Set("view", camera.GetView());
+			material->Set("projection", camera.GetProjection());
+
+			// TODO hard coded to be refactored
+			material->Set("model", glm::mat4(1.0f));
+			material->Set("viewPos", camera.GetPosition());
+
+			// TODO hard coded to be refactored
+			material->Set("dirLight.direction", glm::normalize(glm::vec3(-0.5f, -1.0f, -0.5f)));
+			material->Set("dirLight.color", glm::vec3(5.0f, 5.0f, 5.0f));
 
 			glDrawElements(
 				GL_TRIANGLES,

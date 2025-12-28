@@ -23,13 +23,15 @@ namespace ignis
 		virtual void SetViewport(const glm::ivec4& viewport) = 0;
 
 		virtual void DrawIndexed(VertexArray& va) = 0;
-		virtual void RenderMesh(const std::shared_ptr<Pipeline> pipeline, const std::shared_ptr<Mesh>& mesh) = 0;
+		virtual void RenderMesh(const std::shared_ptr<Pipeline> pipeline, const Camera& camera, const std::shared_ptr<Mesh>& mesh) = 0;
 
 		virtual void Clear() = 0;
 
 		static std::unique_ptr<Renderer> Create();
 
-		static const std::shared_ptr<Texture2D> GetWhiteTexture();
-		static const std::shared_ptr<Texture2D> GetBlackTexture();
+		static std::shared_ptr<Texture2D> GetWhiteTexture();
+		static std::shared_ptr<Texture2D> GetBlackTexture();
+		static std::shared_ptr<Texture2D> GetDefaultNormalTexture();
+		static std::shared_ptr<Texture2D> GetDefaultRoughnessTexture();
 	};
 }
