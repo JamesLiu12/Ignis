@@ -61,7 +61,12 @@ namespace ignis
 			material->Set("projection", camera.GetProjection());
 
 			// TODO hard coded to be refactored
-			material->Set("model", glm::mat4(1.0f));
+			material->Set("model", glm::rotate(
+				glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+				glm::radians(90.0f),
+				glm::vec3(0.0f, 1.0f, 0.0f)
+			));
+			//material->Set("model", glm::mat4(1.0f));
 			material->Set("viewPos", camera.GetPosition());
 
 			// TODO hard coded to be refactored
