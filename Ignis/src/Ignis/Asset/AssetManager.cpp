@@ -4,17 +4,27 @@
 
 namespace ignis
 {
+	static std::string ToLowerASCII(std::string s)
+	{
+		std::transform(s.begin(), s.end(), s.begin(),
+			[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+		return s;
+	}
+
 	static AssetType DetermineTypeFromExtension(const std::filesystem::path& path)
 	{
 		static const std::unordered_map<std::string, AssetType> extension_to_type = {
 			{ ".png", AssetType::Texture },
 			{ ".jpg", AssetType::Texture },
 			{ ".jpeg", AssetType::Texture },
+			{ ".tga", AssetType::Texture},
 			{ ".obj", AssetType::Mesh },
 			{ ".fbx", AssetType::Mesh },
 		};
 
-		auto it = extension_to_type.find(path.extension().string());
+		std::string extension = ToLowerASCII(path.extension().string());
+
+		auto it = extension_to_type.find(extension);
 		if (it != extension_to_type.end())
 		{
 			return it->second;

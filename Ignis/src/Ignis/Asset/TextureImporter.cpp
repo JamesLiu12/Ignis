@@ -2,13 +2,14 @@
 
 namespace ignis
 {
-	std::shared_ptr<Texture2D> TextureImporter::ImportTexture2D(const std::filesystem::path& path, const TextureImportOptions& options)
+	std::shared_ptr<Texture2D> TextureImporter::ImportTexture2D(const std::string& path, const TextureImportOptions& options)
 	{
-		auto image = Image::LoadFromFile(path, options.FlipVertical);
+		std::filesystem::path resolved = VFS::Resolve(path);
+		auto image = Image::LoadFromFile(resolved, options.FlipVertical);
 
 		if (!image)
 		{
-			Log::CoreError("Failed to load texture from file: {}", path.string());
+			Log::CoreError("Failed to load texture from file: {}", path);
 			return nullptr;
 		}
 

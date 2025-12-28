@@ -25,4 +25,21 @@ namespace ignis
 		m_vertex_array->AddVertexBuffer(m_vertex_buffer);
 		m_vertex_array->SetIndexBuffer(m_index_buffer);
 	}
+
+	void Mesh::SetMaterialDataTexture(uint32_t material_index, MaterialType type, AssetHandle texture_handle)
+	{
+		if (material_index >= m_materials_data.size()) return;
+
+		MaterialData& data = m_materials_data[material_index];
+
+		switch (type)
+		{
+		case MaterialType::Albedo:    data.AlbedoMap = texture_handle; break;
+		case MaterialType::Normal:    data.NormalMap = texture_handle; break;
+		case MaterialType::Metal:     data.MetalnessMap = texture_handle; break;
+		case MaterialType::Roughness: data.RoughnessMap = texture_handle; break;
+		case MaterialType::Emissive:  data.EmissiveMap = texture_handle; break;
+		case MaterialType::AO:        data.AOMap = texture_handle; break;
+		}
+	}
 }
