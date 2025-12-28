@@ -21,8 +21,12 @@ void SandBoxLayer::OnAttach()
 	//ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/backpack/backpack.obj");
 	m_mesh = ignis::AssetManager::GetAsset<ignis::Mesh>(mesh_handle);
 	m_mesh->FlipUVs();
-	//auto normal_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_N.tga");
-	//m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Normal, normal_map_handle);
+	auto normal_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_N.tga");
+	m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Normal, normal_map_handle);
+	auto metallic_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_M.tga");
+	m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Metal, metallic_map_handle);
+	auto roughness_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_R.tga");
+	m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Roughness, roughness_map_handle);
 	m_renderer.BeginScene();
 
 	ignis::UUID test_id = ignis::UUID();
