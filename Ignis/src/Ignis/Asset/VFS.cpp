@@ -135,6 +135,62 @@ namespace ignis {
         return FileSystem::Exists(physical_path);
     }
 
+    std::string VFS::ParentPath(const std::string& virtual_path)
+    {
+		if (virtual_path.empty()) {
+			return "";
+		}
+
+		size_t end_pos = virtual_path.length() - 1;
+
+		while (end_pos < virtual_path.length() &&
+			(virtual_path[end_pos] == '/' || virtual_path[end_pos] == '\\')) {
+			if (end_pos == 0) {
+				return "";
+			}
+			end_pos--;
+		}
+
+		while (end_pos < virtual_path.length()) {
+			if (virtual_path[end_pos] == '/' || virtual_path[end_pos] == '\\') {
+				return virtual_path.substr(0, end_pos + 1);
+			}
+
+			if (end_pos == 0) {
+				break;
+			}
+			end_pos--;
+		}
+
+		return "";
+    }
+
+    std::string VFS::ConcatPath(const std::string& path1, const std::string& path2)
+    {
+		if (path1.empty()) return path2;
+		if (path2.empty()) return path1;
+
+		char last_char = path1.back();
+		bool p1_ends_slash = (last_char == '/' || last_char == '\\');
+
+		char first_char = path2.front();
+		bool p2_starts_slash = (first_char == '/' || first_char == '\\');
+
+		if (p1_ends_slash && p2_starts_slash) {
+			return path1 + path2.substr(1);
+		}
+		else if (!p1_ends_slash && !p2_starts_slash) {
+			char separator = '/';
+			if (path1.find('\\') != std::string::npos) {
+				separator = '\\';
+			}
+			return path1 + separator + path2;
+		}
+		else {
+			return path1 + path2;
+		}
+    }
+
     File VFS::Open(const std::string& virtual_path)
     {
         auto physical_path = Resolve(virtual_path);
