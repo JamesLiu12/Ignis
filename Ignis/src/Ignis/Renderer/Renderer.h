@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Mesh.h"
 #include "Pipeline.h"
+#include "Ignis/Scene/Scene.h"
 
 namespace ignis
 {	
@@ -13,7 +14,7 @@ namespace ignis
 	public:
 		virtual ~Renderer() = default;
 
-		virtual void BeginScene() = 0;
+		virtual void BeginScene(Scene& scene, const Camera& camera) = 0;
 		virtual void EndScene() = 0;
 
 		virtual void SetClearColor(float r, float g, float b, float a) = 0;
@@ -23,7 +24,7 @@ namespace ignis
 		virtual void SetViewport(const glm::ivec4& viewport) = 0;
 
 		virtual void DrawIndexed(VertexArray& va) = 0;
-		virtual void RenderMesh(const std::shared_ptr<Pipeline> pipeline, const Camera& camera, const std::shared_ptr<Mesh>& mesh, const glm::mat4& model, const glm::vec3 light_dir) = 0;
+		virtual void RenderMesh(const std::shared_ptr<Pipeline> pipeline, const Camera& camera, const std::shared_ptr<Mesh>& mesh, const glm::mat4& model) = 0;
 
 		virtual void Clear() = 0;
 
