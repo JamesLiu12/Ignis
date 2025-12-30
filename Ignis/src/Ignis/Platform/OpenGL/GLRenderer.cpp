@@ -42,7 +42,7 @@ namespace ignis
 		va.UnBind();
 	}
 
-	void GLRenderer::RenderMesh(const std::shared_ptr<Pipeline> pipeline, const Camera& camera, const std::shared_ptr<Mesh>& mesh, const glm::mat4& model)
+	void GLRenderer::RenderMesh(const std::shared_ptr<Pipeline> pipeline, const Camera& camera, const std::shared_ptr<Mesh>& mesh, const glm::mat4& model, const glm::vec3 light_dir)
 	{
 		auto vao = mesh->GetVertexArray();
 		vao->Bind();
@@ -66,7 +66,7 @@ namespace ignis
 			material->Set("viewPos", camera.GetPosition());
 
 			// TODO hard coded to be refactored
-			material->Set("dirLight.direction", glm::normalize(glm::vec3(-0.5f, -1.0f, -0.5f)));
+			material->Set("dirLight.direction", light_dir);
 			material->Set("dirLight.color", glm::vec3(5.0f, 5.0f, 5.0f));
 
 			glDrawElements(
