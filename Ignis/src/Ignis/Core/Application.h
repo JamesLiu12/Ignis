@@ -37,6 +37,8 @@ namespace ignis {
 		Renderer& GetRenderer() { return *m_renderer; }
 		const Renderer& GetRenderer() const { return *m_renderer; }
 
+		class PropertiesPanel* GetPropertiesPanel() { return m_properties_panel.get(); }
+
 		static std::unique_ptr<Application> Create();
 
 	protected:
@@ -51,6 +53,7 @@ namespace ignis {
 		LayerStack m_layer_stack;
 		class ImGuiLayer* m_imgui_layer;
 		class EditorLayer* m_editor_layer;  // Editor layer manages all panels
+		std::shared_ptr<class PropertiesPanel> m_properties_panel;
 
 		void CreatePhysicsTestScene();
 		std::unique_ptr<class PhysicsWorld> m_physics_world;
