@@ -54,5 +54,7 @@ namespace ignis
 		{
 			m_vertex_buffer->SetData(m_vertices.data(), m_vertices.size() * sizeof(Vertex));
 		}
+
+		uv_flipped ^= 1;
 	}
 }
