@@ -24,7 +24,9 @@ namespace ignis {
 		
 	private:
 		void RenderTransformComponent(TransformComponent& transform);
-		void RenderLightComponent(LightComponent& light);
+		void RenderDirectionalLightComponent(DirectionalLightComponent& light);
+		void RenderPointLightComponent(PointLightComponent& light);
+		void RenderSpotLightComponent(SpotLightComponent& light);
 		
 	private:
 		// TODO: Replace weak_ptr with EntityHandle + Scene* for safer entity management
