@@ -7,8 +7,12 @@ SandBoxLayer::SandBoxLayer(ignis::Renderer& renderer)
 
 void SandBoxLayer::OnAttach()
 {
-	m_camera = ignis::Camera(45.0f, 1280.0f / 720.0f, 0.1f, 100.0f);
-	m_camera.SetPosition({ 1.5f, 0.0f, 8.0f });
+	m_shader_library = std::make_shared<ignis::ShaderLibrary>();
+	m_shader_library->Load("assets://shaders/example.glsl");
+	m_shader_library->Load("assets://shaders/blinn.glsl");
+
+	m_camera = ignis::Camera(45.0f, 1280.0f / 720.0f, 0.1f, 1000.0f);
+	m_camera.SetPosition({ 1.5f, 0.0f, 10.0f });
 	m_camera.RecalculateViewMatrix();
 
 	m_scene = ignis::Scene();
@@ -59,16 +63,18 @@ void SandBoxLayer::OnAttach()
 		ignis::Log::CoreWarn("Properties panel not found");
 	}
 	m_pipeline = std::make_shared<ignis::PBRPipeline>(m_shader_library);
+
+	m_transform_component.Scale *= 0.1;
+	m_transform_component.Rotation = glm::vec3(0, glm::radians(90.0f), glm::radians(90.0f));
 }
 
 void SandBoxLayer::OnUpdate(float dt)
 {
 	static glm::mat4 model = glm::mat4(1.0f);
-	float camera_speed = 100.0f;
 	if (ignis::Input::IsKeyPressed(ignis::KeyCode::W))
 	{
 		glm::vec3 forward = m_camera.GetForwardDirection();
-		m_camera.SetPosition(m_camera.GetPosition() + forward * dt * camera_speed);
+		m_camera.SetPosition(m_camera.GetPosition() + forward * dt * m_camera_speed);
 		m_camera.RecalculateViewMatrix();
 		auto camera_position = m_camera.GetPosition();
 		ignis::Log::CoreInfo("Camera Position: {}, {}, {}", camera_position.x, camera_position.y, camera_position.z);
@@ -76,7 +82,7 @@ void SandBoxLayer::OnUpdate(float dt)
 	else if (ignis::Input::IsKeyPressed(ignis::KeyCode::S))
 	{
 		glm::vec3 forward = m_camera.GetForwardDirection();
-		m_camera.SetPosition(m_camera.GetPosition() - forward * dt * camera_speed);
+		m_camera.SetPosition(m_camera.GetPosition() - forward * dt * m_camera_speed);
 		m_camera.RecalculateViewMatrix();
 		auto position = m_camera.GetPosition();
 		ignis::Log::CoreInfo("Position {}, {}, {}", position.x, position.y, position.z);
@@ -84,7 +90,7 @@ void SandBoxLayer::OnUpdate(float dt)
 	else if (ignis::Input::IsKeyPressed(ignis::KeyCode::A))
 	{
 		glm::vec3 right = m_camera.GetRightDirection();
-		m_camera.SetPosition(m_camera.GetPosition() - right * dt * camera_speed);
+		m_camera.SetPosition(m_camera.GetPosition() - right * dt * m_camera_speed);
 		m_camera.RecalculateViewMatrix();
 		auto position = m_camera.GetPosition();
 		ignis::Log::CoreInfo("Position {}, {}, {}", position.x, position.y, position.z);
@@ -92,7 +98,7 @@ void SandBoxLayer::OnUpdate(float dt)
 	else if (ignis::Input::IsKeyPressed(ignis::KeyCode::D))
 	{
 		glm::vec3 right = m_camera.GetRightDirection();
-		m_camera.SetPosition(m_camera.GetPosition() + right * dt * camera_speed);
+		m_camera.SetPosition(m_camera.GetPosition() + right * dt * m_camera_speed);
 		m_camera.RecalculateViewMatrix();
 		auto position = m_camera.GetPosition();
 		ignis::Log::CoreInfo("Position {}, {}, {}", position.x, position.y, position.z);
@@ -162,7 +168,7 @@ void SandBoxLayer::OnUpdate(float dt)
 		shader.Set("dirLight.specular", glm::vec3(1.0f));
 	}
 
-	m_renderer.RenderMesh(m_pipeline, m_camera, m_mesh);
+	m_renderer.RenderMesh(m_pipeline, m_camera, m_mesh, m_transform_component.GetTransform());
 }
 
 void SandBoxLayer::OnEvent(ignis::EventBase& event)

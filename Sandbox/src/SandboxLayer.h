@@ -28,4 +28,8 @@ private:
 	std::shared_ptr<ignis::Entity> m_light_entity;
 
 	std::shared_ptr<ignis::Pipeline> m_pipeline;
+
+	ignis::TransformComponent m_transform_component;
+
+	float m_camera_speed = 10.0f;
 };
