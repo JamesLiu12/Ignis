@@ -71,7 +71,9 @@ void SandBoxLayer::OnAttach()
 	ignis::Log::CoreInfo("Generated UUID is valid: {}", test_id.IsValid());
 	
 	// Create a light entity for testing properties panel
-	m_light_entity = m_scene.CreateEntity("Main Directional Light");
+	auto entity = m_scene.CreateEntity("Main Directional Light");
+	m_light_entity = std::make_shared<ignis::Entity>(entity);
+	
 	auto& light = m_light_entity->AddComponent<ignis::LightComponent>();
 	light.LightType = ignis::LightComponent::Type::Directional;
 	light.Color = glm::vec3(1.0f, 0.95f, 0.8f); // Warm white light
@@ -88,7 +90,7 @@ void SandBoxLayer::OnAttach()
 	// Set this entity as selected in properties panel
 	if (auto* properties_panel = ignis::Application::Get().GetPropertiesPanel())
 	{
-		properties_panel->SetSelectedEntity(&m_light_entity.value());
+		properties_panel->SetSelectedEntity(m_light_entity);
 		ignis::Log::CoreInfo("Light entity set as selected in properties panel");
 	}
 	else
@@ -149,7 +151,7 @@ void SandBoxLayer::OnUpdate(float dt)
 	shader.Set("viewPos", m_camera.GetPosition());
 	
 	// Use light component data from the scene
-	if (m_light_entity.has_value())
+	if (m_light_entity)
 	{
 		auto& light = m_light_entity->GetComponent<ignis::LightComponent>();
 		auto& transform = m_light_entity->GetComponent<ignis::TransformComponent>();
