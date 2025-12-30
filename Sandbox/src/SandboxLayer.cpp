@@ -82,7 +82,7 @@ void SandBoxLayer::OnUpdate(float dt)
 
 	m_renderer.Clear();
 
-	m_renderer.RenderMesh(m_pipeline, m_camera, m_mesh, m_transform_component.GetTransform());
+	m_renderer.RenderMesh(m_pipeline, m_camera, m_mesh, m_transform_component.GetTransform(), m_light_dir);
 }
 
 void SandBoxLayer::OnEvent(ignis::EventBase& event)
