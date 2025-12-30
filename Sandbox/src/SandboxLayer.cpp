@@ -1,4 +1,5 @@
 #include "SandboxLayer.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 SandBoxLayer::SandBoxLayer(ignis::Renderer& renderer)
 	: Layer("SandboxLayer"), m_renderer(renderer)
@@ -31,7 +32,6 @@ void SandBoxLayer::OnAttach()
 	m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Metal, metallic_map_handle);
 	auto roughness_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_R.tga");
 	m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Roughness, roughness_map_handle);
-	m_renderer.BeginScene();
 
 	ignis::UUID test_id = ignis::UUID();
 	ignis::Log::CoreInfo("Generated UUID: {}", test_id.ToString());
@@ -40,18 +40,33 @@ void SandBoxLayer::OnAttach()
 	ignis::Log::CoreInfo("Generated UUID is valid: {}", test_id.IsValid());
 	
 	// Create a light entity for testing properties panel
-	auto entity = m_scene.CreateEntity("Main Directional Light");
-	m_light_entity = std::make_shared<ignis::Entity>(entity);
+	auto directional_light_entity = m_scene.CreateEntity("Main Directional Light");
+	m_light_entity = std::make_shared<ignis::Entity>(directional_light_entity);
 	
 	auto& light = m_light_entity->AddComponent<ignis::DirectionalLightComponent>();
 	light.Color = glm::vec3(1.0f, 0.95f, 0.8f); // Warm white light
 	light.Intensity = 1.5f;
-	light.Direction = glm::vec3(-0.2f, -1.0f, -0.3f);
 	
 	// Set light position (useful for point and spot lights)
-	auto& lightTransform = m_light_entity->GetComponent<ignis::TransformComponent>();
-	lightTransform.Translation = glm::vec3(0.0f, 5.0f, 5.0f);
+	auto& directional_light_transform = m_light_entity->GetComponent<ignis::TransformComponent>();
+	directional_light_transform.Translation = glm::vec3(0.0f, 5.0f, 5.0f);
 	
+	auto point_light_entity = m_scene.CreateEntity("Point Light");
+	auto& point_light_component = point_light_entity.AddComponent<ignis::PointLightComponent>();
+	point_light_component.Color = glm::vec3(1.0f, 0.0f, 0.0f);
+	point_light_component.Intensity = 5.0f;
+
+	auto& point_light_transform = point_light_entity.GetComponent<ignis::TransformComponent>();
+	point_light_transform.Translation = glm::vec3(0.0f, 5.0f, 0.0f);
+
+	auto spot_light_entity = m_scene.CreateEntity("Spot Light");
+	auto& spot_light_component = spot_light_entity.AddComponent<ignis::SpotLightComponent>();
+	spot_light_component.Color = glm::vec3(0.0f, 1.0f, 0.0f);
+	spot_light_component.Intensity = 10.0f;
+
+	auto& spot_light_transform = spot_light_entity.GetComponent<ignis::TransformComponent>();
+	spot_light_transform.Translation = glm::vec3(0.0f, 0.0f, 5.0f);
+
 	// Set this entity as selected in properties panel
 	if (auto* properties_panel = ignis::Application::Get().GetPropertiesPanel())
 	{
@@ -64,8 +79,8 @@ void SandBoxLayer::OnAttach()
 	}
 	m_pipeline = std::make_shared<ignis::PBRPipeline>(m_shader_library);
 
-	m_transform_component.Scale *= 0.1;
-	m_transform_component.Rotation = glm::vec3(0, glm::radians(90.0f), glm::radians(90.0f));
+	m_mesh_transform_component.Scale *= 0.1;
+	m_mesh_transform_component.Rotation = glm::vec3(0, glm::radians(90.0f), glm::radians(90.0f));
 }
 
 void SandBoxLayer::OnUpdate(float dt)
@@ -105,70 +120,10 @@ void SandBoxLayer::OnUpdate(float dt)
 	}
 
 	m_renderer.Clear();
-	
-	//// Use light component data from the scene
-	//if (m_light_entity)
-	//{
-	//	auto& transform = m_light_entity->GetComponent<ignis::TransformComponent>();
-	//	
-	//	// Check for Directional Light
-	//	if (m_light_entity->HasComponent<ignis::DirectionalLightComponent>())
-	//	{
-	//		auto& light = m_light_entity->GetComponent<ignis::DirectionalLightComponent>();
-	//		shader.Set("lightType", 0);
-	//		shader.Set("dirLight.direction", glm::normalize(light.Direction));
-	//		shader.Set("dirLight.ambient", light.Color * 0.1f);
-	//		shader.Set("dirLight.diffuse", light.Color * light.Intensity);
-	//		shader.Set("dirLight.specular", glm::vec3(1.0f));
-	//	}
-	//	// Check for Point Light
-	//	else if (m_light_entity->HasComponent<ignis::PointLightComponent>())
-	//	{
-	//		auto& light = m_light_entity->GetComponent<ignis::PointLightComponent>();
-	//		shader.Set("lightType", 1);
-	//		shader.Set("pointLight.position", transform.Translation);
-	//		shader.Set("pointLight.ambient", light.Color * 0.1f);
-	//		shader.Set("pointLight.diffuse", light.Color * light.Intensity);
-	//		shader.Set("pointLight.specular", glm::vec3(1.0f));
-	//		shader.Set("pointLight.range", light.Range);
-	//		shader.Set("pointLight.attenuation", light.Attenuation);
-	//	}
-	//	// Check for Spot Light
-	//	else if (m_light_entity->HasComponent<ignis::SpotLightComponent>())
-	//	{
-	//		auto& light = m_light_entity->GetComponent<ignis::SpotLightComponent>();
-	//		shader.Set("lightType", 2);
-	//		shader.Set("spotLight.position", transform.Translation);
-	//		shader.Set("spotLight.direction", glm::normalize(light.Direction));
-	//		shader.Set("spotLight.ambient", light.Color * 0.1f);
-	//		shader.Set("spotLight.diffuse", light.Color * light.Intensity);
-	//		shader.Set("spotLight.specular", glm::vec3(1.0f));
-	//		shader.Set("spotLight.range", light.Range);
-	//		shader.Set("spotLight.attenuation", light.Attenuation);
-	//		shader.Set("spotLight.innerConeAngle", light.InnerConeAngle);
-	//		shader.Set("spotLight.outerConeAngle", light.OuterConeAngle);
-	//	}
-	//	else
-	//	{
-	//		// Fallback if entity has no light component
-	//		shader.Set("lightType", 0);
-	//		shader.Set("dirLight.direction", glm::normalize(glm::vec3(-0.2f, -1.0f, -0.3f)));
-	//		shader.Set("dirLight.ambient", glm::vec3(0.10f));
-	//		shader.Set("dirLight.diffuse", glm::vec3(0.80f));
-	//		shader.Set("dirLight.specular", glm::vec3(1.0f));
-	//	}
-	//}
-	//else
-	//{
-	//	// Fallback to default directional light if no light entity
-	//	shader.Set("lightType", 0);
-	//	shader.Set("dirLight.direction", glm::normalize(glm::vec3(-0.2f, -1.0f, -0.3f)));
-	//	shader.Set("dirLight.ambient", glm::vec3(0.10f));
-	//	shader.Set("dirLight.diffuse", glm::vec3(0.80f));
-	//	shader.Set("dirLight.specular", glm::vec3(1.0f));
-	//}
 
-	m_renderer.RenderMesh(m_pipeline, m_camera, m_mesh, m_transform_component.GetTransform(), m_light_dir);
+	m_renderer.BeginScene(m_scene, m_camera);
+
+	m_renderer.RenderMesh(m_pipeline, m_camera, m_mesh, m_mesh_transform_component.GetTransform());
 }
 
 void SandBoxLayer::OnEvent(ignis::EventBase& event)

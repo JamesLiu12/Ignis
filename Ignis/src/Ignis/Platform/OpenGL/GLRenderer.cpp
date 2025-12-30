@@ -5,10 +5,13 @@
 
 namespace ignis
 {
-	void GLRenderer::BeginScene()
+	void GLRenderer::BeginScene(Scene& scene, const Camera& camera)
 	{
-		// TODO
 		glEnable(GL_DEPTH_TEST);
+
+		scene.OnRender();
+		// TODO: Move this to SceneRenderer
+		m_light_environment = scene.m_light_environment;
 	}
 	void GLRenderer::EndScene()
 	{
@@ -42,7 +45,43 @@ namespace ignis
 		va.UnBind();
 	}
 
-	void GLRenderer::RenderMesh(const std::shared_ptr<Pipeline> pipeline, const Camera& camera, const std::shared_ptr<Mesh>& mesh, const glm::mat4& model, const glm::vec3 light_dir)
+	void UploadLightsToMaterial(std::shared_ptr<Material> material, LightEnvironment light_environment)
+	{
+		material->Set("numDirectionalLights", (int)light_environment.DirectionalLights.size());
+		for (size_t i = 0; i < light_environment.DirectionalLights.size(); i++)
+		{
+			std::string base = "directionalLights[" + std::to_string(i) + "]";
+			material->Set(base + ".direction", light_environment.DirectionalLights[i].Direction);
+			material->Set(base + ".radiance", light_environment.DirectionalLights[i].Radiance);
+		}
+
+		material->Set("numPointLights", (int)light_environment.PointLights.size());
+		for (size_t i = 0; i < light_environment.PointLights.size(); i++)
+		{
+			std::string base = "pointLights[" + std::to_string(i) + "]";
+			material->Set(base + ".position", light_environment.PointLights[i].Position);
+			material->Set(base + ".radiance", light_environment.PointLights[i].Radiance);
+			material->Set(base + ".constant", light_environment.PointLights[i].Constant);
+			material->Set(base + ".linear", light_environment.PointLights[i].Linear);
+			material->Set(base + ".quadratic", light_environment.PointLights[i].Quadratic);
+		}
+
+		material->Set("numSpotLights", (int)light_environment.SpotLights.size());
+		for (size_t i = 0; i < light_environment.SpotLights.size(); i++)
+		{
+			std::string base = "spotLights[" + std::to_string(i) + "]";
+			material->Set(base + ".position", light_environment.SpotLights[i].Position);
+			material->Set(base + ".direction", light_environment.SpotLights[i].Direction);
+			material->Set(base + ".radiance", light_environment.SpotLights[i].Radiance);
+			material->Set(base + ".constant", light_environment.SpotLights[i].Constant);
+			material->Set(base + ".linear", light_environment.SpotLights[i].Linear);
+			material->Set(base + ".quadratic", light_environment.SpotLights[i].Quadratic);
+			material->Set(base + ".cutOff", light_environment.SpotLights[i].CutOff);
+			material->Set(base + ".outerCutOff", light_environment.SpotLights[i].OuterCutOff);
+		}
+	}
+
+	void GLRenderer::RenderMesh(const std::shared_ptr<Pipeline> pipeline, const Camera& camera, const std::shared_ptr<Mesh>& mesh, const glm::mat4& model)
 	{
 		auto vao = mesh->GetVertexArray();
 		vao->Bind();
@@ -62,12 +101,9 @@ namespace ignis
 
 			// TODO hard coded to be refactored
 			material->Set("model", model);
-			//material->Set("model", glm::mat4(1.0f));
 			material->Set("viewPos", camera.GetPosition());
 
-			// TODO hard coded to be refactored
-			material->Set("dirLight.direction", light_dir);
-			material->Set("dirLight.color", glm::vec3(5.0f, 5.0f, 5.0f));
+			UploadLightsToMaterial(material, m_light_environment);
 
 			glDrawElements(
 				GL_TRIANGLES,
