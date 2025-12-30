@@ -59,6 +59,7 @@ namespace ignis
 		void SetMaterialDataTexture(uint32_t material_index, MaterialType type, AssetHandle texture_handle);
 
 		void FlipUVs();
+		bool IsUVsFlipped() { return uv_flipped; }
 
 		~Mesh() = default;
 
@@ -74,6 +75,8 @@ namespace ignis
 		std::shared_ptr<VertexArray> m_vertex_array;
 		std::shared_ptr<VertexBuffer> m_vertex_buffer;
 		std::shared_ptr<IndexBuffer> m_index_buffer;
+
+		bool uv_flipped = false;
 
 		friend class MeshImporter;
 	};
