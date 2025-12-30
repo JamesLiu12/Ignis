@@ -32,4 +32,6 @@ private:
 	ignis::TransformComponent m_transform_component;
 
 	float m_camera_speed = 10.0f;
+
+	glm::vec3 m_light_dir = glm::normalize(glm::vec3(-0.5f, -1.0f, -0.5f));
 };
