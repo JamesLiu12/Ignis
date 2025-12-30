@@ -37,11 +37,53 @@ namespace ignis {
 					RenderTransformComponent(transform);
 				}
 				
-				// Render Light Component
-				if (entity->HasComponent<LightComponent>())
+				// Render Directional Light Component
+				if (entity->HasComponent<DirectionalLightComponent>())
 				{
-					auto& light = entity->GetComponent<LightComponent>();
-					RenderLightComponent(light);
+					auto& light = entity->GetComponent<DirectionalLightComponent>();
+					RenderDirectionalLightComponent(light);
+				}
+				
+				// Render Point Light Component
+				if (entity->HasComponent<PointLightComponent>())
+				{
+					auto& light = entity->GetComponent<PointLightComponent>();
+					RenderPointLightComponent(light);
+				}
+				
+				// Render Spot Light Component
+				if (entity->HasComponent<SpotLightComponent>())
+				{
+					auto& light = entity->GetComponent<SpotLightComponent>();
+					RenderSpotLightComponent(light);
+				}
+				
+				// Add Component Section
+				ImGui::Separator();
+				ImGui::Text("Add Component");
+				
+				if (!entity->HasComponent<DirectionalLightComponent>())
+				{
+					if (ImGui::Button("Add Directional Light"))
+					{
+						entity->AddComponent<DirectionalLightComponent>();
+					}
+				}
+				
+				if (!entity->HasComponent<PointLightComponent>())
+				{
+					if (ImGui::Button("Add Point Light"))
+					{
+						entity->AddComponent<PointLightComponent>();
+					}
+				}
+				
+				if (!entity->HasComponent<SpotLightComponent>())
+				{
+					if (ImGui::Button("Add Spot Light"))
+					{
+						entity->AddComponent<SpotLightComponent>();
+					}
 				}
 			}
 			else
@@ -63,51 +105,99 @@ namespace ignis {
 		}
 	}
 	
-	void PropertiesPanel::RenderLightComponent(LightComponent& light)
+	void PropertiesPanel::RenderDirectionalLightComponent(DirectionalLightComponent& light)
 	{
-		if (ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen))
+		ImGui::PushID("DirectionalLight");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Directional Light", flags);
+		
+		// Remove button on the same line as header
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		bool remove = ImGui::Button("X");
+		
+		if (open)
 		{
-			// Light Type Dropdown
-			const char* light_types[] = { "Directional", "Point", "Spot" };
-			int current_type = static_cast<int>(light.LightType);
-			if (ImGui::Combo("Type", &current_type, light_types, 3))
-			{
-				light.LightType = static_cast<LightComponent::Type>(current_type);
-			}
-			
-			// Color Picker
 			ImGui::ColorEdit3("Color", &light.Color.x);
-			
-			// Intensity Slider
 			ImGui::SliderFloat("Intensity", &light.Intensity, 0.0f, 10.0f);
-			
-			// Type-specific properties
-			if (light.LightType == LightComponent::Type::Directional)
-			{
-				ImGui::Separator();
-				ImGui::Text("Directional Light Settings");
-				ImGui::DragFloat3("Direction", &light.Direction.x, 0.01f, -1.0f, 1.0f);
-			}
-			else if (light.LightType == LightComponent::Type::Point)
-			{
-				ImGui::Separator();
-				ImGui::Text("Point Light Settings");
-				ImGui::SliderFloat("Range", &light.Range, 0.1f, 100.0f);
-				ImGui::SliderFloat("Attenuation", &light.Attenuation, 0.0f, 2.0f);
-			}
-			else if (light.LightType == LightComponent::Type::Spot)
-			{
-				ImGui::Separator();
-				ImGui::Text("Spot Light Settings");
-				ImGui::DragFloat3("Direction", &light.Direction.x, 0.01f, -1.0f, 1.0f);
-				ImGui::SliderFloat("Range", &light.Range, 0.1f, 100.0f);
-				ImGui::SliderFloat("Attenuation", &light.Attenuation, 0.0f, 2.0f);
-				ImGui::SliderFloat("Inner Cone Angle", &light.InnerConeAngle, 0.0f, 90.0f);
-				ImGui::SliderFloat("Outer Cone Angle", &light.OuterConeAngle, 0.0f, 90.0f);
-			}
-			
+			ImGui::DragFloat3("Direction", &light.Direction.x, 0.01f, -1.0f, 1.0f);
 			ImGui::Spacing();
 		}
+		
+		if (remove)
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<DirectionalLightComponent>();
+			}
+		}
+		
+		ImGui::PopID();
+	}
+	
+	void PropertiesPanel::RenderPointLightComponent(PointLightComponent& light)
+	{
+		ImGui::PushID("PointLight");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Point Light", flags);
+		
+		// Remove button on the same line as header
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		bool remove = ImGui::Button("X");
+		
+		if (open)
+		{
+			ImGui::ColorEdit3("Color", &light.Color.x);
+			ImGui::SliderFloat("Intensity", &light.Intensity, 0.0f, 10.0f);
+			ImGui::SliderFloat("Range", &light.Range, 0.1f, 100.0f);
+			ImGui::SliderFloat("Attenuation", &light.Attenuation, 0.0f, 2.0f);
+			ImGui::Spacing();
+		}
+		
+		if (remove)
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<PointLightComponent>();
+			}
+		}
+		
+		ImGui::PopID();
+	}
+	
+	void PropertiesPanel::RenderSpotLightComponent(SpotLightComponent& light)
+	{
+		ImGui::PushID("SpotLight");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Spot Light", flags);
+		
+		// Remove button on the same line as header
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		bool remove = ImGui::Button("X");
+		
+		if (open)
+		{
+			ImGui::ColorEdit3("Color", &light.Color.x);
+			ImGui::SliderFloat("Intensity", &light.Intensity, 0.0f, 10.0f);
+			ImGui::DragFloat3("Direction", &light.Direction.x, 0.01f, -1.0f, 1.0f);
+			ImGui::SliderFloat("Range", &light.Range, 0.1f, 100.0f);
+			ImGui::SliderFloat("Attenuation", &light.Attenuation, 0.0f, 2.0f);
+			ImGui::SliderFloat("Inner Cone Angle", &light.InnerConeAngle, 0.0f, 90.0f);
+			ImGui::SliderFloat("Outer Cone Angle", &light.OuterConeAngle, 0.0f, 90.0f);
+			ImGui::Spacing();
+		}
+		
+		if (remove)
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<SpotLightComponent>();
+			}
+		}
+		
+		ImGui::PopID();
 	}
 
 } // namespace ignis
