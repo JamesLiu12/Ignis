@@ -20,27 +20,27 @@ namespace ignis {
 
 		if (ImGui::Begin("Properties", nullptr, window_flags))
 		{
-			if (m_selected_entity)
+			if (auto entity = m_selected_entity.lock())
 			{
 				// Render entity name
-				if (m_selected_entity->HasComponent<TagComponent>())
+				if (entity->HasComponent<TagComponent>())
 				{
-					auto& tag = m_selected_entity->GetComponent<TagComponent>();
+					auto& tag = entity->GetComponent<TagComponent>();
 					ImGui::Text("Entity: %s", tag.Tag.c_str());
 					ImGui::Separator();
 				}
 				
 				// Render Transform Component
-				if (m_selected_entity->HasComponent<TransformComponent>())
+				if (entity->HasComponent<TransformComponent>())
 				{
-					auto& transform = m_selected_entity->GetComponent<TransformComponent>();
+					auto& transform = entity->GetComponent<TransformComponent>();
 					RenderTransformComponent(transform);
 				}
 				
 				// Render Light Component
-				if (m_selected_entity->HasComponent<LightComponent>())
+				if (entity->HasComponent<LightComponent>())
 				{
-					auto& light = m_selected_entity->GetComponent<LightComponent>();
+					auto& light = entity->GetComponent<LightComponent>();
 					RenderLightComponent(light);
 				}
 			}
