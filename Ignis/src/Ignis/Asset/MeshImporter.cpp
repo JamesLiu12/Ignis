@@ -163,7 +163,6 @@ namespace ignis
 			model_path.string(),
 			aiProcess_Triangulate
 			| aiProcess_GenSmoothNormals
-			| aiProcess_FlipUVs
 			| aiProcess_CalcTangentSpace
 
 		);
