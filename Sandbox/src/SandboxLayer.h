@@ -28,4 +28,7 @@ private:
 	ignis::Scene m_scene;
 
 	std::shared_ptr<ignis::Mesh> m_mesh;
+	
+	// Test light entity for properties panel
+	std::optional<ignis::Entity> m_light_entity;
 };

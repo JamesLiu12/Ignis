@@ -66,7 +66,7 @@ namespace ignis
 		auto console_panel = panel_manager.AddPanel<EditorConsolePanel>("Console", "Console", true);
 		
 		// Add Properties panel (right section)
-		auto properties_panel = panel_manager.AddPanel<PropertiesPanel>("Properties", "Properties", true);
+		m_properties_panel = panel_manager.AddPanel<PropertiesPanel>("Properties", "Properties", true);
 		
 		// Add some test messages to the console
 		console_panel->AddMessage(ConsoleMessageLevel::Info, "Ignis Editor initialized");
