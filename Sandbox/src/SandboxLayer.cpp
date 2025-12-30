@@ -168,7 +168,7 @@ void SandBoxLayer::OnUpdate(float dt)
 		shader.Set("dirLight.specular", glm::vec3(1.0f));
 	}
 
-	m_renderer.RenderMesh(m_pipeline, m_camera, m_mesh, m_transform_component.GetTransform());
+	m_renderer.RenderMesh(m_pipeline, m_camera, m_mesh, m_transform_component.GetTransform(), m_light_dir);
 }
 
 void SandBoxLayer::OnEvent(ignis::EventBase& event)
