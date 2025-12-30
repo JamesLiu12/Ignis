@@ -42,7 +42,7 @@ namespace ignis
 		va.UnBind();
 	}
 
-	void GLRenderer::RenderMesh(const std::shared_ptr<Pipeline> pipeline, const Camera& camera, const std::shared_ptr<Mesh>& mesh)
+	void GLRenderer::RenderMesh(const std::shared_ptr<Pipeline> pipeline, const Camera& camera, const std::shared_ptr<Mesh>& mesh, const glm::mat4& model)
 	{
 		auto vao = mesh->GetVertexArray();
 		vao->Bind();
@@ -61,11 +61,7 @@ namespace ignis
 			material->Set("projection", camera.GetProjection());
 
 			// TODO hard coded to be refactored
-			material->Set("model", glm::rotate(
-				glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
-				glm::radians(90.0f),
-				glm::vec3(0.0f, 1.0f, 0.0f)
-			));
+			material->Set("model", model);
 			//material->Set("model", glm::mat4(1.0f));
 			material->Set("viewPos", camera.GetPosition());
 
