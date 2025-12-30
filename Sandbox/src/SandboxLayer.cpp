@@ -106,67 +106,67 @@ void SandBoxLayer::OnUpdate(float dt)
 
 	m_renderer.Clear();
 	
-	// Use light component data from the scene
-	if (m_light_entity)
-	{
-		auto& transform = m_light_entity->GetComponent<ignis::TransformComponent>();
-		
-		// Check for Directional Light
-		if (m_light_entity->HasComponent<ignis::DirectionalLightComponent>())
-		{
-			auto& light = m_light_entity->GetComponent<ignis::DirectionalLightComponent>();
-			shader.Set("lightType", 0);
-			shader.Set("dirLight.direction", glm::normalize(light.Direction));
-			shader.Set("dirLight.ambient", light.Color * 0.1f);
-			shader.Set("dirLight.diffuse", light.Color * light.Intensity);
-			shader.Set("dirLight.specular", glm::vec3(1.0f));
-		}
-		// Check for Point Light
-		else if (m_light_entity->HasComponent<ignis::PointLightComponent>())
-		{
-			auto& light = m_light_entity->GetComponent<ignis::PointLightComponent>();
-			shader.Set("lightType", 1);
-			shader.Set("pointLight.position", transform.Translation);
-			shader.Set("pointLight.ambient", light.Color * 0.1f);
-			shader.Set("pointLight.diffuse", light.Color * light.Intensity);
-			shader.Set("pointLight.specular", glm::vec3(1.0f));
-			shader.Set("pointLight.range", light.Range);
-			shader.Set("pointLight.attenuation", light.Attenuation);
-		}
-		// Check for Spot Light
-		else if (m_light_entity->HasComponent<ignis::SpotLightComponent>())
-		{
-			auto& light = m_light_entity->GetComponent<ignis::SpotLightComponent>();
-			shader.Set("lightType", 2);
-			shader.Set("spotLight.position", transform.Translation);
-			shader.Set("spotLight.direction", glm::normalize(light.Direction));
-			shader.Set("spotLight.ambient", light.Color * 0.1f);
-			shader.Set("spotLight.diffuse", light.Color * light.Intensity);
-			shader.Set("spotLight.specular", glm::vec3(1.0f));
-			shader.Set("spotLight.range", light.Range);
-			shader.Set("spotLight.attenuation", light.Attenuation);
-			shader.Set("spotLight.innerConeAngle", light.InnerConeAngle);
-			shader.Set("spotLight.outerConeAngle", light.OuterConeAngle);
-		}
-		else
-		{
-			// Fallback if entity has no light component
-			shader.Set("lightType", 0);
-			shader.Set("dirLight.direction", glm::normalize(glm::vec3(-0.2f, -1.0f, -0.3f)));
-			shader.Set("dirLight.ambient", glm::vec3(0.10f));
-			shader.Set("dirLight.diffuse", glm::vec3(0.80f));
-			shader.Set("dirLight.specular", glm::vec3(1.0f));
-		}
-	}
-	else
-	{
-		// Fallback to default directional light if no light entity
-		shader.Set("lightType", 0);
-		shader.Set("dirLight.direction", glm::normalize(glm::vec3(-0.2f, -1.0f, -0.3f)));
-		shader.Set("dirLight.ambient", glm::vec3(0.10f));
-		shader.Set("dirLight.diffuse", glm::vec3(0.80f));
-		shader.Set("dirLight.specular", glm::vec3(1.0f));
-	}
+	//// Use light component data from the scene
+	//if (m_light_entity)
+	//{
+	//	auto& transform = m_light_entity->GetComponent<ignis::TransformComponent>();
+	//	
+	//	// Check for Directional Light
+	//	if (m_light_entity->HasComponent<ignis::DirectionalLightComponent>())
+	//	{
+	//		auto& light = m_light_entity->GetComponent<ignis::DirectionalLightComponent>();
+	//		shader.Set("lightType", 0);
+	//		shader.Set("dirLight.direction", glm::normalize(light.Direction));
+	//		shader.Set("dirLight.ambient", light.Color * 0.1f);
+	//		shader.Set("dirLight.diffuse", light.Color * light.Intensity);
+	//		shader.Set("dirLight.specular", glm::vec3(1.0f));
+	//	}
+	//	// Check for Point Light
+	//	else if (m_light_entity->HasComponent<ignis::PointLightComponent>())
+	//	{
+	//		auto& light = m_light_entity->GetComponent<ignis::PointLightComponent>();
+	//		shader.Set("lightType", 1);
+	//		shader.Set("pointLight.position", transform.Translation);
+	//		shader.Set("pointLight.ambient", light.Color * 0.1f);
+	//		shader.Set("pointLight.diffuse", light.Color * light.Intensity);
+	//		shader.Set("pointLight.specular", glm::vec3(1.0f));
+	//		shader.Set("pointLight.range", light.Range);
+	//		shader.Set("pointLight.attenuation", light.Attenuation);
+	//	}
+	//	// Check for Spot Light
+	//	else if (m_light_entity->HasComponent<ignis::SpotLightComponent>())
+	//	{
+	//		auto& light = m_light_entity->GetComponent<ignis::SpotLightComponent>();
+	//		shader.Set("lightType", 2);
+	//		shader.Set("spotLight.position", transform.Translation);
+	//		shader.Set("spotLight.direction", glm::normalize(light.Direction));
+	//		shader.Set("spotLight.ambient", light.Color * 0.1f);
+	//		shader.Set("spotLight.diffuse", light.Color * light.Intensity);
+	//		shader.Set("spotLight.specular", glm::vec3(1.0f));
+	//		shader.Set("spotLight.range", light.Range);
+	//		shader.Set("spotLight.attenuation", light.Attenuation);
+	//		shader.Set("spotLight.innerConeAngle", light.InnerConeAngle);
+	//		shader.Set("spotLight.outerConeAngle", light.OuterConeAngle);
+	//	}
+	//	else
+	//	{
+	//		// Fallback if entity has no light component
+	//		shader.Set("lightType", 0);
+	//		shader.Set("dirLight.direction", glm::normalize(glm::vec3(-0.2f, -1.0f, -0.3f)));
+	//		shader.Set("dirLight.ambient", glm::vec3(0.10f));
+	//		shader.Set("dirLight.diffuse", glm::vec3(0.80f));
+	//		shader.Set("dirLight.specular", glm::vec3(1.0f));
+	//	}
+	//}
+	//else
+	//{
+	//	// Fallback to default directional light if no light entity
+	//	shader.Set("lightType", 0);
+	//	shader.Set("dirLight.direction", glm::normalize(glm::vec3(-0.2f, -1.0f, -0.3f)));
+	//	shader.Set("dirLight.ambient", glm::vec3(0.10f));
+	//	shader.Set("dirLight.diffuse", glm::vec3(0.80f));
+	//	shader.Set("dirLight.specular", glm::vec3(1.0f));
+	//}
 
 	m_renderer.RenderMesh(m_pipeline, m_camera, m_mesh, m_transform_component.GetTransform(), m_light_dir);
 }
