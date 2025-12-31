@@ -5,10 +5,13 @@
 
 namespace ignis
 {
-	void GLRenderer::BeginScene()
+	void GLRenderer::BeginScene(Scene& scene, const Camera& camera)
 	{
-		// TODO
 		glEnable(GL_DEPTH_TEST);
+
+		scene.OnRender();
+		// TODO: Move this to SceneRenderer
+		m_light_environment = scene.m_light_environment;
 	}
 	void GLRenderer::EndScene()
 	{
@@ -42,35 +45,65 @@ namespace ignis
 		va.UnBind();
 	}
 
-	void GLRenderer::RenderMesh(const std::shared_ptr<Mesh>& mesh, Shader& shader)
+	void UploadLightsToMaterial(std::shared_ptr<Material> material, LightEnvironment light_environment)
+	{
+		material->Set("numDirectionalLights", (int)light_environment.DirectionalLights.size());
+		for (size_t i = 0; i < light_environment.DirectionalLights.size(); i++)
+		{
+			std::string base = "directionalLights[" + std::to_string(i) + "]";
+			material->Set(base + ".direction", light_environment.DirectionalLights[i].Direction);
+			material->Set(base + ".radiance", light_environment.DirectionalLights[i].Radiance);
+		}
+
+		material->Set("numPointLights", (int)light_environment.PointLights.size());
+		for (size_t i = 0; i < light_environment.PointLights.size(); i++)
+		{
+			std::string base = "pointLights[" + std::to_string(i) + "]";
+			material->Set(base + ".position", light_environment.PointLights[i].Position);
+			material->Set(base + ".radiance", light_environment.PointLights[i].Radiance);
+			material->Set(base + ".constant", light_environment.PointLights[i].Constant);
+			material->Set(base + ".linear", light_environment.PointLights[i].Linear);
+			material->Set(base + ".quadratic", light_environment.PointLights[i].Quadratic);
+		}
+
+		material->Set("numSpotLights", (int)light_environment.SpotLights.size());
+		for (size_t i = 0; i < light_environment.SpotLights.size(); i++)
+		{
+			std::string base = "spotLights[" + std::to_string(i) + "]";
+			material->Set(base + ".position", light_environment.SpotLights[i].Position);
+			material->Set(base + ".direction", light_environment.SpotLights[i].Direction);
+			material->Set(base + ".radiance", light_environment.SpotLights[i].Radiance);
+			material->Set(base + ".constant", light_environment.SpotLights[i].Constant);
+			material->Set(base + ".linear", light_environment.SpotLights[i].Linear);
+			material->Set(base + ".quadratic", light_environment.SpotLights[i].Quadratic);
+			material->Set(base + ".cutOff", light_environment.SpotLights[i].CutOff);
+			material->Set(base + ".outerCutOff", light_environment.SpotLights[i].OuterCutOff);
+		}
+	}
+
+	void GLRenderer::RenderMesh(const std::shared_ptr<Pipeline> pipeline, const Camera& camera, const std::shared_ptr<Mesh>& mesh, const glm::mat4& model)
 	{
 		auto vao = mesh->GetVertexArray();
 		vao->Bind();
 
-		const auto& materials = mesh->GetMaterials();
+		const auto& materials_data = mesh->GetMaterialsData();
 
 		for (const auto& sm : mesh->GetSubmeshes())
 		{
-			const auto& mat = materials[sm.MaterialIndex];
+			const auto& material_data = materials_data[sm.MaterialIndex];
 
-			auto diffuse = mat.GetTexture(ignis::MaterialType::Diffuse);
-			auto specular = mat.GetTexture(ignis::MaterialType::Specular);
-			auto normal = mat.GetTexture(ignis::MaterialType::Normal);
+			// TODO a performance bottleneck?
+			auto material = pipeline->CreateMaterial(material_data);
+			material->GetShader()->Bind();
 
-			//if (!diffuse)  diffuse = m_whiteTexture;
-			//if (!specular) specular = m_whiteTexture;
-			//if (!normal)   normal = m_flatNormalTexture;
+			material->Set("view", camera.GetView());
+			material->Set("projection", camera.GetProjection());
 
-			diffuse->Bind(0);
-			specular->Bind(1);
-			normal->Bind(2);
+			// TODO hard coded to be refactored
+			material->Set("model", model);
+			material->Set("viewPos", camera.GetPosition());
 
-			shader.Set("material.diffuse", 0);
-			shader.Set("material.specular", 1);
-			shader.Set("material.normal", 2);
-
-			shader.Set("material.shininess", 32.0f);
-			shader.Set("material.hasNormal", normal ? 1 : 0);
+			UploadLightsToMaterial(material, m_light_environment);
 
 			glDrawElements(
 				GL_TRIANGLES,

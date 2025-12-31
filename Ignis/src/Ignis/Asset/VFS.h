@@ -18,6 +18,8 @@ namespace ignis {
         // Path resolution
         static std::filesystem::path Resolve(const std::string& virtual_path);
         static bool Exists(const std::string& virtual_path);
+        static std::string ParentPath(const std::string& virtual_path);
+        static std::string ConcatPath(const std::string& path1, const std::string& path2);
 
         // File operations through VFS
         static File Open(const std::string& virtual_path);

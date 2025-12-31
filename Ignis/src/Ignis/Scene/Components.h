@@ -40,6 +40,11 @@ namespace ignis
 				* glm::mat4_cast(glm::quat(Rotation))
 				* glm::scale(glm::mat4(1.0f), Scale);
 		}
+
+		glm::quat GetRotationQuat() const
+		{
+			return glm::quat(Rotation);
+		}
 	};
 
 	// Directional Light Component
@@ -47,7 +52,6 @@ namespace ignis
 	{
 		glm::vec3 Color = glm::vec3(1.0f, 1.0f, 1.0f);
 		float Intensity = 1.0f;
-		glm::vec3 Direction = glm::vec3(-0.2f, -1.0f, -0.3f);
 		
 		DirectionalLightComponent() = default;
 		DirectionalLightComponent(const DirectionalLightComponent&) = default;
@@ -59,7 +63,6 @@ namespace ignis
 		glm::vec3 Color = glm::vec3(1.0f, 1.0f, 1.0f);
 		float Intensity = 1.0f;
 		float Range = 10.0f;
-		float Attenuation = 1.0f;
 		
 		PointLightComponent() = default;
 		PointLightComponent(const PointLightComponent&) = default;
@@ -70,11 +73,9 @@ namespace ignis
 	{
 		glm::vec3 Color = glm::vec3(1.0f, 1.0f, 1.0f);
 		float Intensity = 1.0f;
-		glm::vec3 Direction = glm::vec3(0.0f, -1.0f, 0.0f);
 		float Range = 10.0f;
-		float Attenuation = 1.0f;
-		float InnerConeAngle = 12.5f; // degrees
-		float OuterConeAngle = 17.5f; // degrees
+		float InnerConeAngle = 12.5f; //deg
+		float OuterConeAngle = 17.5f; //deg
 		
 		SpotLightComponent() = default;
 		SpotLightComponent(const SpotLightComponent&) = default;
