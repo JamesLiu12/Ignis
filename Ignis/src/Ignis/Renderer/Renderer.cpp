@@ -16,33 +16,91 @@ namespace ignis
 		}
 	}
 
-	const std::shared_ptr<Texture2D> Renderer::GetWhiteTexture()
+	std::shared_ptr<Texture2D> Renderer::GetWhiteTexture()
 	{
 		static constexpr std::array<std::byte, 4> s_white_pixel =
 		{ std::byte{ 255 } ,std::byte{ 255 } ,std::byte{ 255 } ,std::byte{ 255 } };
 		static const std::span<const std::byte> s_white_data(s_white_pixel);
 
-		ignis::TextureSpecs specs;
-		specs.Width = 1;
-		specs.Height = 1;
-		specs.SourceFormat = ignis::ImageFormat::RGBA8;
-		specs.InternalFormat = ignis::ImageFormat::RGBA8;
+		static std::shared_ptr<Texture2D> s_texture;
 
-		return ignis::Texture2D::Create(specs, s_white_data);
+		if (!s_texture)
+		{
+			ignis::TextureSpecs specs;
+			specs.Width = 1;
+			specs.Height = 1;
+			specs.SourceFormat = ignis::ImageFormat::RGBA8;
+			specs.InternalFormat = ignis::ImageFormat::RGBA8;
+
+			s_texture = ignis::Texture2D::Create(specs, s_white_data);
+		}
+
+		return s_texture;
 	}
 
-	const std::shared_ptr<Texture2D> Renderer::GetBlackTexture()
+	std::shared_ptr<Texture2D> Renderer::GetBlackTexture()
 	{
 		static constexpr std::array<std::byte, 4> s_black_pixel =
 		{ std::byte{ 0 } ,std::byte{ 0 } ,std::byte{ 0 } ,std::byte{ 0 } };
 		static const std::span<const std::byte> s_black_data(s_black_pixel);
 
-		ignis::TextureSpecs specs;
-		specs.Width = 1;
-		specs.Height = 1;
-		specs.SourceFormat = ignis::ImageFormat::RGBA8;
-		specs.InternalFormat = ignis::ImageFormat::RGBA8;
+		static std::shared_ptr<Texture2D> s_texture;
 
-		return ignis::Texture2D::Create(specs, s_black_data);
+		if (!s_texture)
+		{
+			ignis::TextureSpecs specs;
+			specs.Width = 1;
+			specs.Height = 1;
+			specs.SourceFormat = ignis::ImageFormat::RGBA8;
+			specs.InternalFormat = ignis::ImageFormat::RGBA8;
+
+			s_texture = ignis::Texture2D::Create(specs, s_black_data);
+		}
+
+		return s_texture;
+	}
+
+	std::shared_ptr<Texture2D> Renderer::GetDefaultNormalTexture()
+	{
+		static constexpr std::array<std::byte, 4> s_normal_pixel =
+		{ std::byte{ 128 }, std::byte{ 128 }, std::byte{ 255 }, std::byte{ 255 } };
+		static const std::span<const std::byte> s_normal_data(s_normal_pixel);
+
+		static std::shared_ptr<Texture2D> s_texture;
+
+		if (!s_texture)
+		{
+			ignis::TextureSpecs specs;
+			specs.Width = 1;
+			specs.Height = 1;
+			specs.SourceFormat = ignis::ImageFormat::RGBA8;
+			specs.InternalFormat = ignis::ImageFormat::RGBA8;
+
+			s_texture = ignis::Texture2D::Create(specs, s_normal_data);
+		}
+
+		return s_texture;
+	}
+
+	std::shared_ptr<Texture2D> Renderer::GetDefaultRoughnessTexture()
+	{
+		static constexpr std::array<std::byte, 4> s_rough_pixel =
+		{ std::byte{ 128 }, std::byte{ 128 }, std::byte{ 128 }, std::byte{ 255 } };
+		static const std::span<const std::byte> s_rough_data(s_rough_pixel);
+
+		static std::shared_ptr<Texture2D> s_texture;
+
+		if (!s_texture)
+		{
+			ignis::TextureSpecs specs;
+			specs.Width = 1;
+			specs.Height = 1;
+			specs.SourceFormat = ignis::ImageFormat::RGBA8;
+			specs.InternalFormat = ignis::ImageFormat::RGBA8;
+
+			s_texture = ignis::Texture2D::Create(specs, s_rough_data);
+		}
+
+		return s_texture;
 	}
 }

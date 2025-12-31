@@ -4,13 +4,15 @@
 
 namespace ignis
 {
+	struct LightEnvironment;
+
 	class GLRenderer : public Renderer
 	{
 	public:
 		GLRenderer() = default;
 		~GLRenderer() override = default;
 
-		void BeginScene() override;
+		void BeginScene(Scene& scene, const Camera& camera) override;
 		void EndScene() override;
 
 		void SetClearColor(float r, float g, float b, float a) override;
@@ -20,8 +22,10 @@ namespace ignis
 		void SetViewport(const glm::ivec4& viewport) override;
 
 		void DrawIndexed(VertexArray& va) override;
-		void RenderMesh(const std::shared_ptr<Mesh>& mesh, Shader& shader) override;
-
+		void RenderMesh(const std::shared_ptr<Pipeline> pipeline, const Camera& camera, const std::shared_ptr<Mesh>& mesh, const glm::mat4& model) override;
 		void Clear() override;
+
+	private:
+		LightEnvironment m_light_environment;
 	};
 }

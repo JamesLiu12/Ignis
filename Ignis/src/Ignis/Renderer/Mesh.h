@@ -48,7 +48,7 @@ namespace ignis
 
 		const std::vector<Vertex>& GetVertices() const { return m_vertices; }
 		const std::vector<uint32_t>& GetIndices() const { return m_indices; }
-		const std::vector<Material>& GetMaterials() const { return m_materials; }
+		const std::vector<MaterialData>& GetMaterialsData() const { return m_materials_data; }
 		const std::vector<MeshNode>& GetNodes() const { return m_nodes; }
 		const std::vector<Submesh>& GetSubmeshes() const { return m_submeshes; }
 
@@ -56,13 +56,18 @@ namespace ignis
 		std::shared_ptr<VertexBuffer> GetVertexBuffer() const { return m_vertex_buffer; }
 		std::shared_ptr<IndexBuffer> GetIndexBuffer() const { return m_index_buffer; }
 
+		void SetMaterialDataTexture(uint32_t material_index, MaterialType type, AssetHandle texture_handle);
+
+		void FlipUVs();
+		bool IsUVsFlipped() { return uv_flipped; }
+
 		~Mesh() = default;
 
 	private:
 		std::vector<Vertex> m_vertices;
 		std::vector<uint32_t> m_indices;
 
-		std::vector<Material> m_materials;
+		std::vector<MaterialData> m_materials_data;
 
 		std::vector<MeshNode> m_nodes;
 		std::vector<Submesh>  m_submeshes;
@@ -70,6 +75,8 @@ namespace ignis
 		std::shared_ptr<VertexArray> m_vertex_array;
 		std::shared_ptr<VertexBuffer> m_vertex_buffer;
 		std::shared_ptr<IndexBuffer> m_index_buffer;
+
+		bool uv_flipped = false;
 
 		friend class MeshImporter;
 	};

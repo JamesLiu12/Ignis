@@ -120,7 +120,6 @@ namespace ignis {
 		{
 			ImGui::ColorEdit3("Color", &light.Color.x);
 			ImGui::SliderFloat("Intensity", &light.Intensity, 0.0f, 10.0f);
-			ImGui::DragFloat3("Direction", &light.Direction.x, 0.01f, -1.0f, 1.0f);
 			ImGui::Spacing();
 		}
 		
@@ -151,7 +150,6 @@ namespace ignis {
 			ImGui::ColorEdit3("Color", &light.Color.x);
 			ImGui::SliderFloat("Intensity", &light.Intensity, 0.0f, 10.0f);
 			ImGui::SliderFloat("Range", &light.Range, 0.1f, 100.0f);
-			ImGui::SliderFloat("Attenuation", &light.Attenuation, 0.0f, 2.0f);
 			ImGui::Spacing();
 		}
 		
@@ -181,9 +179,7 @@ namespace ignis {
 		{
 			ImGui::ColorEdit3("Color", &light.Color.x);
 			ImGui::SliderFloat("Intensity", &light.Intensity, 0.0f, 10.0f);
-			ImGui::DragFloat3("Direction", &light.Direction.x, 0.01f, -1.0f, 1.0f);
 			ImGui::SliderFloat("Range", &light.Range, 0.1f, 100.0f);
-			ImGui::SliderFloat("Attenuation", &light.Attenuation, 0.0f, 2.0f);
 			ImGui::SliderFloat("Inner Cone Angle", &light.InnerConeAngle, 0.0f, 90.0f);
 			ImGui::SliderFloat("Outer Cone Angle", &light.OuterConeAngle, 0.0f, 90.0f);
 			ImGui::Spacing();

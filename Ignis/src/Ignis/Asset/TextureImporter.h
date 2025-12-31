@@ -20,7 +20,7 @@ namespace ignis
 	class TextureImporter
 	{
 	public:
-		static std::shared_ptr<Texture2D> ImportTexture2D(const std::filesystem::path& path, const TextureImportOptions& options = TextureImportOptions());
+		static std::shared_ptr<Texture2D> ImportTexture2D(const std::string& path, const TextureImportOptions& options = TextureImportOptions());
 
 	};
 }

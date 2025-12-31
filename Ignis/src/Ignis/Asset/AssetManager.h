@@ -2,7 +2,6 @@
 
 #include "Asset.h"
 #include "VFS.h"
-#include "MeshImporter.h"
 
 namespace ignis
 {
