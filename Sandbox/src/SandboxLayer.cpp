@@ -25,6 +25,9 @@ void SandBoxLayer::OnAttach()
 	ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Cerberus_LP.FBX");
 	//ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/backpack/backpack.obj");
 	m_mesh = ignis::AssetManager::GetAsset<ignis::Mesh>(mesh_handle);
+	
+	auto albedo_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_A.tga");
+	m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Albedo, albedo_map_handle);
 	auto normal_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_N.tga");
 	m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Normal, normal_map_handle);
 	auto metallic_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_M.tga");
