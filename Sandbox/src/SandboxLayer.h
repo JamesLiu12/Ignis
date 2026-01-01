@@ -18,7 +18,7 @@ private:
 
 	std::shared_ptr<ignis::ShaderLibrary> m_shader_library;
 	
-	ignis::Camera m_camera;
+	ignis::EditorCamera m_camera;
 
 	ignis::Scene m_scene;
 
