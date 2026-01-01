@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Camera.h"
+#include "Ignis/Renderer/Camera.h"
 #include <glm/glm.hpp>
 
 namespace ignis
