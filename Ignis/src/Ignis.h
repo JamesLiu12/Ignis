@@ -16,7 +16,7 @@
 #include "Ignis/Renderer/Material.h"
 #include "Ignis/Renderer/Pipeline.h"
 #include "Ignis/Renderer/PBRPipeline.h"
-#include "Ignis/Renderer/EditorCamera.h"
+#include "Ignis/Editor/EditorCamera.h"
 
 #include "Ignis/Core/FileSystem.h"
 
