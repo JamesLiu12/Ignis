@@ -38,6 +38,11 @@ namespace ignis
 		return s_loaded_assets.find(handle) != s_loaded_assets.end();
 	}
 
+	bool AssetManager::IsMemoryAsset(AssetHandle handle)
+	{
+		return s_memory_assets.find(handle) != s_memory_assets.end();
+	}
+
 	AssetHandle AssetManager::ImportAsset(const std::filesystem::path& path)
 	{
 		const AssetMetadata* metadata = GetMetadata(path);

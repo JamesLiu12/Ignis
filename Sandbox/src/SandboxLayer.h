@@ -13,6 +13,10 @@ public:
 	void OnUpdate(float dt) override;
 	void OnEvent(ignis::EventBase& event) override;
 
+	// Mesh access for PropertiesPanel
+	std::shared_ptr<ignis::Mesh> GetCurrentMesh() const { return m_mesh; }
+	ignis::TransformComponent& GetMeshTransform() { return m_mesh_transform_component; }
+
 private:
 	ignis::Renderer& m_renderer;
 

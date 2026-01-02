@@ -2,6 +2,7 @@
 #include "GraphicsAPI.h"
 #include "Ignis/Platform/OpenGL/GLRenderer.h"
 #include "Texture.h"
+#include "Ignis/Asset/AssetManager.h"
 
 namespace ignis
 {
@@ -103,4 +104,57 @@ namespace ignis
 
 		return s_texture;
 	}
-}
+
+	AssetHandle Renderer::GetWhiteTextureHandle()
+	{
+		static AssetHandle s_handle = AssetHandle::InvalidUUID;
+		
+		if (!s_handle.IsValid())
+		{
+			auto texture = GetWhiteTexture();
+			s_handle = AssetManager::AddMemoryOnlyAsset(texture);
+		}
+		
+		return s_handle;
+	}
+
+	AssetHandle Renderer::GetBlackTextureHandle()
+	{
+		static AssetHandle s_handle = AssetHandle::InvalidUUID;
+		
+		if (!s_handle.IsValid())
+		{
+			auto texture = GetBlackTexture();
+			s_handle = AssetManager::AddMemoryOnlyAsset(texture);
+		}
+		
+		return s_handle;
+	}
+
+	AssetHandle Renderer::GetDefaultNormalTextureHandle()
+	{
+		static AssetHandle s_handle = AssetHandle::InvalidUUID;
+		
+		if (!s_handle.IsValid())
+		{
+			auto texture = GetDefaultNormalTexture();
+			s_handle = AssetManager::AddMemoryOnlyAsset(texture);
+		}
+		
+		return s_handle;
+	}
+
+	AssetHandle Renderer::GetDefaultRoughnessTextureHandle()
+	{
+		static AssetHandle s_handle = AssetHandle::InvalidUUID;
+		
+		if (!s_handle.IsValid())
+		{
+			auto texture = GetDefaultRoughnessTexture();
+			s_handle = AssetManager::AddMemoryOnlyAsset(texture);
+		}
+		
+		return s_handle;
+	}
+	
+}  // namespace ignis
