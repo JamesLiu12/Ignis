@@ -40,6 +40,8 @@ namespace ignis {
 		                       MaterialType type, const char* label);
 		
 	private:
+		// TODO: Replace weak_ptr with EntityHandle + Scene* for safer entity management
+		// Current approach uses weak_ptr to avoid dangling pointers, but handle-based
 		std::weak_ptr<Entity> m_selected_entity;
 		
 		// Current mesh editing (demo approach - not ECS)
