@@ -83,6 +83,14 @@ void SandBoxLayer::OnAttach()
 
 	m_mesh_transform_component.Scale *= 0.1;
 	m_mesh_transform_component.Rotation = glm::vec3(0, glm::radians(90.0f), glm::radians(90.0f));
+	
+	// Connect mesh to PropertiesPanel for editing
+	auto* properties_panel = ignis::Application::Get().GetPropertiesPanel();
+	if (properties_panel)
+	{
+		properties_panel->SetCurrentMesh(m_mesh);
+		properties_panel->SetMeshTransform(&m_mesh_transform_component);
+	}
 }
 
 void SandBoxLayer::OnUpdate(float dt)

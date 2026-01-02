@@ -23,6 +23,12 @@ namespace ignis
 			{
 				return std::static_pointer_cast<T>(s_loaded_assets.at(handle));
 			}
+			
+			// Check memory-only assets
+			if (IsMemoryAsset(handle))
+			{
+				return std::static_pointer_cast<T>(s_memory_assets.at(handle));
+			}
 
 			const AssetMetadata* metadata = GetMetadata(handle);
 
@@ -43,6 +49,18 @@ namespace ignis
 			return nullptr;
 		}
 
+		// Add memory-only asset (for default textures, procedural meshes, etc.)
+		template<typename T>
+			requires std::derived_from<T, Asset>
+		static AssetHandle AddMemoryOnlyAsset(std::shared_ptr<T> asset)
+		{
+			AssetHandle handle = AssetHandle();
+			asset->m_handle = handle;
+			s_memory_assets[handle] = asset;
+			return handle;
+		}
+
+		static bool IsMemoryAsset(AssetHandle handle);
 		static bool IsAssetLoaded(AssetHandle handle);
 
 		static AssetHandle ImportAsset(const std::filesystem::path& path);
@@ -55,6 +73,7 @@ namespace ignis
 		static std::shared_ptr<Asset> LoadAssetFromFile(const AssetMetadata& metadata);
 
 		inline static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_loaded_assets;
+		inline static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_memory_assets;
 		inline static std::unordered_map<AssetHandle, AssetMetadata> s_asset_registry;
 	};
 }
