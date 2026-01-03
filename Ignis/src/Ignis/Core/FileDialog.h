@@ -17,24 +17,21 @@ class FileDialog
 public:
     /**
      * @brief Open a file selection dialog
-     * @param filter File type filter (currently ignored, shows all supported types)
      * @return Selected file path, or empty string if cancelled
      */
-    static std::string OpenFile(const char* filter = nullptr);
+    static std::string OpenFile();
     
     /**
      * @brief Open a multiple file selection dialog
-     * @param filter File type filter (currently ignored)
      * @return Vector of selected file paths, empty if cancelled
      */
-    static std::vector<std::string> OpenMultipleFiles(const char* filter = nullptr);
+    static std::vector<std::string> OpenMultipleFiles();
     
     /**
      * @brief Open a save file dialog
-     * @param filter File type filter (currently ignored)
      * @return Selected save path, or empty string if cancelled
      */
-    static std::string SaveFile(const char* filter = nullptr);
+    static std::string SaveFile();
 };
 
 } // namespace ignis

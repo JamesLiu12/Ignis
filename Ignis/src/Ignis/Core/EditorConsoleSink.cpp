@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "EditorConsoleSink.h"
 #include "Ignis/Editor/EditorConsolePanel.h"
 

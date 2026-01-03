@@ -7,7 +7,7 @@
 
 namespace ignis {
 
-std::string FileDialog::OpenFile(const char* filter)
+std::string FileDialog::OpenFile()
 {
     OPENFILENAMEA ofn;
     CHAR szFile[260] = { 0 };
@@ -43,7 +43,7 @@ std::string FileDialog::OpenFile(const char* filter)
     return "";
 }
 
-std::vector<std::string> FileDialog::OpenMultipleFiles(const char* filter)
+std::vector<std::string> FileDialog::OpenMultipleFiles()
 {
     std::vector<std::string> result;
     
@@ -101,7 +101,7 @@ std::vector<std::string> FileDialog::OpenMultipleFiles(const char* filter)
     return result;
 }
 
-std::string FileDialog::SaveFile(const char* filter)
+std::string FileDialog::SaveFile()
 {
     OPENFILENAMEA ofn;
     CHAR szFile[260] = { 0 };
