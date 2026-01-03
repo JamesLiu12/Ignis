@@ -2,7 +2,6 @@
 #include "Ignis/Asset/AssetManager.h"
 #include "Ignis/Renderer/Renderer.h"
 #include "Ignis/Core/FileDialog.h"
-#include "Ignis/Core/Log.h"
 #include <imgui.h>
 
 namespace ignis {
