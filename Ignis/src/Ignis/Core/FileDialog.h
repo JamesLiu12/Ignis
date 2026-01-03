@@ -1,4 +1,6 @@
 #pragma once
+// Need to include the below two headers although in pch.h
+// Because macOSFileDialog.mm is using this file and it is a non-pch file
 #include <string>
 #include <vector>
 
