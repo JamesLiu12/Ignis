@@ -39,6 +39,19 @@ elseif(UNIX)
     target_link_libraries(Ignis PRIVATE OpenGL::GL)
 endif()
 
+# Platform-specific file dialog implementation
+if(APPLE)
+    target_sources(Ignis PRIVATE Ignis/Platform/macOS/macOSFileDialog.mm)
+    # Disable PCH for Objective-C++ file (incompatible with C++ PCH)
+    set_source_files_properties(Ignis/Platform/macOS/macOSFileDialog.mm PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+    # Link Cocoa framework for macOS
+    target_link_libraries(Ignis PRIVATE "-framework Cocoa")
+elseif(WIN32)
+    target_sources(Ignis PRIVATE Ignis/Platform/Windows/WindowsFileDialog.cpp)
+    # Link Windows common dialogs library
+    target_link_libraries(Ignis PRIVATE comdlg32)
+endif()
+
 target_include_directories(Ignis PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}
 )
