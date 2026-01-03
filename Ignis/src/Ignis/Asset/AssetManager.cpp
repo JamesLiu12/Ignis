@@ -103,7 +103,7 @@ namespace ignis
 		{
 		case AssetType::Texture:
 		{
-			 return TextureImporter::ImportTexture2D(metadata.FilePath.string());
+			 return TextureImporter::ImportTexture<Texture2D>(metadata.FilePath.string());
 		}
 		case AssetType::Mesh:
 		{
