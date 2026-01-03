@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Ignis/Renderer/Environment.h"
+
 #include <entt.hpp>
 #include <glm/glm.hpp>
 
@@ -64,6 +66,8 @@ namespace ignis
 	private:
 		entt::registry m_registry;
 		LightEnvironment m_light_environment;
+		Environment m_scene_environment;
+		EnvironmentSettings m_environment_settings;
 
 		// TODO: Move this to SceneRenderer
 		friend class GLRenderer;

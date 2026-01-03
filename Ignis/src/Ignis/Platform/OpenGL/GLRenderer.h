@@ -5,6 +5,7 @@
 namespace ignis
 {
 	struct LightEnvironment;
+	struct Environment;
 
 	class GLRenderer : public Renderer
 	{
@@ -27,5 +28,7 @@ namespace ignis
 
 	private:
 		LightEnvironment m_light_environment;
+		Environment m_scene_environment;
+		EnvironmentSettings m_environment_settings;
 	};
 }
