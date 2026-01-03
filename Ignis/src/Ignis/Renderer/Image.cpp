@@ -32,19 +32,19 @@ namespace ignis
 
 		if (is_hdr)
 		{
-			float* floatData = stbi_loadf(filepath.string().c_str(), &width, &height, &channels, 0);
-			data = floatData;
+			float* float_data = stbi_loadf(filepath.string().c_str(), &width, &height, &channels, 0);
+			data = float_data;
 
-			if (floatData)
+			if (float_data)
 			{
 				if (channels == 4) format = ImageFormat::RGBA32F;
 				else if (channels == 3) format = ImageFormat::RGB32F;
 				else if (channels == 1) format = ImageFormat::R32F;
 				else {
 					// Fallback: Force load as 4 channels if it's an odd format
-					stbi_image_free(floatData);
-					floatData = stbi_loadf(filepath.string().c_str(), &width, &height, &channels, 4);
-					data = floatData;
+					stbi_image_free(float_data);
+					float_data = stbi_loadf(filepath.string().c_str(), &width, &height, &channels, 4);
+					data = float_data;
 					format = ImageFormat::RGBA32F;
 					channels = 4;
 				}
@@ -54,19 +54,19 @@ namespace ignis
 		}
 		else
 		{
-			stbi_uc* byteData = stbi_load(filepath.string().c_str(), &width, &height, &channels, 0);
-			data = byteData;
+			stbi_uc* byte_data = stbi_load(filepath.string().c_str(), &width, &height, &channels, 0);
+			data = byte_data;
 
-			if (byteData)
+			if (byte_data)
 			{
 				if (channels == 4) format = ImageFormat::RGBA8;
 				else if (channels == 3) format = ImageFormat::RGB8;
 				else if (channels == 1) format = ImageFormat::R8;
 				else {
 					// Fallback: Force load as 4 channels
-					stbi_image_free(byteData);
-					byteData = stbi_load(filepath.string().c_str(), &width, &height, &channels, 4);
-					data = byteData;
+					stbi_image_free(byte_data);
+					byte_data = stbi_load(filepath.string().c_str(), &width, &height, &channels, 4);
+					data = byte_data;
 					format = ImageFormat::RGBA8;
 					channels = 4;
 				}
