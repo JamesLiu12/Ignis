@@ -80,4 +80,14 @@ namespace ignis
 		SpotLightComponent() = default;
 		SpotLightComponent(const SpotLightComponent&) = default;
 	};
+
+	struct SkyLightComponent : Component
+	{
+		AssetHandle Environment;
+
+		float Intensity;
+		float Rotation;
+		glm::vec3 Tint;
+		float SkyboxLod;
+	};
 }

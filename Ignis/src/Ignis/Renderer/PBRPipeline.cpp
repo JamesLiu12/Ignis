@@ -61,6 +61,57 @@ namespace ignis
 		return material;
 	}
 
+	void PBRPipeline::ApplyEnvironment(Material& material, const Environment& scene_environment, const LightEnvironment& light_environment)
+	{
+		material.Set("numDirectionalLights", (int)light_environment.DirectionalLights.size());
+		for (size_t i = 0; i < light_environment.DirectionalLights.size(); i++)
+		{
+			std::string base = "directionalLights[" + std::to_string(i) + "]";
+			material.Set(base + ".direction", light_environment.DirectionalLights[i].Direction);
+			material.Set(base + ".radiance", light_environment.DirectionalLights[i].Radiance);
+		}
+
+		material.Set("numPointLights", (int)light_environment.PointLights.size());
+		for (size_t i = 0; i < light_environment.PointLights.size(); i++)
+		{
+			std::string base = "pointLights[" + std::to_string(i) + "]";
+			material.Set(base + ".position", light_environment.PointLights[i].Position);
+			material.Set(base + ".radiance", light_environment.PointLights[i].Radiance);
+			material.Set(base + ".constant", light_environment.PointLights[i].Constant);
+			material.Set(base + ".linear", light_environment.PointLights[i].Linear);
+			material.Set(base + ".quadratic", light_environment.PointLights[i].Quadratic);
+		}
+
+		material.Set("numSpotLights", (int)light_environment.SpotLights.size());
+		for (size_t i = 0; i < light_environment.SpotLights.size(); i++)
+		{
+			std::string base = "spotLights[" + std::to_string(i) + "]";
+			material.Set(base + ".position", light_environment.SpotLights[i].Position);
+			material.Set(base + ".direction", light_environment.SpotLights[i].Direction);
+			material.Set(base + ".radiance", light_environment.SpotLights[i].Radiance);
+			material.Set(base + ".constant", light_environment.SpotLights[i].Constant);
+			material.Set(base + ".linear", light_environment.SpotLights[i].Linear);
+			material.Set(base + ".quadratic", light_environment.SpotLights[i].Quadratic);
+			material.Set(base + ".cutOff", light_environment.SpotLights[i].CutOff);
+			material.Set(base + ".outerCutOff", light_environment.SpotLights[i].OuterCutOff);
+		}
+
+		const auto& ibl_maps = scene_environment.GetIBLMaps();
+		if (ibl_maps)
+		{
+			material.Set("irradianceMap", 6);
+			AssetManager::GetAsset<TextureCube>(ibl_maps->IrradianceMap)->Bind(6);
+			material.Set("prefilterMap", 7);
+			AssetManager::GetAsset<TextureCube>(ibl_maps->PrefilteredMap)->Bind(7);
+			material.Set("brdfLUT", 8);
+			m_brdf_lut_texture->Bind(8);
+		}
+		else
+		{
+			// TODO: No Environment Map
+		}
+	}
+
 	std::shared_ptr<Shader> PBRPipeline::GetStandardShader()
 	{
 		return m_shader_library->Get(PBRShaderPath);
