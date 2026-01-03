@@ -8,18 +8,34 @@ namespace ignis
 		R8,
 		RGB8,
 		RGBA8,
+		R32F,
+		RGB32F,
 		RGBA32F
 	};
 
 	constexpr std::uint32_t Channels(ImageFormat format) noexcept {
 		switch (format) {
-		case ImageFormat::R8:		return 1;
-		case ImageFormat::RGB8:     return 3;
-		case ImageFormat::RGBA8:    return 4;
+		case ImageFormat::R8:
+		case ImageFormat::R32F:     return 1;
+		case ImageFormat::RGB8:
+		case ImageFormat::RGB32F:   return 3;
+		case ImageFormat::RGBA8:
 		case ImageFormat::RGBA32F:  return 4;
 		default:                    return 0;
 		}
 		return 0;
+	}
+
+	constexpr std::uint32_t BytesPerPixel(ImageFormat format) noexcept {
+		switch (format) {
+		case ImageFormat::R8:		return 1;
+		case ImageFormat::RGB8:     return 3;
+		case ImageFormat::RGBA8:    return 4;
+		case ImageFormat::R32F:     return 4;
+		case ImageFormat::RGB32F:   return 12;
+		case ImageFormat::RGBA32F:  return 16;
+		default:                    return 0;
+		}
 	}
 
 	class Image
