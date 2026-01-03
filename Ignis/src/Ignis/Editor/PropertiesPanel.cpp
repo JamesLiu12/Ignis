@@ -1,6 +1,7 @@
 #include "PropertiesPanel.h"
 #include "Ignis/Asset/AssetManager.h"
 #include "Ignis/Renderer/Renderer.h"
+#include "Ignis/Core/FileDialog.h"
 #include <imgui.h>
 
 namespace ignis {
@@ -23,10 +24,9 @@ namespace ignis {
 		if (ImGui::Begin("Properties", nullptr, window_flags))
 		{
 			// Section 1: Current Mesh Editor
-			if (m_current_mesh)
+			if (m_current_mesh_ptr && *m_current_mesh_ptr)
 			{
 				RenderMeshEditor();
-				ImGui::Separator();
 			}
 			
 			// Section 2: Selected Entity
@@ -96,7 +96,7 @@ namespace ignis {
 					}
 				}
 			}
-			else if (!m_current_mesh)
+			else if (!m_current_mesh_ptr || !(*m_current_mesh_ptr))
 			{
 				ImGui::TextDisabled("No entity or mesh selected");
 			}
@@ -110,13 +110,24 @@ namespace ignis {
 		{
 			// Display mesh path from metadata
 			std::string mesh_path = "Unknown";
-			if (auto* metadata = AssetManager::GetMetadata(m_current_mesh->GetHandle()))
+			if (auto* metadata = AssetManager::GetMetadata((*m_current_mesh_ptr)->GetHandle()))
 			{
 				mesh_path = metadata->FilePath.string();
 			}
 			
 			ImGui::Text("Mesh: %s", mesh_path.c_str());
-			ImGui::Text("Materials: %zu", m_current_mesh->GetMaterialsData().size());
+			ImGui::Text("Materials: %zu", (*m_current_mesh_ptr)->GetMaterialsData().size());
+		
+			// Replace Model button
+			if (ImGui::Button("Replace Model...", ImVec2(-1, 0)))
+			{
+				std::string filepath = FileDialog::OpenFile();
+				if (!filepath.empty())
+				{
+					LoadNewModel(filepath);
+				}
+			}
+		
 			ImGui::Separator();
 			
 			// Mesh Transform
@@ -131,7 +142,7 @@ namespace ignis {
 			ImGui::Separator();
 			
 			// Materials
-			RenderMaterialsUI(m_current_mesh);
+			RenderMaterialsUI(*m_current_mesh_ptr);
 		}
 	}
 	
@@ -222,6 +233,7 @@ namespace ignis {
 		// Dropdown for default textures (use unique ID per slot)
 		const char* options[] = {
 			"Keep Current",
+			"Browse Texture...",
 			"None (Clear)",
 			"White Texture",
 			"Black Texture",
@@ -236,19 +248,50 @@ namespace ignis {
 			{
 				case 0: // Keep Current
 					break;
-				case 1: // None
+				case 1: // Browse Texture
+					{
+						std::string filepath = FileDialog::OpenFile();
+						if (!filepath.empty())
+						{
+							// Validate texture file extension
+							std::string extension = filepath.substr(filepath.find_last_of(".") + 1);
+							std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+							
+							if (extension == "png" || extension == "jpg" || extension == "jpeg" || 
+							    extension == "tga" || extension == "bmp" || extension == "hdr")
+							{
+								// Import texture
+								AssetHandle texture_handle = AssetManager::ImportAsset(filepath);
+								if (texture_handle.IsValid())
+								{
+									mesh->SetMaterialDataTexture(material_index, type, texture_handle);
+									Log::Info("Imported texture: {}", filepath);
+								}
+								else
+								{
+									Log::Error("Failed to import texture: {}", filepath);
+								}
+							}
+							else
+							{
+								Log::Error("Invalid texture format: {}. Supported: png, jpg, jpeg, tga, bmp, hdr", extension);
+							}
+						}
+					}
+					break;
+				case 2: // None
 					mesh->SetMaterialDataTexture(material_index, type, AssetHandle::InvalidUUID);
 					break;
-				case 2: // White Texture
+				case 3: // White Texture
 					mesh->SetMaterialDataTexture(material_index, type, Renderer::GetWhiteTextureHandle());
 					break;
-				case 3: // Black Texture
+				case 4: // Black Texture
 					mesh->SetMaterialDataTexture(material_index, type, Renderer::GetBlackTextureHandle());
 					break;
-				case 4: // Default Normal
+				case 5: // Default Normal
 					mesh->SetMaterialDataTexture(material_index, type, Renderer::GetDefaultNormalTextureHandle());
 					break;
-				case 5: // Default Roughness
+				case 6: // Default Roughness
 					mesh->SetMaterialDataTexture(material_index, type, Renderer::GetDefaultRoughnessTextureHandle());
 					break;
 			}
@@ -354,6 +397,140 @@ namespace ignis {
 		}
 		
 		ImGui::PopID();
+	}
+
+	void PropertiesPanel::LoadNewModel(const std::string& filepath)
+	{
+		Log::Info("Attempting to load model: {}", filepath);
+		
+		// Validate file extension
+		std::string extension = filepath.substr(filepath.find_last_of(".") + 1);
+		std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+		
+		if (extension != "obj" && extension != "fbx" && extension != "gltf" && extension != "glb")
+		{
+			Log::Error("Invalid model file format: {}. Supported formats: .obj, .fbx, .gltf, .glb", extension);
+			return;
+		}
+		
+		// Import mesh asset
+		AssetHandle mesh_handle = AssetManager::ImportAsset(filepath);
+		if (!mesh_handle.IsValid())
+		{
+			Log::Error("Failed to import model: {}", filepath);
+			return;
+		}
+		
+		// Load mesh
+		auto new_mesh = AssetManager::GetAsset<Mesh>(mesh_handle);
+		if (!new_mesh)
+		{
+			Log::Error("Failed to load mesh asset: {}", filepath);
+			return;
+		}
+		
+		// Validate mesh has vertices
+		if (new_mesh->GetVertices().empty())
+		{
+			Log::Error("Loaded mesh has no vertices: {}", filepath);
+			return;
+		}
+		
+		// Replace current mesh
+		if (m_current_mesh_ptr)
+		{
+			*m_current_mesh_ptr = new_mesh;
+		}
+		
+		// Auto-scale model to reasonable size based on bounding box
+		if (m_mesh_transform)
+		{
+			// Calculate bounding box from vertices
+			const auto& vertices = new_mesh->GetVertices();
+			if (!vertices.empty())
+			{
+				glm::vec3 min_bounds = vertices[0].Position;
+				glm::vec3 max_bounds = vertices[0].Position;
+				
+				for (const auto& vertex : vertices)
+				{
+					min_bounds = glm::min(min_bounds, vertex.Position);
+					max_bounds = glm::max(max_bounds, vertex.Position);
+				}
+				
+				glm::vec3 size = max_bounds - min_bounds;
+				float max_dimension = glm::max(glm::max(size.x, size.y), size.z);
+				
+				// Target size: models should fit within a 2-unit cube
+				float target_size = 2.0f;
+				float scale_factor = target_size / max_dimension;
+				
+				// Reset transform and apply auto-scale
+				m_mesh_transform->Translation = glm::vec3(0.0f);
+				m_mesh_transform->Rotation = glm::vec3(0.0f);
+				m_mesh_transform->Scale = glm::vec3(scale_factor);
+				
+				Log::Info("Auto-scaled model: max dimension {:.3f} -> scale factor {:.3f}", max_dimension, scale_factor);
+			}
+		}
+		
+		// Initialize materials with default textures for missing slots
+		const auto& materials = new_mesh->GetMaterialsData();
+		Log::Info("Model loaded with {} materials", materials.size());
+		
+		for (uint32_t i = 0; i < materials.size(); ++i)
+		{
+			const MaterialData& mat = materials[i];
+			
+			// Only set defaults if texture is missing (not auto-imported)
+			if (!mat.AlbedoMap.IsValid())
+			{
+				new_mesh->SetMaterialDataTexture(i, MaterialType::Albedo, 
+				                                      Renderer::GetWhiteTextureHandle());
+				Log::Info("Material {}: Applied default white texture to Albedo", i);
+			}
+			else
+			{
+				Log::Info("Material {}: Albedo texture auto-imported from model", i);
+			}
+			
+			if (!mat.NormalMap.IsValid())
+			{
+				new_mesh->SetMaterialDataTexture(i, MaterialType::Normal, 
+				                                      Renderer::GetDefaultNormalTextureHandle());
+				Log::Info("Material {}: Applied default normal map", i);
+			}
+			else
+			{
+				Log::Info("Material {}: Normal map auto-imported from model", i);
+			}
+			
+			if (!mat.MetalnessMap.IsValid())
+			{
+				new_mesh->SetMaterialDataTexture(i, MaterialType::Metal, 
+				                                      Renderer::GetBlackTextureHandle());
+			}
+			
+			if (!mat.RoughnessMap.IsValid())
+			{
+				new_mesh->SetMaterialDataTexture(i, MaterialType::Roughness, 
+				                                      Renderer::GetDefaultRoughnessTextureHandle());
+			}
+			
+			if (!mat.EmissiveMap.IsValid())
+			{
+				new_mesh->SetMaterialDataTexture(i, MaterialType::Emissive, 
+				                                      Renderer::GetBlackTextureHandle());
+			}
+			
+			if (!mat.AOMap.IsValid())
+			{
+				new_mesh->SetMaterialDataTexture(i, MaterialType::AO, 
+				                                      Renderer::GetWhiteTextureHandle());
+			}
+		}
+		
+		Log::Info("Successfully loaded model: {}", filepath);
 	}
 
 } // namespace ignis

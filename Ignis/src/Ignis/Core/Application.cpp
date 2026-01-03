@@ -12,6 +12,7 @@
 #include "Ignis/Renderer/RendererContext.h"
 #include "Ignis/Asset/VFS.h"
 #include "Ignis/Core/FileSystem.h"
+#include "Ignis/Core/EditorConsoleSink.h"
 
 namespace ignis 
 {
@@ -55,15 +56,21 @@ namespace ignis
 		// Register debug panels with EditorLayer's PanelManager
 		auto& panel_manager = m_editor_layer->GetPanelManager();
 		
-		// Add Engine Stats panel
-		auto engine_stats = panel_manager.AddPanel<EngineStatsPanel>("EngineStats", "Engine Statistics", true);
+		// Add Engine Stats panel (closed by default)
+		auto engine_stats = panel_manager.AddPanel<EngineStatsPanel>("EngineStats", "Engine Statistics", false);
 		
-		// Add Physics Debug panel
-		auto physics_debug = panel_manager.AddPanel<PhysicsDebugPanel>("PhysicsDebug", "Physics Debug", true);
+		// Add Physics Debug panel (closed by default)
+		auto physics_debug = panel_manager.AddPanel<PhysicsDebugPanel>("PhysicsDebug", "Physics Debug", false);
 		physics_debug->SetPhysicsWorld(m_physics_world.get());
 		
 		// Add Console panel (bottom section)
 		auto console_panel = panel_manager.AddPanel<EditorConsolePanel>("Console", "Console", true);
+		
+		// Add EditorConsoleSink to forward logs to UI console
+		auto editor_sink = std::make_shared<EditorConsoleSink>(console_panel.get());
+		editor_sink->set_pattern("%v"); // Simple pattern for UI
+		Log::GetCoreLogger()->sinks().push_back(editor_sink);
+		Log::GetClientLogger()->sinks().push_back(editor_sink);
 		
 		// Add Properties panel (right section)
 		m_properties_panel = panel_manager.AddPanel<PropertiesPanel>("Properties", "Properties", true);
@@ -114,17 +121,6 @@ namespace ignis
 			for (auto& layer : m_layer_stack)
 			{
 				layer->OnUpdate(delta_time);
-			}
-
-			if (Input::IsKeyPressed(KeyCode::A))
-			{
-				Log::CoreInfo("Key 'A' is currently pressed.");
-			}
-
-			if (Input::IsMouseButtonPressed(MouseButton::Left))
-			{
-				auto [x, y] = Input::GetMousePosition();
-				Log::CoreInfo("Left mouse button is currently pressed at position ({}, {}).", x, y);
 			}
 
 			// ImGui rendering
