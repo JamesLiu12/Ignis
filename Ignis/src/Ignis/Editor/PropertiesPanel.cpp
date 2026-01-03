@@ -250,7 +250,7 @@ namespace ignis {
 					break;
 				case 1: // Browse Texture
 					{
-						std::string filepath = FileDialog::OpenFile("texture");
+						std::string filepath = FileDialog::OpenFile();
 						if (!filepath.empty())
 						{
 							// Validate texture file extension

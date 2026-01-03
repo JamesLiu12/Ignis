@@ -4,7 +4,7 @@
 
 namespace ignis {
 
-std::string FileDialog::OpenFile(const char* filter)
+std::string FileDialog::OpenFile()
 {
     @autoreleasepool {
         NSOpenPanel* panel = [NSOpenPanel openPanel];
@@ -54,7 +54,7 @@ std::string FileDialog::OpenFile(const char* filter)
     }
 }
 
-std::vector<std::string> FileDialog::OpenMultipleFiles(const char* filter)
+std::vector<std::string> FileDialog::OpenMultipleFiles()
 {
     std::vector<std::string> result;
     
@@ -107,7 +107,7 @@ std::vector<std::string> FileDialog::OpenMultipleFiles(const char* filter)
     return result;
 }
 
-std::string FileDialog::SaveFile(const char* filter)
+std::string FileDialog::SaveFile()
 {
     @autoreleasepool {
         NSSavePanel* panel = [NSSavePanel savePanel];
