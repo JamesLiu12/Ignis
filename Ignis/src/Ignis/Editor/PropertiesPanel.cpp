@@ -234,6 +234,7 @@ namespace ignis {
 		// Dropdown for default textures (use unique ID per slot)
 		const char* options[] = {
 			"Keep Current",
+			"Browse Texture...",
 			"None (Clear)",
 			"White Texture",
 			"Black Texture",
@@ -248,19 +249,50 @@ namespace ignis {
 			{
 				case 0: // Keep Current
 					break;
-				case 1: // None
+				case 1: // Browse Texture
+					{
+						std::string filepath = FileDialog::OpenFile("texture");
+						if (!filepath.empty())
+						{
+							// Validate texture file extension
+							std::string extension = filepath.substr(filepath.find_last_of(".") + 1);
+							std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+							
+							if (extension == "png" || extension == "jpg" || extension == "jpeg" || 
+							    extension == "tga" || extension == "bmp" || extension == "hdr")
+							{
+								// Import texture
+								AssetHandle texture_handle = AssetManager::ImportAsset(filepath);
+								if (texture_handle.IsValid())
+								{
+									mesh->SetMaterialDataTexture(material_index, type, texture_handle);
+									Log::Info("Imported texture: {}", filepath);
+								}
+								else
+								{
+									Log::Error("Failed to import texture: {}", filepath);
+								}
+							}
+							else
+							{
+								Log::Error("Invalid texture format: {}. Supported: png, jpg, jpeg, tga, bmp, hdr", extension);
+							}
+						}
+					}
+					break;
+				case 2: // None
 					mesh->SetMaterialDataTexture(material_index, type, AssetHandle::InvalidUUID);
 					break;
-				case 2: // White Texture
+				case 3: // White Texture
 					mesh->SetMaterialDataTexture(material_index, type, Renderer::GetWhiteTextureHandle());
 					break;
-				case 3: // Black Texture
+				case 4: // Black Texture
 					mesh->SetMaterialDataTexture(material_index, type, Renderer::GetBlackTextureHandle());
 					break;
-				case 4: // Default Normal
+				case 5: // Default Normal
 					mesh->SetMaterialDataTexture(material_index, type, Renderer::GetDefaultNormalTextureHandle());
 					break;
-				case 5: // Default Roughness
+				case 6: // Default Roughness
 					mesh->SetMaterialDataTexture(material_index, type, Renderer::GetDefaultRoughnessTextureHandle());
 					break;
 			}

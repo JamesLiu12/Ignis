@@ -56,11 +56,11 @@ namespace ignis
 		// Register debug panels with EditorLayer's PanelManager
 		auto& panel_manager = m_editor_layer->GetPanelManager();
 		
-		// Add Engine Stats panel
-		auto engine_stats = panel_manager.AddPanel<EngineStatsPanel>("EngineStats", "Engine Statistics", true);
+		// Add Engine Stats panel (closed by default)
+		auto engine_stats = panel_manager.AddPanel<EngineStatsPanel>("EngineStats", "Engine Statistics", false);
 		
-		// Add Physics Debug panel
-		auto physics_debug = panel_manager.AddPanel<PhysicsDebugPanel>("PhysicsDebug", "Physics Debug", true);
+		// Add Physics Debug panel (closed by default)
+		auto physics_debug = panel_manager.AddPanel<PhysicsDebugPanel>("PhysicsDebug", "Physics Debug", false);
 		physics_debug->SetPhysicsWorld(m_physics_world.get());
 		
 		// Add Console panel (bottom section)
