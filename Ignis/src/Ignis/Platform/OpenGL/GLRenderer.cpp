@@ -60,7 +60,7 @@ namespace ignis
 
 			// TODO a performance bottleneck?
 			auto material = pipeline->CreateMaterial(material_data);
-			pipeline->ApplyEnvironment(*material, m_scene_environment, m_light_environment);
+			pipeline->ApplyEnvironment(*material, m_scene_environment, m_environment_settings, m_light_environment);
 			material->GetShader()->Bind();
 
 			material->Set("view", camera.GetView());

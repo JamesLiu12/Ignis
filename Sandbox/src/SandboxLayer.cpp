@@ -44,30 +44,37 @@ void SandBoxLayer::OnAttach()
 	// Create a light entity for testing properties panel
 	auto directional_light_entity = m_scene.CreateEntity("Main Directional Light");
 	m_light_entity = std::make_shared<ignis::Entity>(directional_light_entity);
-	
+
 	auto& light = m_light_entity->AddComponent<ignis::DirectionalLightComponent>();
 	light.Color = glm::vec3(1.0f, 0.95f, 0.8f); // Warm white light
 	light.Intensity = 1.5f;
 	
-	// Set light position (useful for point and spot lights)
-	auto& directional_light_transform = m_light_entity->GetComponent<ignis::TransformComponent>();
-	directional_light_transform.Translation = glm::vec3(0.0f, 5.0f, 5.0f);
-	
-	auto point_light_entity = m_scene.CreateEntity("Point Light");
-	auto& point_light_component = point_light_entity.AddComponent<ignis::PointLightComponent>();
-	point_light_component.Color = glm::vec3(1.0f, 0.0f, 0.0f);
-	point_light_component.Intensity = 5.0f;
+	//// Set light position (useful for point and spot lights)
+	//auto& directional_light_transform = m_light_entity->GetComponent<ignis::TransformComponent>();
+	//directional_light_transform.Translation = glm::vec3(0.0f, 5.0f, 5.0f);
+	//
+	//auto point_light_entity = m_scene.CreateEntity("Point Light");
+	//auto& point_light_component = point_light_entity.AddComponent<ignis::PointLightComponent>();
+	//point_light_component.Color = glm::vec3(1.0f, 0.0f, 0.0f);
+	//point_light_component.Intensity = 5.0f;
 
-	auto& point_light_transform = point_light_entity.GetComponent<ignis::TransformComponent>();
-	point_light_transform.Translation = glm::vec3(0.0f, 5.0f, 0.0f);
+	//auto& point_light_transform = point_light_entity.GetComponent<ignis::TransformComponent>();
+	//point_light_transform.Translation = glm::vec3(0.0f, 5.0f, 0.0f);
 
-	auto spot_light_entity = m_scene.CreateEntity("Spot Light");
-	auto& spot_light_component = spot_light_entity.AddComponent<ignis::SpotLightComponent>();
-	spot_light_component.Color = glm::vec3(0.0f, 1.0f, 0.0f);
-	spot_light_component.Intensity = 10.0f;
+	//auto spot_light_entity = m_scene.CreateEntity("Spot Light");
+	//auto& spot_light_component = spot_light_entity.AddComponent<ignis::SpotLightComponent>();
+	//spot_light_component.Color = glm::vec3(0.0f, 1.0f, 0.0f);
+	//spot_light_component.Intensity = 10.0f;
 
-	auto& spot_light_transform = spot_light_entity.GetComponent<ignis::TransformComponent>();
-	spot_light_transform.Translation = glm::vec3(0.0f, 0.0f, 5.0f);
+	//auto& spot_light_transform = spot_light_entity.GetComponent<ignis::TransformComponent>();
+	//spot_light_transform.Translation = glm::vec3(0.0f, 0.0f, 5.0f);
+
+	auto sky_light_entity = m_scene.CreateEntity("Sky Light");
+	auto& sky_light_component = sky_light_entity.AddComponent<ignis::SkyLightComponent>();
+	sky_light_component.SceneEnvironment.SetIBLMaps({
+		ignis::AssetManager::ImportAsset("assets://images/citrus_orchard_puresky_4k_irradiance.hdr"),
+		ignis::AssetManager::ImportAsset("assets://images/citrus_orchard_puresky_4k_radiance.hdr")
+		});
 
 	// Set this entity as selected in properties panel
 	if (auto* properties_panel = ignis::Application::Get().GetPropertiesPanel())

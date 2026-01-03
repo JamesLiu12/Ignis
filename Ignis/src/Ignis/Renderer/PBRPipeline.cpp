@@ -13,6 +13,9 @@ namespace ignis
 		{
 			m_shader_library->Load(PBRShaderPath);
 		}
+
+		AssetHandle texture_handle = AssetManager::ImportAsset("assets://images/ibl_brdf_lut.png");
+		m_brdf_lut_texture = AssetManager::GetAsset<Texture2D>(texture_handle);
 	}
 
 	std::shared_ptr<Material> PBRPipeline::CreateMaterial(const MaterialData& data)
@@ -61,7 +64,7 @@ namespace ignis
 		return material;
 	}
 
-	void PBRPipeline::ApplyEnvironment(Material& material, const Environment& scene_environment, const LightEnvironment& light_environment)
+	void PBRPipeline::ApplyEnvironment(Material& material, const Environment& scene_environment, const EnvironmentSettings& environment_settings, const LightEnvironment& light_environment)
 	{
 		material.Set("numDirectionalLights", (int)light_environment.DirectionalLights.size());
 		for (size_t i = 0; i < light_environment.DirectionalLights.size(); i++)
@@ -100,9 +103,11 @@ namespace ignis
 		if (ibl_maps)
 		{
 			material.Set("irradianceMap", 6);
-			AssetManager::GetAsset<TextureCube>(ibl_maps->IrradianceMap)->Bind(6);
+			if (auto texture = AssetManager::GetAsset<TextureCube>(ibl_maps->IrradianceMap))
+				texture->Bind(6);
 			material.Set("prefilterMap", 7);
-			AssetManager::GetAsset<TextureCube>(ibl_maps->PrefilteredMap)->Bind(7);
+			if (auto texture = AssetManager::GetAsset<TextureCube>(ibl_maps->PrefilteredMap))
+				texture->Bind(7);
 			material.Set("brdfLUT", 8);
 			m_brdf_lut_texture->Bind(8);
 		}
@@ -110,6 +115,10 @@ namespace ignis
 		{
 			// TODO: No Environment Map
 		}
+
+		material.Set("envSettings.intensity", environment_settings.Intensity);
+		material.Set("envSettings.rotation", environment_settings.Rotation);
+		material.Set("envSettings.tint", environment_settings.Tint);
 	}
 
 	std::shared_ptr<Shader> PBRPipeline::GetStandardShader()
