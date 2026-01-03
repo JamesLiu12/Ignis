@@ -24,7 +24,11 @@ namespace ignis {
 		std::shared_ptr<Entity> GetSelectedEntity() const { return m_selected_entity.lock(); }
 		
 		// Set current mesh for editing (demo approach)
-		void SetCurrentMesh(std::shared_ptr<Mesh> mesh) { m_current_mesh = mesh; }
+		void SetCurrentMesh(std::shared_ptr<Mesh>* mesh, TransformComponent* transform = nullptr) 
+		{ 
+			m_current_mesh_ptr = mesh; 
+			m_mesh_transform = transform;
+		}
 		void SetMeshTransform(TransformComponent* transform) { m_mesh_transform = transform; }
 		
 	private:
@@ -36,8 +40,8 @@ namespace ignis {
 		// Mesh editing UI
 		void RenderMeshEditor();
 		void RenderMaterialsUI(std::shared_ptr<Mesh> mesh);
-		void RenderTextureSlot(std::shared_ptr<Mesh> mesh, uint32_t material_index, 
-		                       MaterialType type, const char* label);
+		void RenderTextureSlot(std::shared_ptr<Mesh> mesh, uint32_t material_index, MaterialType type, const char* label);
+		void LoadNewModel(const std::string& filepath);
 		
 	private:
 		// TODO: Replace weak_ptr with EntityHandle + Scene* for safer entity management
@@ -45,7 +49,7 @@ namespace ignis {
 		std::weak_ptr<Entity> m_selected_entity;
 		
 		// Current mesh editing (demo approach - not ECS)
-		std::shared_ptr<Mesh> m_current_mesh;
+		std::shared_ptr<Mesh>* m_current_mesh_ptr = nullptr;
 		TransformComponent* m_mesh_transform = nullptr;
 	};
 
