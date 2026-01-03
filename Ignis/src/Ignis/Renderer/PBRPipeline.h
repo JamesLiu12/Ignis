@@ -12,7 +12,7 @@ namespace ignis
 		~PBRPipeline() = default;
 
 		std::shared_ptr<Material> CreateMaterial(const MaterialData& data) override;
-		void ApplyEnvironment(Material& material, const Environment& scene_environment, const LightEnvironment& light_environment) override;
+		void ApplyEnvironment(Material& material, const Environment& scene_environment, const EnvironmentSettings& environment_settings, const LightEnvironment& light_environment) override;
 		std::shared_ptr<Shader> GetStandardShader() override;
 
 	private:
