@@ -1,6 +1,6 @@
 #version 330 core
 
-// 定义最大光源数量 (根据你的场景需求调整)
+// 定义最大光源数量
 #define MAX_DIR_LIGHTS 4
 #define MAX_POINT_LIGHTS 16
 #define MAX_SPOT_LIGHTS 16
@@ -38,8 +38,6 @@ void main()
     
     // Gram-Schmidt 正交化
     T = normalize(T - dot(T, N) * N);
-    // B = cross(N, T); // 如果需要处理镜像纹理
-
     vs_out.TBN = mat3(T, B, N);
 
     gl_Position = projection * view * vec4(worldPos, 1.0);
@@ -67,50 +65,36 @@ struct Material {
     sampler2D aoMap;
 };
 
-// --- 光源结构体定义 ---
+// --- 光源结构体 ---
+struct DirectionalLight { vec3 direction; vec3 radiance; };
+struct PointLight { vec3 position; vec3 radiance; float constant; float linear; float quadratic; };
+struct SpotLight { vec3 position; vec3 direction; vec3 radiance; float constant; float linear; float quadratic; float cutOff; float outerCutOff; };
 
-struct DirectionalLight {
-    vec3 direction;
-    vec3 radiance;
-};
-
-struct PointLight {
-    vec3 position;
-    vec3 radiance;
-    
-    // 衰减参数
-    float constant;
-    float linear;
-    float quadratic;
-};
-
-struct SpotLight {
-    vec3 position;
-    vec3 direction;
-    vec3 radiance;
-
-    float constant;
-    float linear;
-    float quadratic;
-
-    float cutOff;      // 内切光角 (cos值)
-    float outerCutOff; // 外切光角 (cos值)
+// --- 环境光设置结构体 (对应 C++ EnvironmentSettings) ---
+struct EnvironmentSettings {
+    float intensity;
+    float rotation; // 弧度制
+    vec3 tint;
 };
 
 // --- Uniforms ---
-
 uniform Material material;
 uniform vec3 viewPos;
 
-// 光源数组
+// 光源数据
 uniform DirectionalLight directionalLights[MAX_DIR_LIGHTS];
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
-
-// 实际激活的光源数量
 uniform int numDirectionalLights;
 uniform int numPointLights;
 uniform int numSpotLights;
+
+// --- IBL 贴图 Uniforms ---
+// 对应 C++ IBLMaps 和上一轮讨论的 BRDF LUT
+uniform samplerCube irradianceMap;  // 漫反射环境图
+uniform samplerCube prefilterMap;   // 镜面反射环境图 (带 Mipmap)
+uniform sampler2D brdfLUT;          // BRDF 积分查找表
+uniform EnvironmentSettings envSettings; // 环境设置
 
 const float PI = 3.14159265359;
 
@@ -158,36 +142,47 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
+// --- 新增: 带粗糙度的 Fresnel ---
+// 用于 IBL，防止粗糙表面在边缘出现过强的镜面反射
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
 vec3 getNormalFromMap()
 {
     vec3 tangentNormal = texture(material.normalMap, fs_in.TexCoords).xyz * 2.0 - 1.0;
     return normalize(fs_in.TBN * tangentNormal);
 }
 
-// ----------------------------------------------------------------------------
-// 通用 PBR 计算函数
-// ----------------------------------------------------------------------------
-// 输入: 光照方向 L, 视线 V, 法线 N, 基础反射率 F0, 材质属性, 光的辐射率 Radiance
-// 输出: 该光源贡献的 Lo
+// --- 新增: 环境旋转辅助函数 ---
+vec3 rotateVector(vec3 v, float angle)
+{
+    float s = sin(angle);
+    float c = cos(angle);
+    // 绕 Y 轴旋转
+    mat3 rot = mat3(
+        c, 0, s,
+        0, 1, 0,
+        -s, 0, c
+    );
+    return rot * v;
+}
+
+// 通用 PBR 计算函数 (保持不变)
 vec3 CalcPBRContribution(vec3 L, vec3 V, vec3 N, vec3 F0, vec3 albedo, float roughness, float metallic, vec3 radiance)
 {
     vec3 H = normalize(V + L);
-
-    // Cook-Torrance BRDF
     float NDF = DistributionGGX(N, H, roughness);   
     float G   = GeometrySmith(N, V, L, roughness);      
     vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
-       
     vec3 numerator    = NDF * G * F; 
     float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; 
     vec3 specular = numerator / denominator;
-    
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;	  
-
     float NdotL = max(dot(N, L), 0.0);        
-
     return (kD * albedo / PI + specular) * radiance * NdotL;
 }
 
@@ -205,66 +200,72 @@ void main()
 
     vec3 N = getNormalFromMap();
     vec3 V = normalize(viewPos - fs_in.FragPos);
+    vec3 R = reflect(-V, N); // 反射向量，用于采样 Prefilter Map
 
     vec3 F0 = vec3(0.04); 
     F0 = mix(F0, albedo, metallic);
 
     vec3 Lo = vec3(0.0);
 
-    // ------------------------------------------------------------------------
-    // 2. 遍历定向光 (Directional Lights)
-    // ------------------------------------------------------------------------
-    for(int i = 0; i < numDirectionalLights; i++)
-    {
-        // 定向光方向是固定的
+    // --- 直接光照计算 (Directional, Point, Spot) ---
+    // (代码与你原来的一致，省略中间循环以节省篇幅，逻辑不变)
+    for(int i = 0; i < numDirectionalLights; i++) {
         vec3 L = normalize(-directionalLights[i].direction);
-        vec3 radiance = directionalLights[i].radiance;
-        
-        Lo += CalcPBRContribution(L, V, N, F0, albedo, roughness, metallic, radiance);
+        Lo += CalcPBRContribution(L, V, N, F0, albedo, roughness, metallic, directionalLights[i].radiance);
     }
-
-    // ------------------------------------------------------------------------
-    // 3. 遍历点光源 (Point Lights)
-    // ------------------------------------------------------------------------
-    for(int i = 0; i < numPointLights; i++)
-    {
-        // 计算 L 和 距离
+    for(int i = 0; i < numPointLights; i++) {
         vec3 L = normalize(pointLights[i].position - fs_in.FragPos);
-        float distance = length(pointLights[i].position - fs_in.FragPos);
-        
-        // 计算衰减
-        float attenuation = 1.0 / (pointLights[i].constant + pointLights[i].linear * distance + pointLights[i].quadratic * (distance * distance));
-        
-        vec3 radiance = pointLights[i].radiance * attenuation;
-
-        Lo += CalcPBRContribution(L, V, N, F0, albedo, roughness, metallic, radiance);
+        float dist = length(pointLights[i].position - fs_in.FragPos);
+        float att = 1.0 / (pointLights[i].constant + pointLights[i].linear * dist + pointLights[i].quadratic * (dist * dist));
+        Lo += CalcPBRContribution(L, V, N, F0, albedo, roughness, metallic, pointLights[i].radiance * att);
     }
-
-    // ------------------------------------------------------------------------
-    // 4. 遍历聚光灯 (Spot Lights)
-    // ------------------------------------------------------------------------
-    for(int i = 0; i < numSpotLights; i++)
-    {
+    for(int i = 0; i < numSpotLights; i++) {
         vec3 L = normalize(spotLights[i].position - fs_in.FragPos);
-        float distance = length(spotLights[i].position - fs_in.FragPos);
-
-        // 基础衰减
-        float attenuation = 1.0 / (spotLights[i].constant + spotLights[i].linear * distance + spotLights[i].quadratic * (distance * distance));
-
-        // 聚光灯边缘软化
+        float dist = length(spotLights[i].position - fs_in.FragPos);
+        float att = 1.0 / (spotLights[i].constant + spotLights[i].linear * dist + spotLights[i].quadratic * (dist * dist));
         float theta = dot(L, normalize(-spotLights[i].direction)); 
         float epsilon = max(spotLights[i].cutOff - spotLights[i].outerCutOff, 1e-4);
         float intensity = clamp((theta - spotLights[i].outerCutOff) / epsilon, 0.0, 1.0);
-
-        vec3 radiance = spotLights[i].radiance * attenuation * intensity;
-
-        Lo += CalcPBRContribution(L, V, N, F0, albedo, roughness, metallic, radiance);
+        Lo += CalcPBRContribution(L, V, N, F0, albedo, roughness, metallic, spotLights[i].radiance * att * intensity);
     }
 
     // ------------------------------------------------------------------------
-    // 5. 合成最终颜色
+    // 5. IBL (环境光照) 计算
     // ------------------------------------------------------------------------
-    vec3 ambient = vec3(0.03) * albedo * ao;
+    
+    // 处理环境旋转 (如果需要)
+    vec3 N_rot = rotateVector(N, envSettings.rotation);
+    vec3 R_rot = rotateVector(R, envSettings.rotation);
+
+    // A. 环境漫反射 (Diffuse Irradiance)
+    // kS 是菲涅尔反射比例，kD 是漫反射比例
+    vec3 kS = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - metallic; // 金属没有漫反射
+    
+    vec3 irradiance = texture(irradianceMap, N_rot).rgb;
+    vec3 diffuse    = irradiance * albedo;
+
+    // B. 环境镜面反射 (Specular IBL)
+    // 1. 采样 Prefiltered Map (根据粗糙度选择 Mipmap 层级)
+    const float MAX_REFLECTION_LOD = 4.0; // 假设你的 Prefilter Map 生成了 5 层 mipmap (0-4)
+    vec3 prefilteredColor = textureLod(prefilterMap, R_rot, roughness * MAX_REFLECTION_LOD).rgb;
+    
+    // 2. 采样 BRDF LUT (Split Sum Approximation 的第二部分)
+    vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    
+    // 3. 组合
+    vec3 specular = prefilteredColor * (kS * brdf.x + brdf.y);
+
+    // C. 合成环境光
+    vec3 ambient = (kD * diffuse + specular) * ao;
+    
+    // D. 应用环境设置 (强度和色调)
+    ambient *= envSettings.intensity * envSettings.tint;
+
+    // ------------------------------------------------------------------------
+    // 6. 最终合成
+    // ------------------------------------------------------------------------
     vec3 color = ambient + Lo + emissive;
 
     // HDR Tone Mapping

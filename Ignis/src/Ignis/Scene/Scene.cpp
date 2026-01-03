@@ -1,5 +1,6 @@
 #include "Scene.h"
 #include "Entity.h"
+#include "Ignis/Asset/AssetManager.h"
 
 namespace ignis
 {
@@ -106,6 +107,20 @@ namespace ignis
 						glm::cos(glm::radians(outer))
 					);
 					light_index++;
+				});
+		}
+
+		{
+			auto sky_lights = m_registry.group<SkyLightComponent>();
+
+			sky_lights.each([&](auto entity, SkyLightComponent& sky_light)
+				{
+					m_scene_environment = *AssetManager::GetAsset<Environment>(sky_light.Environment);
+					m_environment_settings.Intensity = sky_light.Intensity;
+					m_environment_settings.Rotation = sky_light.Rotation;
+					m_environment_settings.Tint = sky_light.Tint;
+					m_environment_settings.SkyboxLod = sky_light.SkyboxLod;
+
 				});
 		}
 	}
