@@ -372,6 +372,16 @@ namespace ignis {
 	{
 		Log::Info("Attempting to load model: {}", filepath);
 		
+		// Validate file extension
+		std::string extension = filepath.substr(filepath.find_last_of(".") + 1);
+		std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+		
+		if (extension != "obj" && extension != "fbx" && extension != "gltf" && extension != "glb")
+		{
+			Log::Error("Invalid model file format: {}. Supported formats: .obj, .fbx, .gltf, .glb", extension);
+			return;
+		}
+		
 		// Import mesh asset
 		AssetHandle mesh_handle = AssetManager::ImportAsset(filepath);
 		if (!mesh_handle.IsValid())
@@ -388,10 +398,49 @@ namespace ignis {
 			return;
 		}
 		
+		// Validate mesh has vertices
+		if (new_mesh->GetVertices().empty())
+		{
+			Log::Error("Loaded mesh has no vertices: {}", filepath);
+			return;
+		}
+		
 		// Replace current mesh
 		if (m_current_mesh_ptr)
 		{
 			*m_current_mesh_ptr = new_mesh;
+		}
+		
+		// Auto-scale model to reasonable size based on bounding box
+		if (m_mesh_transform)
+		{
+			// Calculate bounding box from vertices
+			const auto& vertices = new_mesh->GetVertices();
+			if (!vertices.empty())
+			{
+				glm::vec3 min_bounds = vertices[0].Position;
+				glm::vec3 max_bounds = vertices[0].Position;
+				
+				for (const auto& vertex : vertices)
+				{
+					min_bounds = glm::min(min_bounds, vertex.Position);
+					max_bounds = glm::max(max_bounds, vertex.Position);
+				}
+				
+				glm::vec3 size = max_bounds - min_bounds;
+				float max_dimension = glm::max(glm::max(size.x, size.y), size.z);
+				
+				// Target size: models should fit within a 2-unit cube
+				float target_size = 2.0f;
+				float scale_factor = target_size / max_dimension;
+				
+				// Reset transform and apply auto-scale
+				m_mesh_transform->Translation = glm::vec3(0.0f);
+				m_mesh_transform->Rotation = glm::vec3(0.0f);
+				m_mesh_transform->Scale = glm::vec3(scale_factor);
+				
+				Log::Info("Auto-scaled model: max dimension {:.3f} -> scale factor {:.3f}", max_dimension, scale_factor);
+			}
 		}
 		
 		// Initialize materials with default textures for missing slots
