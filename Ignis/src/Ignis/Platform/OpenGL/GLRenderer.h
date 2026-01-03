@@ -10,10 +10,10 @@ namespace ignis
 	class GLRenderer : public Renderer
 	{
 	public:
-		GLRenderer() = default;
+		GLRenderer();
 		~GLRenderer() override = default;
 
-		void BeginScene(Scene& scene, const Camera& camera) override;
+		void BeginScene(std::shared_ptr<Pipeline> pipeline, std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera) override;
 		void EndScene() override;
 
 		void SetClearColor(float r, float g, float b, float a) override;
@@ -23,12 +23,17 @@ namespace ignis
 		void SetViewport(const glm::ivec4& viewport) override;
 
 		void DrawIndexed(VertexArray& va) override;
-		void RenderMesh(const std::shared_ptr<Pipeline> pipeline, const Camera& camera, const std::shared_ptr<Mesh>& mesh, const glm::mat4& model) override;
+		void RenderMesh(const std::shared_ptr<Mesh>& mesh, const glm::mat4& model) override;
 		void Clear() override;
 
 	private:
 		LightEnvironment m_light_environment;
 		Environment m_scene_environment;
 		EnvironmentSettings m_environment_settings;
+		std::shared_ptr<Pipeline> m_pipeline;
+		std::shared_ptr<Scene> m_scene;
+		std::shared_ptr<Camera> m_camera;
+
+		std::shared_ptr<VertexArray> m_skybox_vao;
 	};
 }

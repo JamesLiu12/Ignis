@@ -13,7 +13,9 @@ namespace ignis
 
 		std::shared_ptr<Material> CreateMaterial(const MaterialData& data) override;
 		void ApplyEnvironment(Material& material, const Environment& scene_environment, const EnvironmentSettings& environment_settings, const LightEnvironment& light_environment) override;
+		std::shared_ptr<Material> CreateSkyboxMaterial(const Environment& scene_environment) override;
 		std::shared_ptr<Shader> GetStandardShader() override;
+		std::shared_ptr<Shader> GetSkyboxShader() override;
 
 	private:
 		std::shared_ptr<ShaderLibrary> m_shader_library;

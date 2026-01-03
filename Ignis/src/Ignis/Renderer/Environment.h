@@ -25,11 +25,14 @@ namespace ignis
 		Environment() = default;
 		~Environment() = default;
 
-		void SetIBLMaps(const IBLMaps& maps) { m_ibl_maps = maps; }
+		const std::optional<AssetHandle> GetSkyboxMap() const { return m_skybox_map; }
+		void SetSkyboxMap(AssetHandle skybox_map_handle) { m_skybox_map = skybox_map_handle; }
 
+		void SetIBLMaps(const IBLMaps& maps) { m_ibl_maps = maps; }
 		const std::optional<IBLMaps>& GetIBLMaps() const { return m_ibl_maps; }
 
 	private:
+		std::optional<AssetHandle> m_skybox_map;
 		std::optional<IBLMaps> m_ibl_maps;
 	};
 }
