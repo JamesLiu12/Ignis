@@ -5,6 +5,7 @@
 namespace ignis
 {
 	static std::string PBRShaderPath = "assets://shaders/IgnisPBR.glsl";
+	static std::string SkyboxShaderPath = "assets://shaders/Skybox.glsl";
 
 	PBRPipeline::PBRPipeline(std::shared_ptr<ShaderLibrary> shader_library)
 		: m_shader_library(std::move(shader_library))
@@ -12,6 +13,11 @@ namespace ignis
 		if (!m_shader_library->Exists(PBRShaderPath))
 		{
 			m_shader_library->Load(PBRShaderPath);
+		}
+
+		if (!m_shader_library->Exists(SkyboxShaderPath))
+		{
+			m_shader_library->Load(SkyboxShaderPath);
 		}
 
 		AssetHandle texture_handle = AssetManager::ImportAsset("assets://images/ibl_brdf_lut.png");
@@ -121,8 +127,30 @@ namespace ignis
 		material.Set("envSettings.tint", environment_settings.Tint);
 	}
 
+	std::shared_ptr<Material> PBRPipeline::CreateSkyboxMaterial(const Environment& scene_environment)
+	{
+		auto material = Material::Create(m_shader_library->Get(SkyboxShaderPath));
+
+		material->GetShader()->Bind();
+
+		material->Set("environmentMap", 0);
+		const auto& skybox_map = scene_environment.GetSkyboxMap();
+		if (skybox_map)
+		{
+			if (auto texture = AssetManager::GetAsset<TextureCube>(skybox_map.value()))
+				texture->Bind(0);
+		}
+
+		return material;
+	}
+
 	std::shared_ptr<Shader> PBRPipeline::GetStandardShader()
 	{
 		return m_shader_library->Get(PBRShaderPath);
+	}
+
+	std::shared_ptr<Shader> PBRPipeline::GetSkyboxShader()
+	{
+		return m_shader_library->Get(SkyboxShaderPath);
 	}
 }

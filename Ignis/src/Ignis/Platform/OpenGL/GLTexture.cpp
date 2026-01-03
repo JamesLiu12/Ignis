@@ -86,10 +86,12 @@ namespace ignis
 	{
 		switch (format)
 		{
-		case ImageFormat::R8:
 		case ImageFormat::RGB32F:
 		case ImageFormat::RGBA32F:
+		case ImageFormat::R32F:
 			return GL_FLOAT;
+
+		case ImageFormat::R8:
 		default:
 			return GL_UNSIGNED_BYTE;
 		}
@@ -105,10 +107,11 @@ namespace ignis
 
 	void AllocateTextureStorage(const TextureSpecs& specs, const void* pixels)
 	{
-		const GLenum internal_format = ToGLImageFormat(specs.InternalFormat);
+		const GLenum internal_format = ToGLInternalFormat(specs.InternalFormat);
 		const GLenum data_format = ToGLImageFormat(specs.SourceFormat);
+		const GLenum data_type = ToGLDataType(specs.SourceFormat);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, internal_format, specs.Width, specs.Height, 0, data_format, GL_UNSIGNED_BYTE, pixels);
+		glTexImage2D(GL_TEXTURE_2D, 0, internal_format, specs.Width, specs.Height, 0, data_format, data_type, pixels);
 
 		if (specs.GenMipmaps)
 		{
@@ -130,7 +133,9 @@ namespace ignis
 
 		ApplyTextureParameters(m_specs);
 
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		AllocateTextureStorage(m_specs, static_cast<const void*>(data.data()));
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
@@ -145,6 +150,8 @@ namespace ignis
 	{
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+
+
 
 	GLTextureCube::GLTextureCube(const TextureSpecs& specs, std::span<const std::byte> data)
 		: m_specs(specs)
@@ -178,6 +185,7 @@ namespace ignis
 
 		const std::byte* raw_data = data.data();
 
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		for (int i = 0; i < 6; ++i)
 		{
 			glTexImage2D(
@@ -192,6 +200,7 @@ namespace ignis
 				raw_data + (i * face_size)
 			);
 		}
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
 		if (m_specs.GenMipmaps)
 		{
