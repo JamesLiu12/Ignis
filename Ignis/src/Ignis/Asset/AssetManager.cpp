@@ -20,6 +20,7 @@ namespace ignis
 			{ ".tga", AssetType::Texture},
 			{ ".obj", AssetType::Mesh },
 			{ ".fbx", AssetType::Mesh },
+			{ ".hdr", AssetType::EnvironmentMap},
 		};
 
 		std::string extension = ToLowerASCII(path.extension().string());
@@ -103,11 +104,15 @@ namespace ignis
 		{
 		case AssetType::Texture:
 		{
-			 return TextureImporter::ImportTexture<Texture2D>(metadata.FilePath.string());
+			 return TextureImporter::ImportTexture2D(metadata.FilePath.string());
 		}
 		case AssetType::Mesh:
 		{
 			return MeshImporter::ImportMesh(metadata.FilePath.string());
+		}
+		case AssetType::EnvironmentMap:
+		{
+			return TextureImporter::ImportTextureCube(metadata.FilePath.string());
 		}
 		case AssetType::Unknown:
 		{
