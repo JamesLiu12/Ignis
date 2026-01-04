@@ -244,7 +244,7 @@ void main()
     kD *= 1.0 - metallic; // 金属没有漫反射
     
     vec3 irradiance = texture(irradianceMap, N_rot).rgb;
-    vec3 diffuse    = irradiance * albedo;
+    vec3 diffuse    = irradiance * albedo / PI;
 
     // B. 环境镜面反射 (Specular IBL)
     // 1. 采样 Prefiltered Map (根据粗糙度选择 Mipmap 层级)
