@@ -63,7 +63,6 @@ void SandBoxLayer::OnAttach()
 	sky_light_component.SceneEnvironment.SetSkyboxMap({
 		ignis::AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_skybox.hdr", ignis::AssetType::EnvironmentMap)
 		});
-	sky_light_component.Intensity = 0;
 
 	// Set this entity as selected in properties panel
 	if (auto* properties_panel = ignis::Application::Get().GetPropertiesPanel())
