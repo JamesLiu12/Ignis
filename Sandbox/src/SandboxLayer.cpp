@@ -22,18 +22,19 @@ void SandBoxLayer::OnAttach()
 	face.RemoveComponent<ignis::TagComponent>();
 	ignis::Log::CoreInfo("Has TagComponent: {}", face.HasComponent<ignis::TagComponent>());
 
-	ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Cerberus_LP.FBX");
+	//ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Cerberus_LP.FBX");
 	//ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/backpack/backpack.obj");
+	ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/sphere.fbx");
 	m_mesh = ignis::AssetManager::GetAsset<ignis::Mesh>(mesh_handle);
 	
-	auto albedo_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_A.tga");
-	m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Albedo, albedo_map_handle);
-	auto normal_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_N.tga");
-	m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Normal, normal_map_handle);
-	auto metallic_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_M.tga");
-	m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Metal, metallic_map_handle);
-	auto roughness_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_R.tga");
-	m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Roughness, roughness_map_handle);
+	//auto albedo_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_A.tga");
+	//m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Albedo, albedo_map_handle);
+	//auto normal_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_N.tga");
+	//m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Normal, normal_map_handle);
+	//auto metallic_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_M.tga");
+	//m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Metal, metallic_map_handle);
+	//auto roughness_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_R.tga");
+	//m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Roughness, roughness_map_handle);
 
 	ignis::UUID test_id = ignis::UUID();
 	ignis::Log::CoreInfo("Generated UUID: {}", test_id.ToString());
