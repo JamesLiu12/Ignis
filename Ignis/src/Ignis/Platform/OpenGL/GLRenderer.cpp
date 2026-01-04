@@ -5,17 +5,92 @@
 
 namespace ignis
 {
-	void GLRenderer::BeginScene(Scene& scene, const Camera& camera)
+	GLRenderer::GLRenderer()
 	{
+		float skybox_vertices[] = {       
+			-1.0f,  1.0f, -1.0f,
+			-1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f, -1.0f,
+			 1.0f,  1.0f, -1.0f,
+			-1.0f,  1.0f, -1.0f,
+
+			-1.0f, -1.0f,  1.0f,
+			-1.0f, -1.0f, -1.0f,
+			-1.0f,  1.0f, -1.0f,
+			-1.0f,  1.0f, -1.0f,
+			-1.0f,  1.0f,  1.0f,
+			-1.0f, -1.0f,  1.0f,
+
+			 1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f, -1.0f,
+			 1.0f, -1.0f, -1.0f,
+
+			-1.0f, -1.0f,  1.0f,
+			-1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			 1.0f, -1.0f,  1.0f,
+			-1.0f, -1.0f,  1.0f,
+
+			-1.0f,  1.0f, -1.0f,
+			 1.0f,  1.0f, -1.0f,
+			 1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			-1.0f,  1.0f,  1.0f,
+			-1.0f,  1.0f, -1.0f,
+
+			-1.0f, -1.0f, -1.0f,
+			-1.0f, -1.0f,  1.0f,
+			 1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f, -1.0f,
+			-1.0f, -1.0f,  1.0f,
+			 1.0f, -1.0f,  1.0f
+		};
+
+		m_skybox_vao = VertexArray::Create();
+		std::shared_ptr<VertexBuffer> skybox_vbo = VertexBuffer::Create(skybox_vertices, sizeof(skybox_vertices));
+
+		VertexBuffer::Layout layout
+		{
+			{ 0, Shader::DataType::Float3 }
+		};
+		skybox_vbo->SetLayout(layout);
+		m_skybox_vao->AddVertexBuffer(skybox_vbo);
+	}
+
+	void GLRenderer::BeginScene(std::shared_ptr<Pipeline> pipeline, std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera)
+	{
+		m_pipeline = pipeline;
+		m_scene = scene;
+		m_camera = camera;
+
 		glEnable(GL_DEPTH_TEST);
 
-		scene.OnRender();
+		scene->OnRender();
 		// TODO: Move this to SceneRenderer
-		m_light_environment = scene.m_light_environment;
+		m_light_environment = scene->m_light_environment;
+		m_scene_environment = scene->m_scene_environment;
+		m_environment_settings = scene->m_environment_settings;
 	}
+
 	void GLRenderer::EndScene()
 	{
-		// TODO
+		auto material = m_pipeline->CreateSkyboxMaterial(m_scene_environment);
+		glDepthFunc(GL_LEQUAL);
+		glDisable(GL_CULL_FACE);
+		glm::mat4 view = glm::mat4(glm::mat3(m_camera->GetView()));
+		material->Set("view", view);
+		material->Set("projection", m_camera->GetProjection());
+		m_skybox_vao->Bind();
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		m_skybox_vao->UnBind();
+
+		glDepthFunc(GL_LESS);
+		glEnable(GL_CULL_FACE);
 	}
 
 	void GLRenderer::SetClearColor(float r, float g, float b, float a)
@@ -45,43 +120,7 @@ namespace ignis
 		va.UnBind();
 	}
 
-	void UploadLightsToMaterial(std::shared_ptr<Material> material, LightEnvironment light_environment)
-	{
-		material->Set("numDirectionalLights", (int)light_environment.DirectionalLights.size());
-		for (size_t i = 0; i < light_environment.DirectionalLights.size(); i++)
-		{
-			std::string base = "directionalLights[" + std::to_string(i) + "]";
-			material->Set(base + ".direction", light_environment.DirectionalLights[i].Direction);
-			material->Set(base + ".radiance", light_environment.DirectionalLights[i].Radiance);
-		}
-
-		material->Set("numPointLights", (int)light_environment.PointLights.size());
-		for (size_t i = 0; i < light_environment.PointLights.size(); i++)
-		{
-			std::string base = "pointLights[" + std::to_string(i) + "]";
-			material->Set(base + ".position", light_environment.PointLights[i].Position);
-			material->Set(base + ".radiance", light_environment.PointLights[i].Radiance);
-			material->Set(base + ".constant", light_environment.PointLights[i].Constant);
-			material->Set(base + ".linear", light_environment.PointLights[i].Linear);
-			material->Set(base + ".quadratic", light_environment.PointLights[i].Quadratic);
-		}
-
-		material->Set("numSpotLights", (int)light_environment.SpotLights.size());
-		for (size_t i = 0; i < light_environment.SpotLights.size(); i++)
-		{
-			std::string base = "spotLights[" + std::to_string(i) + "]";
-			material->Set(base + ".position", light_environment.SpotLights[i].Position);
-			material->Set(base + ".direction", light_environment.SpotLights[i].Direction);
-			material->Set(base + ".radiance", light_environment.SpotLights[i].Radiance);
-			material->Set(base + ".constant", light_environment.SpotLights[i].Constant);
-			material->Set(base + ".linear", light_environment.SpotLights[i].Linear);
-			material->Set(base + ".quadratic", light_environment.SpotLights[i].Quadratic);
-			material->Set(base + ".cutOff", light_environment.SpotLights[i].CutOff);
-			material->Set(base + ".outerCutOff", light_environment.SpotLights[i].OuterCutOff);
-		}
-	}
-
-	void GLRenderer::RenderMesh(const std::shared_ptr<Pipeline> pipeline, const Camera& camera, const std::shared_ptr<Mesh>& mesh, const glm::mat4& model)
+	void GLRenderer::RenderMesh(const std::shared_ptr<Mesh>& mesh, const glm::mat4& model)
 	{
 		auto vao = mesh->GetVertexArray();
 		vao->Bind();
@@ -93,17 +132,16 @@ namespace ignis
 			const auto& material_data = materials_data[sm.MaterialIndex];
 
 			// TODO a performance bottleneck?
-			auto material = pipeline->CreateMaterial(material_data);
+			auto material = m_pipeline->CreateMaterial(material_data);
+			m_pipeline->ApplyEnvironment(*material, m_scene_environment, m_environment_settings, m_light_environment);
 			material->GetShader()->Bind();
 
-			material->Set("view", camera.GetView());
-			material->Set("projection", camera.GetProjection());
+			material->Set("view", m_camera->GetView());
+			material->Set("projection", m_camera->GetProjection());
 
 			// TODO hard coded to be refactored
 			material->Set("model", model);
-			material->Set("viewPos", camera.GetPosition());
-
-			UploadLightsToMaterial(material, m_light_environment);
+			material->Set("viewPos", m_camera->GetPosition());
 
 			glDrawElements(
 				GL_TRIANGLES,

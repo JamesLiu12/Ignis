@@ -51,4 +51,10 @@ namespace ignis
 	public:
 		static std::shared_ptr<Texture2D> Create(const TextureSpecs& specs, std::span<const std::byte> data);
 	};
+
+	class TextureCube : public Texture
+	{
+	public:
+		static std::shared_ptr<TextureCube> Create(const TextureSpecs& specs, std::span<const std::byte> data);
+	};
 }

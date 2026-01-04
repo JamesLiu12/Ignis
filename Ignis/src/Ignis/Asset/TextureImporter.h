@@ -21,6 +21,6 @@ namespace ignis
 	{
 	public:
 		static std::shared_ptr<Texture2D> ImportTexture2D(const std::string& path, const TextureImportOptions& options = TextureImportOptions());
-
+		static std::shared_ptr<TextureCube> ImportTextureCube(const std::string& path, const TextureImportOptions& options = TextureImportOptions());
 	};
 }

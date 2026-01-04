@@ -12,18 +12,19 @@ void SandBoxLayer::OnAttach()
 	m_shader_library->Load("assets://shaders/example.glsl");
 	m_shader_library->Load("assets://shaders/blinn.glsl");
 
-	m_camera = ignis::EditorCamera(45.0f, 1280.0f / 720.0f, 0.1f, 1000.0f);
-	m_camera.SetPosition({ 1.5f, 0.0f, 10.0f });
-	m_camera.RecalculateViewMatrix();
+	m_camera = std::make_shared<ignis::EditorCamera>(45.0f, 1280.0f / 720.0f, 0.1f, 1000.0f);
+	m_camera->SetPosition({ 1.5f, 0.0f, 10.0f });
+	m_camera->RecalculateViewMatrix();
 
-	m_scene = ignis::Scene();
+	m_scene = std::make_shared<ignis::Scene>();
 
-	auto face = m_scene.CreateEntity("Smiling Face");
+	auto face = m_scene->CreateEntity("Smiling Face");
 	face.RemoveComponent<ignis::TagComponent>();
 	ignis::Log::CoreInfo("Has TagComponent: {}", face.HasComponent<ignis::TagComponent>());
 
 	ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Cerberus_LP.FBX");
 	//ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/backpack/backpack.obj");
+	//ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/sphere.fbx");
 	m_mesh = ignis::AssetManager::GetAsset<ignis::Mesh>(mesh_handle);
 	
 	auto albedo_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_A.tga");
@@ -42,9 +43,9 @@ void SandBoxLayer::OnAttach()
 	ignis::Log::CoreInfo("Generated UUID is valid: {}", test_id.IsValid());
 	
 	// Create a light entity for testing properties panel
-	auto directional_light_entity = m_scene.CreateEntity("Main Directional Light");
+	auto directional_light_entity = m_scene->CreateEntity("Main Directional Light");
 	m_light_entity = std::make_shared<ignis::Entity>(directional_light_entity);
-	
+
 	auto& light = m_light_entity->AddComponent<ignis::DirectionalLightComponent>();
 	light.Color = glm::vec3(1.0f, 0.95f, 0.8f); // Warm white light
 	light.Intensity = 1.5f;
@@ -52,22 +53,16 @@ void SandBoxLayer::OnAttach()
 	// Set light position (useful for point and spot lights)
 	auto& directional_light_transform = m_light_entity->GetComponent<ignis::TransformComponent>();
 	directional_light_transform.Translation = glm::vec3(0.0f, 5.0f, 5.0f);
-	
-	auto point_light_entity = m_scene.CreateEntity("Point Light");
-	auto& point_light_component = point_light_entity.AddComponent<ignis::PointLightComponent>();
-	point_light_component.Color = glm::vec3(1.0f, 0.0f, 0.0f);
-	point_light_component.Intensity = 5.0f;
 
-	auto& point_light_transform = point_light_entity.GetComponent<ignis::TransformComponent>();
-	point_light_transform.Translation = glm::vec3(0.0f, 5.0f, 0.0f);
-
-	auto spot_light_entity = m_scene.CreateEntity("Spot Light");
-	auto& spot_light_component = spot_light_entity.AddComponent<ignis::SpotLightComponent>();
-	spot_light_component.Color = glm::vec3(0.0f, 1.0f, 0.0f);
-	spot_light_component.Intensity = 10.0f;
-
-	auto& spot_light_transform = spot_light_entity.GetComponent<ignis::TransformComponent>();
-	spot_light_transform.Translation = glm::vec3(0.0f, 0.0f, 5.0f);
+	auto sky_light_entity = m_scene->CreateEntity("Sky Light");
+	auto& sky_light_component = sky_light_entity.AddComponent<ignis::SkyLightComponent>();
+	sky_light_component.SceneEnvironment.SetIBLMaps({
+		ignis::AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_irradiance.hdr", ignis::AssetType::EnvironmentMap),
+		ignis::AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_radiance.hdr", ignis::AssetType::EnvironmentMap)
+		});
+	sky_light_component.SceneEnvironment.SetSkyboxMap({
+		ignis::AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_skybox.hdr", ignis::AssetType::EnvironmentMap)
+		});
 
 	// Set this entity as selected in properties panel
 	if (auto* properties_panel = ignis::Application::Get().GetPropertiesPanel())
@@ -97,13 +92,15 @@ void SandBoxLayer::OnUpdate(float dt)
 {
 	static glm::mat4 model = glm::mat4(1.0f);
 	// Update editor camera with mouse and keyboard controls
-	m_camera.OnUpdate(dt);
+	m_camera->OnUpdate(dt);
 
 	m_renderer.Clear();
 
-	m_renderer.BeginScene(m_scene, m_camera);
+	m_renderer.BeginScene(m_pipeline, m_scene, m_camera);
 
-	m_renderer.RenderMesh(m_pipeline, m_camera, m_mesh, m_mesh_transform_component.GetTransform());
+	m_renderer.RenderMesh(m_mesh, m_mesh_transform_component.GetTransform());
+
+	m_renderer.EndScene();
 }
 
 void SandBoxLayer::OnEvent(ignis::EventBase& event)
@@ -111,7 +108,7 @@ void SandBoxLayer::OnEvent(ignis::EventBase& event)
 	if (auto* resize_event = dynamic_cast<ignis::WindowResizeEvent*>(&event))
 	{
 		float aspect_ratio = static_cast<float>(resize_event->GetWidth()) / static_cast<float>(resize_event->GetHeight());
-		m_camera.SetPerspective(45.0f, aspect_ratio, 0.1f, 1000.0f);
-		m_camera.RecalculateViewMatrix();
+		m_camera->SetPerspective(45.0f, aspect_ratio, 0.1f, 1000.0f);
+		m_camera->RecalculateViewMatrix();
 	}
 }

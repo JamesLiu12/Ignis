@@ -18,6 +18,7 @@ namespace ignis
 			{ ".jpg", AssetType::Texture },
 			{ ".jpeg", AssetType::Texture },
 			{ ".tga", AssetType::Texture},
+			{ ".hdr", AssetType::Texture},
 			{ ".obj", AssetType::Mesh },
 			{ ".fbx", AssetType::Mesh },
 		};
@@ -43,7 +44,7 @@ namespace ignis
 		return s_memory_assets.find(handle) != s_memory_assets.end();
 	}
 
-	AssetHandle AssetManager::ImportAsset(const std::filesystem::path& path)
+	AssetHandle AssetManager::ImportAsset(const std::filesystem::path& path, AssetType asset_type)
 	{
 		const AssetMetadata* metadata = GetMetadata(path);
 
@@ -55,7 +56,8 @@ namespace ignis
 		AssetHandle handle = AssetHandle();
 		AssetMetadata new_metadata;
 		new_metadata.FilePath = path;
-		new_metadata.Type = DetermineTypeFromExtension(path);
+		if (asset_type == AssetType::Unknown) new_metadata.Type = DetermineTypeFromExtension(path);
+		else new_metadata.Type = asset_type;
 		new_metadata.handle = handle;
 
 		s_asset_registry[handle] = new_metadata;
@@ -108,6 +110,10 @@ namespace ignis
 		case AssetType::Mesh:
 		{
 			return MeshImporter::ImportMesh(metadata.FilePath.string());
+		}
+		case AssetType::EnvironmentMap:
+		{
+			return TextureImporter::ImportTextureCube(metadata.FilePath.string());
 		}
 		case AssetType::Unknown:
 		{

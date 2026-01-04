@@ -52,17 +52,48 @@ namespace ignis
 		}
 	}
 
+	GLenum ToGLInternalFormat(ImageFormat format)
+	{
+		switch (format)
+		{
+		case ImageFormat::R8:      return GL_R8;
+		case ImageFormat::RGB8:    return GL_RGB8;
+		case ImageFormat::RGBA8:   return GL_RGBA8;
+		case ImageFormat::R32F:    return GL_R32F;
+		case ImageFormat::RGB32F:  return GL_RGB32F;
+		case ImageFormat::RGBA32F: return GL_RGBA32F;
+		default: return GL_RGBA8;
+		}
+	}
+
 	GLenum ToGLImageFormat(ImageFormat format)
 	{
 		switch (format)
 		{
-		case ImageFormat::R8:      return GL_RED;
-		case ImageFormat::RGB8:    return GL_RGB;
-		case ImageFormat::RGBA8:   return GL_RGBA;
+		case ImageFormat::R8:
+		case ImageFormat::R32F:    return GL_RED;
+		case ImageFormat::RGB8:
+		case ImageFormat::RGB32F:  return GL_RGB;
+		case ImageFormat::RGBA8:
 		case ImageFormat::RGBA32F: return GL_RGBA;
 		default:
 			Log::CoreWarn("Unknown base ImageFormat ({}). Falling back to GL_RGBA.", static_cast<int>(format));
-			return 0;
+			return GL_RGBA;
+		}
+	}
+
+	GLenum ToGLDataType(ImageFormat format)
+	{
+		switch (format)
+		{
+		case ImageFormat::RGB32F:
+		case ImageFormat::RGBA32F:
+		case ImageFormat::R32F:
+			return GL_FLOAT;
+
+		case ImageFormat::R8:
+		default:
+			return GL_UNSIGNED_BYTE;
 		}
 	}
 
@@ -76,10 +107,11 @@ namespace ignis
 
 	void AllocateTextureStorage(const TextureSpecs& specs, const void* pixels)
 	{
-		const GLenum internal_format = ToGLImageFormat(specs.InternalFormat);
+		const GLenum internal_format = ToGLInternalFormat(specs.InternalFormat);
 		const GLenum data_format = ToGLImageFormat(specs.SourceFormat);
+		const GLenum data_type = ToGLDataType(specs.SourceFormat);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, internal_format, specs.Width, specs.Height, 0, data_format, GL_UNSIGNED_BYTE, pixels);
+		glTexImage2D(GL_TEXTURE_2D, 0, internal_format, specs.Width, specs.Height, 0, data_format, data_type, pixels);
 
 		if (specs.GenMipmaps)
 		{
@@ -101,7 +133,9 @@ namespace ignis
 
 		ApplyTextureParameters(m_specs);
 
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		AllocateTextureStorage(m_specs, static_cast<const void*>(data.data()));
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
@@ -117,4 +151,73 @@ namespace ignis
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
+
+
+	GLTextureCube::GLTextureCube(const TextureSpecs& specs, std::span<const std::byte> data)
+		: m_specs(specs)
+	{
+		if (m_specs.Width == 0 || m_specs.Height == 0)
+		{
+			Log::CoreError("CubeMap dimensions must be non-zero.");
+			return;
+		}
+
+		uint32_t face_size = m_specs.Width * m_specs.Height * BytesPerPixel(m_specs.SourceFormat);
+
+		if (data.size() != face_size * 6)
+		{
+			Log::CoreError("TextureCube data size mismatch! Expected {} bytes (6 faces), got {}.", face_size * 6, data.size());
+			return;
+		}
+
+		glGenTextures(1, &m_id);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
+
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, ToGLMinFilter(m_specs.MinFilter));
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, ToGLMagFilter(m_specs.MagFilter));
+
+		GLenum internal_format = ToGLInternalFormat(m_specs.InternalFormat);
+		GLenum data_format = ToGLImageFormat(m_specs.SourceFormat);
+		GLenum data_type = ToGLDataType(m_specs.SourceFormat);
+
+		const std::byte* raw_data = data.data();
+
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		for (int i = 0; i < 6; ++i)
+		{
+			glTexImage2D(
+				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+				0,
+				internal_format,
+				m_specs.Width,
+				m_specs.Height,
+				0,
+				data_format,
+				data_type,
+				raw_data + (i * face_size)
+			);
+		}
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+
+		if (m_specs.GenMipmaps)
+		{
+			glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+		}
+
+		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	}
+
+	void GLTextureCube::Bind(uint32_t unit) const
+	{
+		glActiveTexture(GL_TEXTURE0 + unit);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
+	}
+
+	void GLTextureCube::UnBind() const
+	{
+		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	}
 }
