@@ -73,11 +73,11 @@ void SandBoxLayer::OnAttach()
 	auto sky_light_entity = m_scene->CreateEntity("Sky Light");
 	auto& sky_light_component = sky_light_entity.AddComponent<ignis::SkyLightComponent>();
 	sky_light_component.SceneEnvironment.SetIBLMaps({
-		ignis::AssetManager::ImportAsset("assets://images/citrus_orchard_puresky_4k_irradiance.hdr", ignis::AssetType::EnvironmentMap),
-		ignis::AssetManager::ImportAsset("assets://images/citrus_orchard_puresky_4k_radiance.hdr", ignis::AssetType::EnvironmentMap)
+		ignis::AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_irradiance.hdr", ignis::AssetType::EnvironmentMap),
+		ignis::AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_radiance.hdr", ignis::AssetType::EnvironmentMap)
 		});
 	sky_light_component.SceneEnvironment.SetSkyboxMap({
-		ignis::AssetManager::ImportAsset("assets://images/citrus_orchard_puresky_4k_skybox.hdr", ignis::AssetType::EnvironmentMap)
+		ignis::AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_skybox.hdr", ignis::AssetType::EnvironmentMap)
 		});
 
 	// Set this entity as selected in properties panel
