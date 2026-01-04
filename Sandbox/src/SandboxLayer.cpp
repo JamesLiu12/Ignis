@@ -22,19 +22,19 @@ void SandBoxLayer::OnAttach()
 	face.RemoveComponent<ignis::TagComponent>();
 	ignis::Log::CoreInfo("Has TagComponent: {}", face.HasComponent<ignis::TagComponent>());
 
-	//ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Cerberus_LP.FBX");
+	ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Cerberus_LP.FBX");
 	//ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/backpack/backpack.obj");
-	ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/sphere.fbx");
+	//ignis::AssetHandle mesh_handle = ignis::AssetManager::ImportAsset("assets://models/sphere.fbx");
 	m_mesh = ignis::AssetManager::GetAsset<ignis::Mesh>(mesh_handle);
 	
-	//auto albedo_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_A.tga");
-	//m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Albedo, albedo_map_handle);
-	//auto normal_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_N.tga");
-	//m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Normal, normal_map_handle);
-	//auto metallic_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_M.tga");
-	//m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Metal, metallic_map_handle);
-	//auto roughness_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_R.tga");
-	//m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Roughness, roughness_map_handle);
+	auto albedo_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_A.tga");
+	m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Albedo, albedo_map_handle);
+	auto normal_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_N.tga");
+	m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Normal, normal_map_handle);
+	auto metallic_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_M.tga");
+	m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Metal, metallic_map_handle);
+	auto roughness_map_handle = ignis::AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_R.tga");
+	m_mesh->SetMaterialDataTexture(0, ignis::MaterialType::Roughness, roughness_map_handle);
 
 	ignis::UUID test_id = ignis::UUID();
 	ignis::Log::CoreInfo("Generated UUID: {}", test_id.ToString());
@@ -50,25 +50,9 @@ void SandBoxLayer::OnAttach()
 	light.Color = glm::vec3(1.0f, 0.95f, 0.8f); // Warm white light
 	light.Intensity = 1.5f;
 	
-	//// Set light position (useful for point and spot lights)
-	//auto& directional_light_transform = m_light_entity->GetComponent<ignis::TransformComponent>();
-	//directional_light_transform.Translation = glm::vec3(0.0f, 5.0f, 5.0f);
-	//
-	//auto point_light_entity = m_scene.CreateEntity("Point Light");
-	//auto& point_light_component = point_light_entity.AddComponent<ignis::PointLightComponent>();
-	//point_light_component.Color = glm::vec3(1.0f, 0.0f, 0.0f);
-	//point_light_component.Intensity = 5.0f;
-
-	//auto& point_light_transform = point_light_entity.GetComponent<ignis::TransformComponent>();
-	//point_light_transform.Translation = glm::vec3(0.0f, 5.0f, 0.0f);
-
-	//auto spot_light_entity = m_scene.CreateEntity("Spot Light");
-	//auto& spot_light_component = spot_light_entity.AddComponent<ignis::SpotLightComponent>();
-	//spot_light_component.Color = glm::vec3(0.0f, 1.0f, 0.0f);
-	//spot_light_component.Intensity = 10.0f;
-
-	//auto& spot_light_transform = spot_light_entity.GetComponent<ignis::TransformComponent>();
-	//spot_light_transform.Translation = glm::vec3(0.0f, 0.0f, 5.0f);
+	// Set light position (useful for point and spot lights)
+	auto& directional_light_transform = m_light_entity->GetComponent<ignis::TransformComponent>();
+	directional_light_transform.Translation = glm::vec3(0.0f, 5.0f, 5.0f);
 
 	auto sky_light_entity = m_scene->CreateEntity("Sky Light");
 	auto& sky_light_component = sky_light_entity.AddComponent<ignis::SkyLightComponent>();
@@ -79,6 +63,7 @@ void SandBoxLayer::OnAttach()
 	sky_light_component.SceneEnvironment.SetSkyboxMap({
 		ignis::AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_skybox.hdr", ignis::AssetType::EnvironmentMap)
 		});
+	sky_light_component.Intensity = 0;
 
 	// Set this entity as selected in properties panel
 	if (auto* properties_panel = ignis::Application::Get().GetPropertiesPanel())
