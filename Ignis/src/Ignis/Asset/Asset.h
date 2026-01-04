@@ -10,7 +10,8 @@ namespace ignis
 	{
 		Unknown = 0,
 		Texture,
-		Mesh
+		Mesh,
+		EnvironmentMap
 	};
 
 	class Asset

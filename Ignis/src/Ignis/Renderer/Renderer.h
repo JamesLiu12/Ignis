@@ -14,7 +14,7 @@ namespace ignis
 	public:
 		virtual ~Renderer() = default;
 
-		virtual void BeginScene(Scene& scene, const Camera& camera) = 0;
+		virtual void BeginScene(std::shared_ptr<Pipeline> pipeline, std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera) = 0;
 		virtual void EndScene() = 0;
 
 		virtual void SetClearColor(float r, float g, float b, float a) = 0;
@@ -24,7 +24,7 @@ namespace ignis
 		virtual void SetViewport(const glm::ivec4& viewport) = 0;
 
 		virtual void DrawIndexed(VertexArray& va) = 0;
-		virtual void RenderMesh(const std::shared_ptr<Pipeline> pipeline, const Camera& camera, const std::shared_ptr<Mesh>& mesh, const glm::mat4& model) = 0;
+		virtual void RenderMesh(const std::shared_ptr<Mesh>& mesh, const glm::mat4& model) = 0;
 
 		virtual void Clear() = 0;
 

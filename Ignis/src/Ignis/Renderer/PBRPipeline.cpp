@@ -5,6 +5,7 @@
 namespace ignis
 {
 	static std::string PBRShaderPath = "assets://shaders/IgnisPBR.glsl";
+	static std::string SkyboxShaderPath = "assets://shaders/Skybox.glsl";
 
 	PBRPipeline::PBRPipeline(std::shared_ptr<ShaderLibrary> shader_library)
 		: m_shader_library(std::move(shader_library))
@@ -13,6 +14,14 @@ namespace ignis
 		{
 			m_shader_library->Load(PBRShaderPath);
 		}
+
+		if (!m_shader_library->Exists(SkyboxShaderPath))
+		{
+			m_shader_library->Load(SkyboxShaderPath);
+		}
+
+		AssetHandle texture_handle = AssetManager::ImportAsset("assets://images/ibl_brdf_lut.png");
+		m_brdf_lut_texture = AssetManager::GetAsset<Texture2D>(texture_handle);
 	}
 
 	std::shared_ptr<Material> PBRPipeline::CreateMaterial(const MaterialData& data)
@@ -61,8 +70,87 @@ namespace ignis
 		return material;
 	}
 
+	void PBRPipeline::ApplyEnvironment(Material& material, const Environment& scene_environment, const EnvironmentSettings& environment_settings, const LightEnvironment& light_environment)
+	{
+		material.Set("numDirectionalLights", (int)light_environment.DirectionalLights.size());
+		for (size_t i = 0; i < light_environment.DirectionalLights.size(); i++)
+		{
+			std::string base = "directionalLights[" + std::to_string(i) + "]";
+			material.Set(base + ".direction", light_environment.DirectionalLights[i].Direction);
+			material.Set(base + ".radiance", light_environment.DirectionalLights[i].Radiance);
+		}
+
+		material.Set("numPointLights", (int)light_environment.PointLights.size());
+		for (size_t i = 0; i < light_environment.PointLights.size(); i++)
+		{
+			std::string base = "pointLights[" + std::to_string(i) + "]";
+			material.Set(base + ".position", light_environment.PointLights[i].Position);
+			material.Set(base + ".radiance", light_environment.PointLights[i].Radiance);
+			material.Set(base + ".constant", light_environment.PointLights[i].Constant);
+			material.Set(base + ".linear", light_environment.PointLights[i].Linear);
+			material.Set(base + ".quadratic", light_environment.PointLights[i].Quadratic);
+		}
+
+		material.Set("numSpotLights", (int)light_environment.SpotLights.size());
+		for (size_t i = 0; i < light_environment.SpotLights.size(); i++)
+		{
+			std::string base = "spotLights[" + std::to_string(i) + "]";
+			material.Set(base + ".position", light_environment.SpotLights[i].Position);
+			material.Set(base + ".direction", light_environment.SpotLights[i].Direction);
+			material.Set(base + ".radiance", light_environment.SpotLights[i].Radiance);
+			material.Set(base + ".constant", light_environment.SpotLights[i].Constant);
+			material.Set(base + ".linear", light_environment.SpotLights[i].Linear);
+			material.Set(base + ".quadratic", light_environment.SpotLights[i].Quadratic);
+			material.Set(base + ".cutOff", light_environment.SpotLights[i].CutOff);
+			material.Set(base + ".outerCutOff", light_environment.SpotLights[i].OuterCutOff);
+		}
+
+		const auto& ibl_maps = scene_environment.GetIBLMaps();
+		if (ibl_maps)
+		{
+			material.Set("irradianceMap", 6);
+			if (auto texture = AssetManager::GetAsset<TextureCube>(ibl_maps->IrradianceMap))
+				texture->Bind(6);
+			material.Set("prefilterMap", 7);
+			if (auto texture = AssetManager::GetAsset<TextureCube>(ibl_maps->PrefilteredMap))
+				texture->Bind(7);
+			material.Set("brdfLUT", 8);
+			m_brdf_lut_texture->Bind(8);
+		}
+		else
+		{
+			// TODO: No Environment Map
+		}
+
+		material.Set("envSettings.intensity", environment_settings.Intensity);
+		material.Set("envSettings.rotation", environment_settings.Rotation);
+		material.Set("envSettings.tint", environment_settings.Tint);
+	}
+
+	std::shared_ptr<Material> PBRPipeline::CreateSkyboxMaterial(const Environment& scene_environment)
+	{
+		auto material = Material::Create(m_shader_library->Get(SkyboxShaderPath));
+
+		material->GetShader()->Bind();
+
+		material->Set("environmentMap", 0);
+		const auto& skybox_map = scene_environment.GetSkyboxMap();
+		if (skybox_map)
+		{
+			if (auto texture = AssetManager::GetAsset<TextureCube>(skybox_map.value()))
+				texture->Bind(0);
+		}
+
+		return material;
+	}
+
 	std::shared_ptr<Shader> PBRPipeline::GetStandardShader()
 	{
 		return m_shader_library->Get(PBRShaderPath);
+	}
+
+	std::shared_ptr<Shader> PBRPipeline::GetSkyboxShader()
+	{
+		return m_shader_library->Get(SkyboxShaderPath);
 	}
 }

@@ -16,4 +16,15 @@ namespace ignis
 			return nullptr;
 		}
 	}
+
+	std::shared_ptr<TextureCube> TextureCube::Create(const TextureSpecs& specs, std::span<const std::byte> data)
+	{
+		switch (GraphicsAPI::GetType())
+		{
+		case GraphicsAPI::Type::OpenGL:
+			return std::make_shared<GLTextureCube>(specs, data);
+		default:
+			return nullptr;
+		}
+	}
 }
