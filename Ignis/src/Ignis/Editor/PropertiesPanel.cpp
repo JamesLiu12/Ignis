@@ -68,6 +68,13 @@ namespace ignis {
 					auto& light = entity->GetComponent<SpotLightComponent>();
 					RenderSpotLightComponent(light);
 				}
+				
+				// Render Sky Light Component
+				if (entity->HasComponent<SkyLightComponent>())
+				{
+					auto& light = entity->GetComponent<SkyLightComponent>();
+					RenderSkyLightComponent(light);
+				}
 			}
 			else if (!m_current_mesh_ptr || !(*m_current_mesh_ptr))
 			{
@@ -366,6 +373,36 @@ namespace ignis {
 			if (auto entity = m_selected_entity.lock())
 			{
 				entity->RemoveComponent<SpotLightComponent>();
+			}
+		}
+		
+		ImGui::PopID();
+	}
+	
+	void PropertiesPanel::RenderSkyLightComponent(SkyLightComponent& light)
+	{
+		ImGui::PushID("SkyLight");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Sky Light", flags);
+		
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		bool remove = ImGui::Button("X");
+		
+		if (open)
+		{
+			ImGui::SliderFloat("Intensity", &light.Intensity, 0.0f, 10.0f);
+			ImGui::ColorEdit3("Tint", &light.Tint.x);
+			ImGui::SliderFloat("Rotation", &light.Rotation, 0.0f, 360.0f);
+			ImGui::SliderFloat("Skybox LOD", &light.SkyboxLod, 0.0f, 10.0f);
+			ImGui::Spacing();
+		}
+		
+		if (remove)
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<SkyLightComponent>();
 			}
 		}
 		

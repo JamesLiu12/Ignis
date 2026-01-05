@@ -11,6 +11,11 @@ namespace ignis
 		entity.AddComponent<TagComponent>(name.empty() ? "Entity" : name);
 		return entity;
 	}
+	
+	Entity Scene::GetEntityByHandle(entt::entity handle)
+	{
+		return Entity(handle, &m_registry);
+	}
 
 	static inline void ComputeAttenuationFromRange(float range, float& out_linear, float& out_quadratic, float edge = 0.01f)
 	{

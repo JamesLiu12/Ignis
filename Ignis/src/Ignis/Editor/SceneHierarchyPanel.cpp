@@ -25,10 +25,10 @@ namespace ignis {
 			if (m_scene)
 			{
 				// Iterate through all entities in the scene
-				auto view = m_scene->m_registry.view<TagComponent>();
-				for (auto entityID : view)
+				auto view = m_scene->GetAllEntitiesWith<TagComponent>();
+				for (auto entityHandle : view)
 				{
-					Entity entity{ entityID, &m_scene->m_registry };
+					Entity entity = m_scene->GetEntityByHandle(entityHandle);
 					
 					// Only show entities with light components
 					if (entity.HasComponent<DirectionalLightComponent>() ||
