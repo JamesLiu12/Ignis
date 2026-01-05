@@ -6,6 +6,7 @@
 
 #include "Ignis/Editor/EditorConsolePanel.h"
 #include "Ignis/Editor/PropertiesPanel.h"
+#include "Ignis/Editor/SceneHierarchyPanel.h"
 
 #include "Ignis/Renderer/VertexBuffer.h"
 #include "Ignis/Renderer/Shader.h"

@@ -42,18 +42,40 @@ void SandBoxLayer::OnAttach()
 	test_id = ignis::UUID("Invalid ID");
 	ignis::Log::CoreInfo("Generated UUID is valid: {}", test_id.IsValid());
 	
-	// Create a light entity for testing properties panel
-	auto directional_light_entity = m_scene->CreateEntity("Main Directional Light");
+	// Create Directional Light entity
+	auto directional_light_entity = m_scene->CreateEntity("Directional Light");
 	m_light_entity = std::make_shared<ignis::Entity>(directional_light_entity);
 
-	auto& light = m_light_entity->AddComponent<ignis::DirectionalLightComponent>();
-	light.Color = glm::vec3(1.0f, 0.95f, 0.8f); // Warm white light
-	light.Intensity = 1.5f;
+	auto& dir_light = m_light_entity->AddComponent<ignis::DirectionalLightComponent>();
+	dir_light.Color = glm::vec3(1.0f, 0.95f, 0.8f); // Warm white light
+	dir_light.Intensity = 1.5f;
 	
-	// Set light position (useful for point and spot lights)
-	auto& directional_light_transform = m_light_entity->GetComponent<ignis::TransformComponent>();
-	directional_light_transform.Translation = glm::vec3(0.0f, 5.0f, 5.0f);
+	auto& dir_transform = m_light_entity->GetComponent<ignis::TransformComponent>();
+	dir_transform.Translation = glm::vec3(0.0f, 5.0f, 5.0f);
 
+	// Create Point Light entity
+	auto point_light_entity = m_scene->CreateEntity("Point Light");
+	auto& point_light = point_light_entity.AddComponent<ignis::PointLightComponent>();
+	point_light.Color = glm::vec3(1.0f, 0.0f, 0.0f); // Red
+	point_light.Intensity = 5.0f;
+	point_light.Range = 10.0f;
+	
+	auto& point_transform = point_light_entity.GetComponent<ignis::TransformComponent>();
+	point_transform.Translation = glm::vec3(2.0f, 2.0f, 0.0f);
+
+	// Create Spot Light entity
+	auto spot_light_entity = m_scene->CreateEntity("Spot Light");
+	auto& spot_light = spot_light_entity.AddComponent<ignis::SpotLightComponent>();
+	spot_light.Color = glm::vec3(0.0f, 1.0f, 0.0f); // Green
+	spot_light.Intensity = 10.0f;
+	spot_light.Range = 15.0f;
+	spot_light.InnerConeAngle = 12.5f;
+	spot_light.OuterConeAngle = 17.5f;
+	
+	auto& spot_transform = spot_light_entity.GetComponent<ignis::TransformComponent>();
+	spot_transform.Translation = glm::vec3(-2.0f, 2.0f, 0.0f);
+
+	// Create Sky Light entity
 	auto sky_light_entity = m_scene->CreateEntity("Sky Light");
 	auto& sky_light_component = sky_light_entity.AddComponent<ignis::SkyLightComponent>();
 	sky_light_component.SceneEnvironment.SetIBLMaps({
@@ -64,11 +86,22 @@ void SandBoxLayer::OnAttach()
 		ignis::AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_skybox.hdr", ignis::AssetType::EnvironmentMap)
 		});
 
-	// Set this entity as selected in properties panel
+	// Set the scene in the hierarchy panel
+	if (auto* hierarchy_panel = ignis::Application::Get().GetSceneHierarchyPanel())
+	{
+		hierarchy_panel->SetScene(m_scene);
+		ignis::Log::CoreInfo("Scene set in hierarchy panel");
+	}
+	else
+	{
+		ignis::Log::CoreWarn("Scene hierarchy panel not found");
+	}
+	
+	// Set directional light as initially selected in properties panel
 	if (auto* properties_panel = ignis::Application::Get().GetPropertiesPanel())
 	{
 		properties_panel->SetSelectedEntity(m_light_entity);
-		ignis::Log::CoreInfo("Light entity set as selected in properties panel");
+		ignis::Log::CoreInfo("Directional light entity set as selected in properties panel");
 	}
 	else
 	{

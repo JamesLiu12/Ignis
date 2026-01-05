@@ -10,8 +10,17 @@ namespace ignis
 	class Entity
 	{
 	public:
+		Entity() = default;
 		Entity(entt::entity handle, entt::registry* registry);
 		~Entity() = default;
+		
+		bool operator==(const Entity& other) const
+		{
+			return m_handle == other.m_handle && m_registry == other.m_registry;
+		}
+		
+		operator bool() const { return m_handle != entt::null && m_registry != nullptr; }
+		operator uint32_t() const { return static_cast<uint32_t>(m_handle); }
 
 		template<typename T, typename... Args>
 			requires std::is_base_of_v<Component, T>
@@ -42,7 +51,7 @@ namespace ignis
 		}
 
 	private:
-		entt::entity m_handle;
-		entt::registry* m_registry;
+		entt::entity m_handle = entt::null;
+		entt::registry* m_registry = nullptr;
 	};
 }
