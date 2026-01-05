@@ -212,7 +212,7 @@ namespace ignis {
 		
 		// Dropdown for default textures (use unique ID per slot)
 		const char* options[] = {
-			"Keep Current",
+			"Select",
 			"Browse Texture...",
 			"None (Clear)",
 			"White Texture",
@@ -221,12 +221,12 @@ namespace ignis {
 			"Default Roughness"
 		};
 		
-		int selected = 0; // Always start at "Keep Current"
+		int selected = 0; // Always start at Select
 		if (ImGui::Combo("##TextureOptions", &selected, options, IM_ARRAYSIZE(options)))
 		{
 			switch (selected)
 			{
-				case 0: // Keep Current
+				case 0: // Select
 					break;
 				case 1: // Browse Texture
 					{
