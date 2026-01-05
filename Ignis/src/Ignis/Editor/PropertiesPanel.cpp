@@ -23,20 +23,21 @@ namespace ignis {
 
 		if (ImGui::Begin("Properties", nullptr, window_flags))
 		{
-			// Section 1: Current Mesh Editor
+			// Section 1: ALWAYS show mesh/texture UI at top (if mesh exists)
 			if (m_current_mesh_ptr && *m_current_mesh_ptr)
 			{
 				RenderMeshEditor();
+				ImGui::Separator();
 			}
 			
-			// Section 2: Selected Entity
+			// Section 2: Show selected light entity controls below
 			if (auto entity = m_selected_entity.lock())
 			{
 				// Render entity name
 				if (entity->HasComponent<TagComponent>())
 				{
 					auto& tag = entity->GetComponent<TagComponent>();
-					ImGui::Text("Entity: %s", tag.Tag.c_str());
+					ImGui::Text("Light Entity: %s", tag.Tag.c_str());
 					ImGui::Separator();
 				}
 				
@@ -66,34 +67,6 @@ namespace ignis {
 				{
 					auto& light = entity->GetComponent<SpotLightComponent>();
 					RenderSpotLightComponent(light);
-				}
-				
-				// Add Component Section
-				ImGui::Separator();
-				ImGui::Text("Add Component");
-				
-				if (!entity->HasComponent<DirectionalLightComponent>())
-				{
-					if (ImGui::Button("Add Directional Light"))
-					{
-						entity->AddComponent<DirectionalLightComponent>();
-					}
-				}
-				
-				if (!entity->HasComponent<PointLightComponent>())
-				{
-					if (ImGui::Button("Add Point Light"))
-					{
-						entity->AddComponent<PointLightComponent>();
-					}
-				}
-				
-				if (!entity->HasComponent<SpotLightComponent>())
-				{
-					if (ImGui::Button("Add Spot Light"))
-					{
-						entity->AddComponent<SpotLightComponent>();
-					}
 				}
 			}
 			else if (!m_current_mesh_ptr || !(*m_current_mesh_ptr))

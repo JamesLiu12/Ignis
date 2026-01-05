@@ -3,6 +3,7 @@
 #include "Ignis/Editor/EditorLayer.h"
 #include "Ignis/Editor/EditorConsolePanel.h"
 #include "Ignis/Editor/PropertiesPanel.h"
+#include "Ignis/Editor/SceneHierarchyPanel.h"
 #include "Ignis/Debug/EngineStatsPanel.h"
 #include "Ignis/Core/Events/KeyEvents.h"
 #include "Input.h"
@@ -74,6 +75,10 @@ namespace ignis
 		
 		// Add Properties panel (right section)
 		m_properties_panel = panel_manager.AddPanel<PropertiesPanel>("Properties", "Properties", true);
+		
+		// Add Scene Hierarchy panel (left section)
+		m_scene_hierarchy_panel = panel_manager.AddPanel<SceneHierarchyPanel>("SceneHierarchy", "Scene Hierarchy", true);
+		m_scene_hierarchy_panel->SetPropertiesPanel(m_properties_panel.get());
 		
 		// Add some test messages to the console
 		console_panel->AddMessage(ConsoleMessageLevel::Info, "Ignis Editor initialized");

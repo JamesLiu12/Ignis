@@ -63,8 +63,10 @@ namespace ignis
 
 		void OnRender();
 
-	private:
+	public:
 		entt::registry m_registry;
+		
+	private:
 		LightEnvironment m_light_environment;
 		Environment m_scene_environment;
 		EnvironmentSettings m_environment_settings;
