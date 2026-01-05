@@ -62,6 +62,16 @@ namespace ignis
 		Entity CreateEntity(const std::string name = "");
 
 		void OnRender();
+	
+	// Entity query methods (for editor/tools)
+	template<typename... Components>
+	auto GetAllEntitiesWith()
+	{
+		return m_registry.view<Components...>();
+	}
+	
+	// Get Entity wrapper from handle (for editor)
+	Entity GetEntityByHandle(entt::entity handle);
 
 	private:
 		entt::registry m_registry;

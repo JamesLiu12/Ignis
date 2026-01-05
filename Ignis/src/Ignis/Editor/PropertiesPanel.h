@@ -36,6 +36,7 @@ namespace ignis {
 		void RenderDirectionalLightComponent(DirectionalLightComponent& light);
 		void RenderPointLightComponent(PointLightComponent& light);
 		void RenderSpotLightComponent(SpotLightComponent& light);
+		void RenderSkyLightComponent(SkyLightComponent& light);
 		
 		// Mesh editing UI
 		void RenderMeshEditor();
