@@ -54,6 +54,10 @@ namespace ignis
 			requires std::invocable<Func, Entity>
 		void ForEachChild(Func func);
 
+		void MoveTo(Entity target_prev_sibling);
+		void SetSiblingIndex(int index);
+		void MoveToAfter(Entity target_prev_sibling);
+
 	private:
 		entt::entity m_handle = entt::null;
 		Scene* m_scene = nullptr;
