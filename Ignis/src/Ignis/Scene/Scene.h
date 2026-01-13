@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Entity.h"
 #include "Ignis/Renderer/Environment.h"
 
 #include <entt.hpp>
@@ -45,7 +46,7 @@ namespace ignis
 		std::vector<SpotLight> SpotLights;
 	};
 
-	class Entity;
+
 
 	class Scene
 	{
@@ -59,27 +60,32 @@ namespace ignis
 		Scene(Scene&&) = default;
 		Scene& operator=(Scene&&) = default;
 
-		Entity CreateEntity(const std::string name = "");
+		Entity CreateEntity(const std::string name = "", Entity parent = {});
 
 		void OnRender();
 	
-	// Entity query methods (for editor/tools)
 	template<typename... Components>
 	auto GetAllEntitiesWith()
 	{
 		return m_registry.view<Components...>();
 	}
-	
+
 	// Get Entity wrapper from handle (for editor)
 	Entity GetEntityByHandle(entt::entity handle);
+
+	Entity GetEntityByID(UUID id) const;
 
 	private:
 		entt::registry m_registry;
 		LightEnvironment m_light_environment;
 		Environment m_scene_environment;
 		EnvironmentSettings m_environment_settings;
+		std::unordered_map<UUID, Entity> m_id_entity_map;
 
+		friend class Entity;
 		// TODO: Move this to SceneRenderer
 		friend class GLRenderer;
 	};
 }
+
+#include "EntityImpl.h"

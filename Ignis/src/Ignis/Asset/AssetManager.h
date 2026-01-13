@@ -7,7 +7,7 @@ namespace ignis
 {
 	struct AssetMetadata
 	{
-		AssetHandle handle = AssetHandle::InvalidUUID;
+		AssetHandle handle = AssetHandle::Invalid;
 		AssetType Type;
 		std::filesystem::path FilePath;
 	};
