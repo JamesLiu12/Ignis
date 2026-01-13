@@ -2,56 +2,56 @@
 
 #include <entt.hpp>
 
-#include "Scene.h"
 #include "Components.h"
 
 namespace ignis
 {
+	class Scene;
+
 	class Entity
 	{
 	public:
 		Entity() = default;
-		Entity(entt::entity handle, entt::registry* registry);
+		Entity(entt::entity handle, Scene* scene);
 		~Entity() = default;
-		
-		bool operator==(const Entity& other) const
-		{
-			return m_handle == other.m_handle && m_registry == other.m_registry;
-		}
-		
-		operator bool() const { return m_handle != entt::null && m_registry != nullptr; }
-		operator uint32_t() const { return static_cast<uint32_t>(m_handle); }
 
 		template<typename T, typename... Args>
 			requires std::is_base_of_v<Component, T>
-		T& AddComponent(Args&&... args)
-		{
-			return m_registry->emplace<T>(m_handle, std::forward<Args>(args)...);
-		}
+		T& AddComponent(Args&&... args);
 		
 		template<typename T>
 			requires std::is_base_of_v<Component, T>
-		T& GetComponent()
-		{
-			return m_registry->get<T>(m_handle);
-		}
+		T& GetComponent() const;
 
 		template<typename T>
 			requires std::is_base_of_v<Component, T>
-		bool HasComponent()
-		{
-			return m_registry->all_of<T>(m_handle);
-		}
+		bool HasComponent();
 
 		template<typename T>
 			requires std::is_base_of_v<Component, T>
-		void RemoveComponent()
+		void RemoveComponent();
+
+		bool IsValid() const;
+
+		bool operator==(const Entity& other) const
 		{
-			m_registry->remove<T>(m_handle);
+			return m_handle == other.m_handle && m_scene == other.m_scene;
 		}
+
+		operator bool() const;
+		operator uint32_t() const { return static_cast<uint32_t>(m_handle); }
+
+		UUID GetID() const;
+
+		Entity GetParent() const;
+		void SetParent(Entity new_parent);
+		void Unparent();
+		void AddChild(Entity child);
+		void RemoveChild(Entity child);
+
 
 	private:
 		entt::entity m_handle = entt::null;
-		entt::registry* m_registry = nullptr;
+		Scene* m_scene = nullptr;
 	};
 }

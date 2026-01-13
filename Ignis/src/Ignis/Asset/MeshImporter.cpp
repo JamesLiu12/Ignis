@@ -55,7 +55,7 @@ namespace ignis
 				if (!VFS::Exists(tex_path))
 				{
 					Log::Warn("Texture file does not exist: {}", tex_path);
-					return AssetHandle::InvalidUUID;
+					return AssetHandle::Invalid;
 				}
 				return AssetManager::ImportAsset(tex_path);
 			};

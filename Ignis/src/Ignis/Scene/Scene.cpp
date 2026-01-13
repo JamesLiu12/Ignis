@@ -4,17 +4,30 @@
 
 namespace ignis
 {
-	Entity Scene::CreateEntity(const std::string name)
+	Entity Scene::CreateEntity(const std::string name, Entity parent)
 	{
-		Entity entity = Entity(m_registry.create(), &m_registry);
+		Entity entity = Entity(m_registry.create(), this);
+
+		auto& id_component = entity.AddComponent<IDComponent>(UUID());
+		m_id_entity_map[id_component.ID] = entity;
+
+		entity.AddComponent<RelationshipComponent>();
+
 		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<TagComponent>(name.empty() ? "Entity" : name);
 		return entity;
 	}
-	
+
 	Entity Scene::GetEntityByHandle(entt::entity handle)
 	{
-		return Entity(handle, &m_registry);
+		return Entity(handle, this);
+	}
+	
+	Entity Scene::GetEntityByID(UUID id) const
+	{
+		const auto it = m_id_entity_map.find(id);
+		if (it != m_id_entity_map.end()) return it->second;
+		return {};
 	}
 
 	static inline void ComputeAttenuationFromRange(float range, float& out_linear, float& out_quadratic, float edge = 0.01f)
