@@ -15,7 +15,6 @@ static void SceneHierarchyTest(ignis::Scene* scene)
 	b.SetParent(a);
 	c.SetParent(a);
 	a.AddChild(d);
-	b.Unparent();
 
 	std::unordered_map<ignis::UUID, std::string> id_to_name;
 	id_to_name[a.GetID()] = "a";
@@ -26,11 +25,24 @@ static void SceneHierarchyTest(ignis::Scene* scene)
 	ignis::Log::CoreInfo("{} is the parent of {}", id_to_name[b.GetParentID()], id_to_name[b.GetID()]);
 	ignis::Log::CoreInfo("{} is the parent of {}", id_to_name[c.GetParentID()], id_to_name[c.GetID()]);
 	ignis::Log::CoreInfo("{} is the parent of {}", id_to_name[d.GetParent().GetID()], id_to_name[d.GetID()]);
+
+	auto children = a.GetChildren();
+	for (const auto& child : children)
+	{
+		ignis::Log::CoreInfo("a's child: {}", id_to_name[child.GetID()]);
+	}
+
+	a.ForEachChild([&](ignis::Entity entity) {
+		ignis::Log::CoreInfo("a's child: {}", id_to_name[entity.GetID()]);
+		});
+
+	b.Unparent();
 	b.RemoveChild(c);
 	b.AddChild(c);
 	ignis::Log::CoreInfo("{} is the parent of {}", id_to_name[b.GetParentID()], id_to_name[b.GetID()]);
 	ignis::Log::CoreInfo("{} is the parent of {}", id_to_name[c.GetParentID()], id_to_name[c.GetID()]);
 	ignis::Log::CoreInfo("{} is the parent of {}", id_to_name[d.GetParent().GetID()], id_to_name[d.GetID()]);
+
 }
 
 void SandBoxLayer::OnAttach()

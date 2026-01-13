@@ -29,4 +29,23 @@ namespace ignis
 	{
 		m_scene->m_registry.remove<T>(m_handle);
 	}
+
+	template<typename Func>
+		requires std::invocable<Func, Entity>
+	void Entity::ForEachChild(Func func)
+	{
+		const auto& rel = GetComponent<RelationshipComponent>();
+		UUID current_id = rel.FirstChildID;
+
+		while (current_id != UUID::Invalid)
+		{
+			Entity child = m_scene->GetEntityByID(current_id);
+
+			UUID next_id = child.GetComponent<RelationshipComponent>().NextSiblingID;
+
+			func(child);
+
+			current_id = next_id;
+		}
+	}
 }

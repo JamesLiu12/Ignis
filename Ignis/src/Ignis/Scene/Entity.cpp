@@ -117,4 +117,22 @@ namespace ignis
 			 Log::Warn("Entity {0} is not a child of {1}", child.GetID().ToString(), GetID().ToString());
 		}
 	}
+
+	std::vector<Entity> Entity::GetChildren() const
+	{
+		std::vector<Entity> children;
+
+		const auto& rel = GetComponent<RelationshipComponent>();
+		UUID current_id = rel.FirstChildID;
+
+		while (current_id != UUID::Invalid)
+		{
+			Entity child = m_scene->GetEntityByID(current_id);
+			children.push_back(child);
+
+			current_id = child.GetComponent<RelationshipComponent>().NextSiblingID;
+		}
+
+		return children;
+	}
 }
