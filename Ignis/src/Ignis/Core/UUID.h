@@ -16,7 +16,7 @@ namespace ignis
 		bool operator==(const UUID& other) const { return m_uuid == other.m_uuid; }
 		bool operator!=(const UUID& other) const { return m_uuid != other.m_uuid; }
 		bool operator<(const UUID& other) const { return m_uuid < other.m_uuid; }
-		operator bool() { return IsValid(); }
+		operator bool() const { return IsValid(); }
 
 		bool IsValid() const;
 

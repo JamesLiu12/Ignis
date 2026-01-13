@@ -21,9 +21,14 @@ namespace ignis
 		return GetComponent<IDComponent>().ID;
 	}
 
+	UUID Entity::GetParentID() const
+	{
+		return GetComponent<RelationshipComponent>().ParentID;
+	}
+
 	Entity Entity::GetParent() const
 	{
-		return m_scene->GetEntityByID(GetComponent<IDComponent>().ID);
+		return m_scene->GetEntityByID(GetParentID());
 	}
 
 	void Entity::SetParent(Entity new_parent)
