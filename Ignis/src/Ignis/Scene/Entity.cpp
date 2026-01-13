@@ -154,4 +154,171 @@ namespace ignis
 
 		return children;
 	}
+
+	void Entity::MoveTo(Entity target_prev_sibling)
+	{
+		Entity parent = GetParent();
+
+		if (!parent) return;
+
+		if (target_prev_sibling && target_prev_sibling.GetParent() != parent)
+		{
+			return;
+		}
+
+		if (target_prev_sibling == *this) return;
+
+		auto& my_rel = GetComponent<RelationshipComponent>();
+
+		if (target_prev_sibling)
+		{
+			if (my_rel.PrevSiblingID == target_prev_sibling.GetID()) return;
+		}
+		else
+		{
+			if (my_rel.PrevSiblingID == UUID::Invalid) return;
+		}
+
+		auto& parent_rel = parent.GetComponent<RelationshipComponent>();
+
+		UUID my_id = GetID();
+		UUID old_prev_id = my_rel.PrevSiblingID;
+		UUID old_next_id = my_rel.NextSiblingID;
+
+		if (old_prev_id != UUID::Invalid)
+		{
+			Entity old_prev = m_scene->GetEntityByID(old_prev_id);
+			old_prev.GetComponent<RelationshipComponent>().NextSiblingID = old_next_id;
+		}
+		if (old_next_id != UUID::Invalid)
+		{
+			Entity old_next = m_scene->GetEntityByID(old_next_id);
+			old_next.GetComponent<RelationshipComponent>().PrevSiblingID = old_prev_id;
+		}
+
+		if (parent_rel.FirstChildID == my_id)
+			parent_rel.FirstChildID = old_next_id;
+		if (parent_rel.LastChildID == my_id)
+			parent_rel.LastChildID = old_prev_id;
+
+
+		if (target_prev_sibling)
+		{
+			UUID target_id = target_prev_sibling.GetID();
+			auto& target_rel = target_prev_sibling.GetComponent<RelationshipComponent>();
+			UUID target_next_id = target_rel.NextSiblingID;
+
+			my_rel.PrevSiblingID = target_id;
+			my_rel.NextSiblingID = target_next_id;
+
+			target_rel.NextSiblingID = my_id;
+
+			if (target_next_id != UUID::Invalid)
+			{
+				Entity target_next = m_scene->GetEntityByID(target_next_id);
+				target_next.GetComponent<RelationshipComponent>().PrevSiblingID = my_id;
+			}
+			else
+			{
+				parent_rel.LastChildID = my_id;
+			}
+		}
+		else
+		{
+			UUID old_first_id = parent_rel.FirstChildID;
+
+			my_rel.PrevSiblingID = UUID::Invalid;
+			my_rel.NextSiblingID = old_first_id;
+
+			parent_rel.FirstChildID = my_id;
+
+			if (old_first_id != UUID::Invalid)
+			{
+				Entity old_first = m_scene->GetEntityByID(old_first_id);
+				old_first.GetComponent<RelationshipComponent>().PrevSiblingID = my_id;
+			}
+			else
+			{
+				parent_rel.LastChildID = my_id;
+			}
+		}
+	}
+
+	void Entity::SetSiblingIndex(int index)
+	{
+		Entity parent = GetParent();
+		if (!parent) return;
+
+		const auto& parent_rel = parent.GetComponent<RelationshipComponent>();
+		int child_count = (int)parent_rel.ChildrenCount;
+
+		if (index < 0) index = 0;
+		if (index >= child_count) index = child_count - 1;
+
+		int current_index = -1;
+		UUID current_search_id = parent_rel.FirstChildID;
+		int search_i = 0;
+		while (current_search_id != UUID::Invalid)
+		{
+			if (current_search_id == GetID())
+			{
+				current_index = search_i;
+				break;
+			}
+			current_search_id = m_scene->GetEntityByID(current_search_id).GetComponent<RelationshipComponent>().NextSiblingID;
+			search_i++;
+		}
+
+		if (current_index == -1 || current_index == index) return;
+
+		int target_prev_index;
+
+		if (index < current_index)
+		{
+			target_prev_index = index - 1;
+		}
+		else
+		{
+			target_prev_index = index;
+		}
+
+		if (target_prev_index < 0)
+		{
+			MoveTo(Entity());
+		}
+		else
+		{
+			Entity target_prev = Entity();
+			UUID curr_id = parent_rel.FirstChildID;
+			int curr_idx = 0;
+
+			while (curr_id != UUID::Invalid)
+			{
+				if (curr_idx == target_prev_index)
+				{
+					target_prev = m_scene->GetEntityByID(curr_id);
+					break;
+				}
+				curr_id = m_scene->GetEntityByID(curr_id).GetComponent<RelationshipComponent>().NextSiblingID;
+				curr_idx++;
+			}
+
+			MoveTo(target_prev);
+		}
+	}
+
+	void Entity::MoveToAfter(Entity target_prev_sibling)
+	{
+		if (!target_prev_sibling) return;
+
+		Entity target_parent = target_prev_sibling.GetParent();
+		Entity current_parent = GetParent();
+
+		if (target_parent != current_parent)
+		{
+			SetParent(target_parent);
+		}
+
+		MoveTo(target_prev_sibling);
+	}
 }

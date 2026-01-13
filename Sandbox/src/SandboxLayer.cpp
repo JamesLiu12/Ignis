@@ -43,6 +43,17 @@ static void SceneHierarchyTest(ignis::Scene* scene)
 	ignis::Log::CoreInfo("{} is the parent of {}", id_to_name[c.GetParentID()], id_to_name[c.GetID()]);
 	ignis::Log::CoreInfo("{} is the parent of {}", id_to_name[d.GetParent().GetID()], id_to_name[d.GetID()]);
 
+	a.MoveToAfter(c);
+	d.MoveToAfter(a);
+	c.SetSiblingIndex(2);
+	d.SetSiblingIndex(0);
+
+	a.ForEachChild([&](ignis::Entity entity) {
+		ignis::Log::CoreInfo("a's child: {}", id_to_name[entity.GetID()]);
+		});
+	b.ForEachChild([&](ignis::Entity entity) {
+		ignis::Log::CoreInfo("b's child: {}", id_to_name[entity.GetID()]);
+		});
 }
 
 void SandBoxLayer::OnAttach()
