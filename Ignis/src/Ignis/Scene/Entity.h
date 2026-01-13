@@ -48,7 +48,11 @@ namespace ignis
 		void Unparent();
 		void AddChild(Entity child);
 		void RemoveChild(Entity child);
-
+		std::vector<Entity> GetChildren() const;
+		
+		template<typename Func>
+			requires std::invocable<Func, Entity>
+		void ForEachChild(Func func);
 
 	private:
 		entt::entity m_handle = entt::null;
