@@ -52,18 +52,28 @@ namespace ignis
 
 		my_rel.ParentID = new_parent_id;
 
-		UUID old_first_child_id = parent_rel.FirstChildID;
-
-		if (old_first_child_id)
+		if (parent_rel.ChildrenCount == 0)
 		{
-			Entity old_first_child = m_scene->GetEntityByID(old_first_child_id);
-			auto& old_first_rel = old_first_child.GetComponent<RelationshipComponent>();
+			parent_rel.FirstChildID = my_id;
+			parent_rel.LastChildID = my_id;
 
-			my_rel.NextSiblingID = old_first_child_id;
-			old_first_rel.PrevSiblingID = my_id;
+			my_rel.PrevSiblingID = UUID::Invalid;
+			my_rel.NextSiblingID = UUID::Invalid;
+		}
+		else
+		{
+			UUID old_last_id = parent_rel.LastChildID;
+			Entity old_last_entity = m_scene->GetEntityByID(old_last_id);
+			auto& old_last_rel = old_last_entity.GetComponent<RelationshipComponent>();
+
+			old_last_rel.NextSiblingID = my_id;
+			my_rel.PrevSiblingID = old_last_id;
+			my_rel.NextSiblingID = UUID::Invalid;
+
+			parent_rel.LastChildID = my_id;
 		}
 
-		parent_rel.FirstChildID = my_id;
+		parent_rel.ChildrenCount++;
 	}
 
 	void Entity::Unparent()
@@ -71,31 +81,40 @@ namespace ignis
 		Entity parent = GetParent();
 		if (!parent) return;
 
-		UUID my_id = GetID();
-
 		auto& my_rel = GetComponent<RelationshipComponent>();
 		auto& parent_rel = parent.GetComponent<RelationshipComponent>();
 
-		if (my_rel.PrevSiblingID != 0)
-		{
-			Entity prev_entity = m_scene->GetEntityByID(my_rel.PrevSiblingID);
-			prev_entity.GetComponent<RelationshipComponent>().NextSiblingID = my_rel.NextSiblingID;
-		}
-
-		if (my_rel.NextSiblingID != 0)
-		{
-			Entity nextEntity = m_scene->GetEntityByID(my_rel.NextSiblingID);
-			nextEntity.GetComponent<RelationshipComponent>().PrevSiblingID = my_rel.PrevSiblingID;
-		}
+		UUID my_id = GetID();
+		UUID prev_id = my_rel.PrevSiblingID;
+		UUID next_id = my_rel.NextSiblingID;
 
 		if (parent_rel.FirstChildID == my_id)
 		{
-			parent_rel.FirstChildID = my_rel.NextSiblingID;
+			parent_rel.FirstChildID = next_id;
+		}
+
+		if (parent_rel.LastChildID == my_id)
+		{
+			parent_rel.LastChildID = prev_id;
+		}
+
+		if (prev_id)
+		{
+			Entity prev_entity = m_scene->GetEntityByID(prev_id);
+			prev_entity.GetComponent<RelationshipComponent>().NextSiblingID = next_id;
+		}
+
+		if (next_id)
+		{
+			Entity next_entity = m_scene->GetEntityByID(next_id);
+			next_entity.GetComponent<RelationshipComponent>().PrevSiblingID = prev_id;
 		}
 
 		my_rel.ParentID = UUID::Invalid;
+		my_rel.PrevSiblingID = UUID::Invalid;
 		my_rel.NextSiblingID = UUID::Invalid;
-		my_rel.PrevSiblingID  = UUID::Invalid;
+
+		parent_rel.ChildrenCount--;
 	}
 
 	void Entity::AddChild(Entity child)

@@ -40,8 +40,11 @@ namespace ignis
 	{
 		UUID ParentID = UUID::Invalid;
 		UUID FirstChildID = UUID::Invalid;
+		UUID LastChildID = UUID::Invalid;
 		UUID PrevSiblingID = UUID::Invalid;
 		UUID NextSiblingID = UUID::Invalid;
+
+		uint32_t ChildrenCount = 0;
 	};
 
 	struct TransformComponent : Component
