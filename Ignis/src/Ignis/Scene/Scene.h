@@ -60,7 +60,8 @@ namespace ignis
 		Scene(Scene&&) = default;
 		Scene& operator=(Scene&&) = default;
 
-		Entity CreateEntity(const std::string name = "", Entity parent = {});
+		Entity CreateEntity(const std::string name = "");
+		Entity CreateEntity(Entity parent, const std::string name = "");
 
 		void OnRender();
 	

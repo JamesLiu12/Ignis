@@ -4,7 +4,12 @@
 
 namespace ignis
 {
-	Entity Scene::CreateEntity(const std::string name, Entity parent)
+	Entity Scene::CreateEntity(const std::string name)
+	{
+		return CreateEntity({}, name);
+	}
+
+	Entity Scene::CreateEntity(Entity parent, const std::string name)
 	{
 		Entity entity = Entity(m_registry.create(), this);
 

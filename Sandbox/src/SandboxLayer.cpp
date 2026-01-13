@@ -6,6 +6,33 @@ SandBoxLayer::SandBoxLayer(ignis::Renderer& renderer)
 {
 }
 
+static void SceneHierarchyTest(ignis::Scene* scene)
+{
+	auto a = scene->CreateEntity();
+	auto b = scene->CreateEntity();
+	auto c = scene->CreateEntity();
+	auto d = scene->CreateEntity();
+	b.SetParent(a);
+	c.SetParent(a);
+	a.AddChild(d);
+	b.Unparent();
+
+	std::unordered_map<ignis::UUID, std::string> id_to_name;
+	id_to_name[a.GetID()] = "a";
+	id_to_name[b.GetID()] = "b";
+	id_to_name[c.GetID()] = "c";
+	id_to_name[d.GetID()] = "d";
+
+	ignis::Log::CoreInfo("{} is the parent of {}", id_to_name[b.GetParentID()], id_to_name[b.GetID()]);
+	ignis::Log::CoreInfo("{} is the parent of {}", id_to_name[c.GetParentID()], id_to_name[c.GetID()]);
+	ignis::Log::CoreInfo("{} is the parent of {}", id_to_name[d.GetParent().GetID()], id_to_name[d.GetID()]);
+	b.RemoveChild(c);
+	b.AddChild(c);
+	ignis::Log::CoreInfo("{} is the parent of {}", id_to_name[b.GetParentID()], id_to_name[b.GetID()]);
+	ignis::Log::CoreInfo("{} is the parent of {}", id_to_name[c.GetParentID()], id_to_name[c.GetID()]);
+	ignis::Log::CoreInfo("{} is the parent of {}", id_to_name[d.GetParent().GetID()], id_to_name[d.GetID()]);
+}
+
 void SandBoxLayer::OnAttach()
 {
 	m_shader_library = std::make_shared<ignis::ShaderLibrary>();
@@ -119,6 +146,8 @@ void SandBoxLayer::OnAttach()
 	{
 		properties_panel->SetCurrentMesh(&m_mesh, &m_mesh_transform_component);
 	}
+
+	SceneHierarchyTest(m_scene.get());
 }
 
 void SandBoxLayer::OnUpdate(float dt)

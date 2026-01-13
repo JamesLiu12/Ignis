@@ -42,7 +42,7 @@ namespace ignis
 		operator uint32_t() const { return static_cast<uint32_t>(m_handle); }
 
 		UUID GetID() const;
-
+		UUID GetParentID() const;
 		Entity GetParent() const;
 		void SetParent(Entity new_parent);
 		void Unparent();
