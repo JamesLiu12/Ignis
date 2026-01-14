@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Ignis/Core/UUID.h"
+#include "Ignis/Renderer/Environment.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -13,6 +16,16 @@ namespace ignis
 
 	inline Component::~Component() = default;
 
+	struct IDComponent : Component
+	{
+		UUID ID = UUID::Invalid;
+
+		IDComponent() = default;
+		IDComponent(const IDComponent&) = default;
+		IDComponent(UUID id)
+			: ID(id) {}
+	};
+
 	struct TagComponent : Component
 	{
 		std::string Tag;
@@ -21,6 +34,17 @@ namespace ignis
 		TagComponent(const TagComponent&) = default;
 		TagComponent(const std::string& tag)
 			: Tag(tag) {}
+	};
+
+	struct RelationshipComponent : Component
+	{
+		UUID ParentID = UUID::Invalid;
+		UUID FirstChildID = UUID::Invalid;
+		UUID LastChildID = UUID::Invalid;
+		UUID PrevSiblingID = UUID::Invalid;
+		UUID NextSiblingID = UUID::Invalid;
+
+		uint32_t ChildrenCount = 0;
 	};
 
 	struct TransformComponent : Component
@@ -81,7 +105,6 @@ namespace ignis
 		SpotLightComponent(const SpotLightComponent&) = default;
 	};
 
-	class Environment;
 	struct SkyLightComponent : Component
 	{
 		Environment SceneEnvironment;
