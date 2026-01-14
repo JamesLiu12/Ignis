@@ -165,7 +165,7 @@ namespace ignis {
 		const MaterialData& mat_data = materials[material_index];
 		
 		// Get current texture
-		AssetHandle current_handle = AssetHandle::InvalidUUID;
+		AssetHandle current_handle = AssetHandle::Invalid;
 		switch (type)
 		{
 			case MaterialType::Albedo:    current_handle = mat_data.AlbedoMap; break;
@@ -260,7 +260,7 @@ namespace ignis {
 					}
 					break;
 				case 2: // None
-					mesh->SetMaterialDataTexture(material_index, type, AssetHandle::InvalidUUID);
+					mesh->SetMaterialDataTexture(material_index, type, AssetHandle::Invalid);
 					break;
 				case 3: // White Texture
 					mesh->SetMaterialDataTexture(material_index, type, Renderer::GetWhiteTextureHandle());

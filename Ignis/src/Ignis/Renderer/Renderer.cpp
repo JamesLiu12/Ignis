@@ -107,7 +107,7 @@ namespace ignis
 
 	AssetHandle Renderer::GetWhiteTextureHandle()
 	{
-		static AssetHandle s_handle = AssetHandle::InvalidUUID;
+		static AssetHandle s_handle = AssetHandle::Invalid;
 		
 		if (!s_handle.IsValid())
 		{
@@ -120,7 +120,7 @@ namespace ignis
 
 	AssetHandle Renderer::GetBlackTextureHandle()
 	{
-		static AssetHandle s_handle = AssetHandle::InvalidUUID;
+		static AssetHandle s_handle = AssetHandle::Invalid;
 		
 		if (!s_handle.IsValid())
 		{
@@ -133,7 +133,7 @@ namespace ignis
 
 	AssetHandle Renderer::GetDefaultNormalTextureHandle()
 	{
-		static AssetHandle s_handle = AssetHandle::InvalidUUID;
+		static AssetHandle s_handle = AssetHandle::Invalid;
 		
 		if (!s_handle.IsValid())
 		{
@@ -146,7 +146,7 @@ namespace ignis
 
 	AssetHandle Renderer::GetDefaultRoughnessTextureHandle()
 	{
-		static AssetHandle s_handle = AssetHandle::InvalidUUID;
+		static AssetHandle s_handle = AssetHandle::Invalid;
 		
 		if (!s_handle.IsValid())
 		{

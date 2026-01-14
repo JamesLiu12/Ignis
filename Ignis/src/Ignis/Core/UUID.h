@@ -16,12 +16,13 @@ namespace ignis
 		bool operator==(const UUID& other) const { return m_uuid == other.m_uuid; }
 		bool operator!=(const UUID& other) const { return m_uuid != other.m_uuid; }
 		bool operator<(const UUID& other) const { return m_uuid < other.m_uuid; }
+		operator bool() const { return IsValid(); }
 
 		bool IsValid() const;
 
 		uuids::uuid GetRaw() const { return m_uuid; }
 
-		inline static const uuids::uuid InvalidUUID = {};
+		inline static const uuids::uuid Invalid = {};
 
 	private:
 		uuids::uuid m_uuid;
