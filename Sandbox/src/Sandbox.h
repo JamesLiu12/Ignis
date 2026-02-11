@@ -1,8 +1,6 @@
 #pragma once
 
 #include "Ignis.h"
-#include "Ignis/Physics/PhysicsWorld.h"
-#include "Ignis/Physics/PhysicsTypes.h"
 
 class Sandbox : public ignis::Application
 {

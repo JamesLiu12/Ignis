@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "EngineStatsPanel.h"
-#include "Ignis/Core/Application.h"
-#include <format>
+#include "Ignis.h"
+#include <imgui.h>
 
 // ImGui headers
 #include <imgui.h>

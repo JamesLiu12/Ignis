@@ -1,9 +1,5 @@
 #include "EditorLayer.h"
-#include "Ignis/Core/Log.h"
-#include "Ignis/Core/Application.h"
-#include "Ignis/Asset/AssetManager.h"
-#include "Ignis/Renderer/Renderer.h"
-#include "Ignis/Renderer/PBRPipeline.h"
+#include "Ignis.h"
 #include <imgui.h>
 
 namespace ignis {

@@ -1,9 +1,7 @@
 #pragma once
 
+#include "Ignis.h"
 #include "EditorPanel.h"
-#include "Ignis/Scene/Entity.h"
-#include "Ignis/Scene/Components.h"
-#include "Ignis/Renderer/Mesh.h"
 
 namespace ignis {
 

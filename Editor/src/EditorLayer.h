@@ -1,15 +1,11 @@
 #pragma once
 
-#include "Ignis/Core/Layer.h"
-#include "PanelManager.h"
-#include "EditorCamera.h"
-#include "Ignis/Renderer/Mesh.h"
-#include "Ignis/Renderer/Pipeline.h"
-#include "Ignis/Renderer/ShaderLibrary.h"
-#include "Ignis/Scene/Scene.h"
-#include "Ignis/Scene/Components.h"
-#include "PropertiesPanel.h"
-#include "SceneHierarchyPanel.h"
+#include "Ignis.h"
+#include "Panels/EditorPanel.h"
+#include "Panels/PanelManager.h"
+#include "Panels/PropertiesPanel.h"
+#include "Panels/SceneHierarchyPanel.h"
+#include "Panels/EditorCamera.h"
 
 namespace ignis {
 

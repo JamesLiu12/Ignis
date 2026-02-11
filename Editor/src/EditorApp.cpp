@@ -1,10 +1,10 @@
 #include "EditorApp.h"
-#include "Ignis/Editor/EditorLayer.h"
-#include "Ignis/Editor/EditorConsolePanel.h"
-#include "Ignis/Editor/PropertiesPanel.h"
-#include "Ignis/Editor/SceneHierarchyPanel.h"
-#include "Ignis/Debug/EngineStatsPanel.h"
-#include "Ignis/Core/EditorConsoleSink.h"
+#include "EditorLayer.h"
+#include "Panels/EditorConsolePanel.h"
+#include "Panels/PropertiesPanel.h"
+#include "Panels/SceneHierarchyPanel.h"
+#include "Panels/EngineStatsPanel.h"
+#include "Core/EditorConsoleSink.h"
 
 // Factory method required by EntryPoint.cpp
 std::unique_ptr<ignis::Application> ignis::Application::Create()

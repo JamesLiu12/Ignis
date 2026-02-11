@@ -62,7 +62,7 @@ void SandBoxLayer::OnAttach()
 	m_shader_library->Load("assets://shaders/example.glsl");
 	m_shader_library->Load("assets://shaders/blinn.glsl");
 
-	m_camera = std::make_shared<ignis::EditorCamera>(45.0f, 1280.0f / 720.0f, 0.1f, 1000.0f);
+	m_camera = std::make_shared<ignis::Camera>(45.0f, 1280.0f / 720.0f, 0.1f, 1000.0f);
 	m_camera->SetPosition({ 1.5f, 0.0f, 10.0f });
 	m_camera->RecalculateViewMatrix();
 
@@ -150,8 +150,8 @@ void SandBoxLayer::OnAttach()
 void SandBoxLayer::OnUpdate(float dt)
 {
 	static glm::mat4 model = glm::mat4(1.0f);
-	// Update editor camera with mouse and keyboard controls
-	m_camera->OnUpdate(dt);
+	// Sandbox uses static camera (no interactive controls)
+	// For interactive camera, use EditorCamera in Editor app
 
 	m_renderer.Clear();
 

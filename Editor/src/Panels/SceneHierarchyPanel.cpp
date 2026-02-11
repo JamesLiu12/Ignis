@@ -1,6 +1,6 @@
 #include "SceneHierarchyPanel.h"
 #include "PropertiesPanel.h"
-#include "Ignis/Scene/Components.h"
+#include "Ignis.h"
 #include <imgui.h>
 
 namespace ignis {

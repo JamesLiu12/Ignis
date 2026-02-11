@@ -22,7 +22,7 @@ private:
 
 	std::shared_ptr<ignis::ShaderLibrary> m_shader_library;
 	
-	std::shared_ptr<ignis::EditorCamera> m_camera;
+	std::shared_ptr<ignis::Camera> m_camera;
 
 	std::shared_ptr<ignis::Scene> m_scene;
 

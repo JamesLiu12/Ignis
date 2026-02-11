@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Ignis/Editor/EditorPanel.h"
+#include "EditorPanel.h"
 
 namespace ignis {
 
