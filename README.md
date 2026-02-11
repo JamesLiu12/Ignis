@@ -57,8 +57,13 @@ cd Ignis
 cmake --preset x64-debug
 cmake --build out/build/x64-debug
 
-# Run the sandbox
-./out/build/x64-debug/Sandbox/Sandbox.exe
+# Run the Editor (production)
+cd Editor
+../out/build/x64-debug/Editor/Editor.exe
+
+# Or run Sandbox (testing/development)
+cd Sandbox
+../out/build/x64-debug/Sandbox/Sandbox.exe
 ```
 
 ### Building on macOS
@@ -75,8 +80,13 @@ cd Ignis
 cmake --preset arm64-debug
 cmake --build out/build/arm64-debug
 
-# Run the sandbox
-./out/build/arm64-debug/Sandbox/Sandbox
+# Run the Editor (production)
+cd Editor
+../out/build/arm64-debug/Editor/Editor
+
+# Or run Sandbox (testing/development)
+cd Sandbox
+../out/build/arm64-debug/Sandbox/Sandbox
 ```
 
 ## 📁 Project Structure
@@ -88,12 +98,14 @@ Ignis/
 │       ├── Ignis/
 │       │   ├── Core/      # Application, events, entry point
 │       │   ├── Renderer/  # Graphics and rendering
-│       │   ├── Math/      # Vector, matrix operations
-│       │   └── Events/    # Event system
+│       │   ├── Physics/   # Physics system (Bullet)
+│       │   ├── Editor/    # Editor panels and UI
+│       │   └── Asset/     # Asset management and VFS
 │       └── pch.h          # Precompiled headers
-├── Sandbox/               # Example application
+├── Editor/                # Production editor application
 │   └── src/
-├── IgnisEditor/           # Level editor (future)
+├── Sandbox/               # Testing/development application
+│   └── src/
 └── CMakeLists.txt
 ```
 
