@@ -144,6 +144,11 @@ namespace ignis {
 
 	void EditorLayer::RenderMenuBar()
 	{
+		// TODO: Fix panel visibility bug before re-enabling menu bar
+		// Issue: Panels don't close properly when toggled via View menu
+		// See: Panel visibility management needs refactoring
+		
+		/*
 		if (ImGui::BeginMainMenuBar())
 		{
 			if (ImGui::BeginMenu("View"))
@@ -168,6 +173,7 @@ namespace ignis {
 
 			ImGui::EndMainMenuBar();
 		}
+		*/
 	}
 
 } // namespace ignis
