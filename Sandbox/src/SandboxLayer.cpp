@@ -136,39 +136,13 @@ void SandBoxLayer::OnAttach()
 		ignis::AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_skybox.hdr", ignis::AssetType::EnvironmentMap)
 		});
 
-	// Set the scene in the hierarchy panel
-	if (auto* hierarchy_panel = ignis::Application::Get().GetSceneHierarchyPanel())
-	{
-		hierarchy_panel->SetScene(m_scene);
-		ignis::Log::CoreInfo("Scene set in hierarchy panel");
-	}
-	else
-	{
-		ignis::Log::CoreWarn("Scene hierarchy panel not found");
-	}
+	// Note: Sandbox is a testing app without editor panels
+	// Panel integration is available in the Editor app
 	
-	// Set directional light as initially selected in properties panel
-	if (auto* properties_panel = ignis::Application::Get().GetPropertiesPanel())
-	{
-		properties_panel->SetSelectedEntity(m_light_entity);
-		ignis::Log::CoreInfo("Directional light entity set as selected in properties panel");
-	}
-	else
-	{
-		ignis::Log::CoreWarn("Properties panel not found");
-	}
 	m_pipeline = std::make_shared<ignis::PBRPipeline>(m_shader_library);
 
 	m_mesh_transform_component.Scale *= 0.1;
 	m_mesh_transform_component.Rotation = glm::vec3(0, glm::radians(90.0f), glm::radians(90.0f));
-	
-	// Connect mesh to PropertiesPanel for editing
-	// Pass address of m_mesh so PropertiesPanel can update the same mesh we render
-	auto* properties_panel = ignis::Application::Get().GetPropertiesPanel();
-	if (properties_panel)
-	{
-		properties_panel->SetCurrentMesh(&m_mesh, &m_mesh_transform_component);
-	}
 
 	SceneHierarchyTest(m_scene.get());
 }

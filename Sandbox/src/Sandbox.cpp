@@ -82,5 +82,49 @@ Sandbox::Sandbox()
 	ignis::Log::WarnTag("Test", "This is a warning message with tag");
 	ignis::Log::Error("This is an error message");
 
+	// Initialize physics (moved from Application base class)
+	m_physics_world = std::make_unique<ignis::PhysicsWorld>();
+	m_physics_world->Init();
+	CreatePhysicsTestScene();
+	ignis::Log::CoreInfo("Physics system initialized");
+
 	PushLayer(std::make_unique<SandBoxLayer>(GetRenderer()));
+}
+
+Sandbox::~Sandbox()
+{
+	if (m_physics_world)
+	{
+		m_physics_world->Shutdown();
+	}
+}
+
+void Sandbox::CreatePhysicsTestScene()
+{
+	if (!m_physics_world) return;
+
+	ignis::Log::CoreInfo("Creating physics test scene...");
+
+	// Create ground plane (static body)
+	ignis::RigidBodyDesc ground_desc;
+	ground_desc.type = ignis::BodyType::Static;
+	ground_desc.shape = ignis::ShapeType::Box;
+	ground_desc.position = glm::vec3(0.0f, -1.0f, 0.0f);
+	ground_desc.size = glm::vec3(10.0f, 0.2f, 10.0f);
+	m_physics_world->CreateBody(ground_desc);
+	ignis::Log::CoreInfo("Created ground plane");
+
+	// Create single dynamic box
+	ignis::RigidBodyDesc box_desc;
+	box_desc.type = ignis::BodyType::Dynamic;
+	box_desc.shape = ignis::ShapeType::Box;
+	box_desc.position = glm::vec3(0.0f, 5.0f, 0.0f);
+	box_desc.size = glm::vec3(1.0f, 1.0f, 1.0f);
+	box_desc.mass = 1.0f;
+	box_desc.friction = 0.5f;
+	box_desc.restitution = 0.4f;
+	m_physics_world->CreateBody(box_desc);
+	ignis::Log::CoreInfo("Created dynamic box");
+
+	ignis::Log::CoreInfo("Physics test scene created: 1 ground + 1 box");
 }
