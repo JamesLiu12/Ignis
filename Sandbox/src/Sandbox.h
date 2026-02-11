@@ -2,7 +2,9 @@
 
 #include "Ignis.h"
 
-class Sandbox : public ignis::Application
+namespace ignis {
+
+class Sandbox : public Application
 {
 public:
 	Sandbox();
@@ -10,5 +12,7 @@ public:
 
 private:
 	void CreatePhysicsTestScene();
-	std::unique_ptr<ignis::PhysicsWorld> m_physics_world;
+	std::unique_ptr<PhysicsWorld> m_physics_world;
 };
+
+} // namespace ignis
