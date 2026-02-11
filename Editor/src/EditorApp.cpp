@@ -20,7 +20,7 @@ EditorApp::EditorApp()
 	
 	ignis::Log::CoreInfo("EditorApp initialized");
 
-	// Initialize Editor Layer (manages all panels)
+	// Initialize Editor Layer (manages all panels and scene)
 	auto editor_layer = std::make_unique<ignis::EditorLayer>();
 	m_editor_layer = editor_layer.get();
 	PushOverlay(std::move(editor_layer));
@@ -50,10 +50,15 @@ EditorApp::EditorApp()
 	m_scene_hierarchy_panel = panel_manager.AddPanel<ignis::SceneHierarchyPanel>("SceneHierarchy", "Scene Hierarchy", true);
 	m_scene_hierarchy_panel->SetPropertiesPanel(m_properties_panel.get());
 	
+	// Connect panels to EditorLayer for scene/mesh access
+	m_editor_layer->SetPropertiesPanel(m_properties_panel.get());
+	m_editor_layer->SetSceneHierarchyPanel(m_scene_hierarchy_panel.get());
+	
 	// Add some welcome messages to the console
 	console_panel->AddMessage(ignis::ConsoleMessageLevel::Info, "Ignis Editor initialized");
 	console_panel->AddMessage(ignis::ConsoleMessageLevel::Info, "Console panel ready");
 	console_panel->AddMessage(ignis::ConsoleMessageLevel::Info, "Properties panel ready");
+	console_panel->AddMessage(ignis::ConsoleMessageLevel::Info, "Scene ready - use Properties panel to load a model");
 	
 	ignis::Log::CoreInfo("Editor panels registered");
 	ignis::Log::CoreInfo("Editor is ready");
