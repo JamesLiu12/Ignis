@@ -23,3 +23,7 @@ logs/
 
 *.log
 imgui.ini
+
+# Editor user-imported assets
+Editor/assets/models/*
+!Editor/assets/models/.gitkeep
