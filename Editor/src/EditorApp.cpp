@@ -4,7 +4,6 @@
 #include "Ignis/Editor/PropertiesPanel.h"
 #include "Ignis/Editor/SceneHierarchyPanel.h"
 #include "Ignis/Debug/EngineStatsPanel.h"
-#include "Ignis/Debug/PhysicsDebugPanel.h"
 #include "Ignis/Core/EditorConsoleSink.h"
 
 // Factory method required by EntryPoint.cpp
@@ -30,9 +29,6 @@ EditorApp::EditorApp()
 	
 	// Add Engine Stats panel (closed by default)
 	auto engine_stats = panel_manager.AddPanel<ignis::EngineStatsPanel>("EngineStats", "Engine Statistics", false);
-	
-	// Add Physics Debug panel (closed by default)
-	auto physics_debug = panel_manager.AddPanel<ignis::PhysicsDebugPanel>("PhysicsDebug", "Physics Debug", false);
 	
 	// Add Console panel (bottom section)
 	auto console_panel = panel_manager.AddPanel<ignis::EditorConsolePanel>("Console", "Console", true);
