@@ -1,7 +1,4 @@
-#include "PropertiesPanel.h"
-#include "Ignis/Asset/AssetManager.h"
-#include "Ignis/Renderer/Renderer.h"
-#include "Ignis/Core/FileDialog.h"
+#include "Panels/PropertiesPanel.h"
 #include <imgui.h>
 
 namespace ignis {

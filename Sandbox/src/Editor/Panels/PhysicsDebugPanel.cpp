@@ -1,4 +1,4 @@
-#include "PhysicsDebugPanel.h"
+#include "Panels/PhysicsDebugPanel.h"
 #include <imgui.h>
 #include "Ignis/Core/Log.h"
 

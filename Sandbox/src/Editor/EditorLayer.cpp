@@ -1,5 +1,4 @@
-#include "EditorLayer.h"
-#include "Ignis/Core/Log.h"
+#include "Editor/EditorLayer.h"
 #include <imgui.h>
 
 namespace ignis {

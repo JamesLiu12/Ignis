@@ -1,6 +1,6 @@
 #pragma once
 
-#include "EditorPanel.h"
+#include "Panels/EditorPanel.h"
 
 // Forward declaration for ImGui types
 struct ImVec4;
