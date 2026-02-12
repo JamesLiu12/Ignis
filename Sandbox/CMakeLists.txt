@@ -5,6 +5,10 @@ file(GLOB_RECURSE SANDBOX_SOURCES CONFIGURE_DEPENDS
 
 add_executable(Sandbox ${SANDBOX_SOURCES})
 
+target_include_directories(Sandbox PRIVATE
+	${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
 target_link_libraries(Sandbox
 	PRIVATE Ignis::Ignis
 )

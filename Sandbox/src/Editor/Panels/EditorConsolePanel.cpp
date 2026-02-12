@@ -1,4 +1,4 @@
-#include "EditorConsolePanel.h"
+#include "Panels/EditorConsolePanel.h"
 #include <imgui.h>
 
 namespace ignis {
