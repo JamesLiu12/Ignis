@@ -20,7 +20,7 @@ namespace ignis {
 
 	void EditorLayer::OnDetach()
 	{
-		Log::CoreInfo("EditorLayer detached");
+		// Don't log here - logging system may already be shut down during application destruction
 	}
 
 	void EditorLayer::OnUpdate(float dt)
