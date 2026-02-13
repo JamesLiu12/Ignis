@@ -15,14 +15,24 @@ Ignis (Latin for "fire") is a custom game engine built from scratch to understan
 
 ## 🏗️ Architecture
 
-- **Application Layer** - Lifecycle and event management
+### Core Engine (Ignis)
+
+- **Application Layer** - Generic application lifecycle and event management
 - **Window System** - Cross-platform window and input handling (GLFW)
 - **Renderer** - OpenGL-based graphics pipeline with API abstraction
 - **Entity Component System (ECS)** - Flexible game object management
 - **Physics** - Integration with Bullet Physics
 - **Audio** - 3D positional audio system (miniaudio)
 - **Asset Pipeline** - Model and texture loading (Assimp)
-- **Level Editor** - Scene creation and manipulation tools
+- **Virtual File System** - Asset path resolution and management
+
+### Editor Application
+
+- **Scene Editor** - Visual scene creation and manipulation
+- **Property Inspector** - Real-time component editing
+- **Debug Panels** - Physics debugging, performance stats, console
+- **Asset Browser** - Model and texture management
+- **PBR Material Editor** - Real-time material editing with preview
 
 ## 🛠️ Technology Stack
 
@@ -57,8 +67,9 @@ cd Ignis
 cmake --preset x64-debug
 cmake --build out/build/x64-debug
 
-# Run the sandbox
-./out/build/x64-debug/Sandbox/Sandbox.exe
+# Run the editor
+cd Editor
+../out/build/x64-debug/Editor/Editor.exe
 ```
 
 ### Building on macOS
@@ -75,25 +86,41 @@ cd Ignis
 cmake --preset arm64-debug
 cmake --build out/build/arm64-debug
 
-# Run the sandbox
-./out/build/arm64-debug/Sandbox/Sandbox
+# Run the editor
+cd Editor
+../out/build/arm64-debug/Editor/Editor
 ```
 
 ## 📁 Project Structure
 
 ```
 Ignis/
-├── Ignis/                 # Core engine library
+├── Ignis/                    # Core engine library
 │   └── src/
 │       ├── Ignis/
-│       │   ├── Core/      # Application, events, entry point
-│       │   ├── Renderer/  # Graphics and rendering
-│       │   ├── Math/      # Vector, matrix operations
-│       │   └── Events/    # Event system
-│       └── pch.h          # Precompiled headers
-├── Sandbox/               # Example application
-│   └── src/
-├── IgnisEditor/           # Level editor (future)
+│       │   ├── Core/         # Application, events, entry point, logging
+│       │   ├── Renderer/     # Graphics pipeline, PBR rendering
+│       │   ├── Scene/        # ECS, entities, components
+│       │   ├── Physics/      # Bullet Physics integration
+│       │   ├── Asset/        # VFS, asset loading, importers
+│       │   └── ImGui/        # ImGui integration layer
+│       └── pch.h             # Precompiled headers
+├── Editor/                   # Editor application
+│   ├── src/
+│   │   ├── Editor/           # Editor-specific code
+│   │   │   ├── EditorApp.h/cpp        # Main editor application
+│   │   │   ├── EditorLayer.h/cpp      # Editor UI layer
+│   │   │   ├── PanelManager.h/cpp     # Panel management system
+│   │   │   ├── Panels/                # Editor panels
+│   │   │   │   ├── PropertiesPanel    # Component inspector
+│   │   │   │   ├── SceneHierarchyPanel # Entity tree view
+│   │   │   │   ├── EditorConsolePanel  # Debug console
+│   │   │   │   ├── EngineStatsPanel    # Performance metrics
+│   │   │   │   ├── PhysicsDebugPanel   # Physics visualization
+│   │   │   │   └── EditorCamera        # Scene camera controller
+│   │   │   └── Core/                  # Editor utilities
+│   │   └── EditorSceneLayer.h/cpp     # Test scene with 3D content
+│   └── assets/               # Editor assets (models, textures, shaders)
 └── CMakeLists.txt
 ```
 
