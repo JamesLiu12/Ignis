@@ -4,8 +4,6 @@
 #include "Window.h"
 #include "LayerStack.h"
 #include "Ignis/Core/Events/WindowEvents.h"
-#include "Ignis/Physics/PhysicsWorld.h"
-#include "Ignis/Debug/PhysicsDebugPanel.h"
 #include "Ignis/Renderer/Renderer.h"
 
 namespace ignis {
@@ -37,9 +35,6 @@ namespace ignis {
 		Renderer& GetRenderer() { return *m_renderer; }
 		const Renderer& GetRenderer() const { return *m_renderer; }
 
-		class PropertiesPanel* GetPropertiesPanel() { return m_properties_panel.get(); }
-		class SceneHierarchyPanel* GetSceneHierarchyPanel() { return m_scene_hierarchy_panel.get(); }
-
 		static std::unique_ptr<Application> Create();
 
 	protected:
@@ -53,12 +48,6 @@ namespace ignis {
 		EventDispatcher m_dispatcher;
 		LayerStack m_layer_stack;
 		class ImGuiLayer* m_imgui_layer;
-		class EditorLayer* m_editor_layer;  // Editor layer manages all panels
-		std::shared_ptr<class PropertiesPanel> m_properties_panel;
-		std::shared_ptr<class SceneHierarchyPanel> m_scene_hierarchy_panel;
-
-		void CreatePhysicsTestScene();
-		std::unique_ptr<class PhysicsWorld> m_physics_world;
 		std::vector<EventDispatcher::Subscription> m_subscriptions;
 
 		std::unique_ptr<Renderer> m_renderer;

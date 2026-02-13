@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Ignis.h"
-#include "Panels/EditorPanel.h"
+#include "Editor/Panels/EditorPanel.h"
 
 namespace ignis {
 
