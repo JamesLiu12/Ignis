@@ -17,6 +17,8 @@ public:
 	EditorApp();
 	~EditorApp() override;
 
+	void OnUpdate(float dt) override;
+
 	// Editor-specific accessors
 	PropertiesPanel* GetPropertiesPanel() { return m_properties_panel.get(); }
 	SceneHierarchyPanel* GetSceneHierarchyPanel() { return m_scene_hierarchy_panel.get(); }

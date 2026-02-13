@@ -61,6 +61,9 @@ namespace ignis
 			float delta_time = time - last_frame_time;
 			last_frame_time = time;
 
+			// Update application (for derived classes to override)
+			OnUpdate(delta_time);
+
 			// Update all layers
 			for (auto& layer : m_layer_stack)
 			{

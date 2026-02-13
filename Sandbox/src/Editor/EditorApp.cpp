@@ -84,6 +84,15 @@ EditorApp::~EditorApp()
 	}
 }
 
+void EditorApp::OnUpdate(float dt)
+{
+	// Update physics simulation
+	if (m_physics_world)
+	{
+		m_physics_world->Step(dt);
+	}
+}
+
 void EditorApp::CreatePhysicsTestScene()
 {
 	if (!m_physics_world) return;
