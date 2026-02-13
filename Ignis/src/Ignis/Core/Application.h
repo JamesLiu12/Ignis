@@ -28,6 +28,8 @@ namespace ignis {
 		void OnWindowClose(WindowCloseEvent& e);
 		void OnWindowResize(WindowResizeEvent& e);
 
+		virtual void OnUpdate(float dt) {}
+
 		void PushLayer(std::unique_ptr<Layer> layer);
 		void PushOverlay(std::unique_ptr<Layer> overlay);
 		Window& GetWindow() { return *m_window; }
