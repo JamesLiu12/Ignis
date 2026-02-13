@@ -8,12 +8,12 @@ namespace ignis {
 	class EditorApp;
 }
 
-class SandBoxLayer : public ignis::Layer
+class EditorSceneLayer : public ignis::Layer
 {
 public:
-	SandBoxLayer(ignis::Renderer& renderer, ignis::EditorApp* editor_app);
+	EditorSceneLayer(ignis::Renderer& renderer, ignis::EditorApp* editor_app);
 
-	~SandBoxLayer() override = default;
+	~EditorSceneLayer() override = default;
 
 	void OnAttach() override;
 	void OnUpdate(float dt) override;

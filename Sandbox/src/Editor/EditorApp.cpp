@@ -6,7 +6,7 @@
 #include "Editor/Panels/EngineStatsPanel.h"
 #include "Editor/Panels/PhysicsDebugPanel.h"
 #include "Editor/Core/EditorConsoleSink.h"
-#include "SandboxLayer.h"
+#include "EditorSceneLayer.h"
 
 namespace ignis {
 
@@ -72,8 +72,8 @@ EditorApp::EditorApp()
 	
 	Log::CoreInfo("Editor panels registered");
 	
-	// Create SandboxLayer with test scene content
-	PushLayer(std::make_unique<SandBoxLayer>(GetRenderer(), this));
+	// Create EditorSceneLayer with test scene content
+	PushLayer(std::make_unique<EditorSceneLayer>(GetRenderer(), this));
 }
 
 EditorApp::~EditorApp()

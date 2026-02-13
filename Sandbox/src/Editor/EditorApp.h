@@ -2,7 +2,7 @@
 
 #include "Ignis.h"
 
-class SandBoxLayer;
+class EditorSceneLayer;
 
 namespace ignis {
 

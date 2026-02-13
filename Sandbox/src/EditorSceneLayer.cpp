@@ -1,11 +1,11 @@
-#include "SandboxLayer.h"
+#include "EditorSceneLayer.h"
 #include "Editor/EditorApp.h"
 #include "Editor/Panels/PropertiesPanel.h"
 #include "Editor/Panels/SceneHierarchyPanel.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-SandBoxLayer::SandBoxLayer(ignis::Renderer& renderer, ignis::EditorApp* editor_app)
-	: Layer("SandboxLayer"), m_renderer(renderer), m_editor_app(editor_app)
+EditorSceneLayer::EditorSceneLayer(ignis::Renderer& renderer, ignis::EditorApp* editor_app)
+	: Layer("EditorSceneLayer"), m_renderer(renderer), m_editor_app(editor_app)
 {
 }
 
@@ -59,7 +59,7 @@ static void SceneHierarchyTest(ignis::Scene* scene)
 		});
 }
 
-void SandBoxLayer::OnAttach()
+void EditorSceneLayer::OnAttach()
 {
 	m_shader_library = std::make_shared<ignis::ShaderLibrary>();
 	m_shader_library->Load("assets://shaders/example.glsl");
@@ -176,7 +176,7 @@ void SandBoxLayer::OnAttach()
 	SceneHierarchyTest(m_scene.get());
 }
 
-void SandBoxLayer::OnUpdate(float dt)
+void EditorSceneLayer::OnUpdate(float dt)
 {
 	static glm::mat4 model = glm::mat4(1.0f);
 	// Update editor camera with mouse and keyboard controls
@@ -191,7 +191,7 @@ void SandBoxLayer::OnUpdate(float dt)
 	m_renderer.EndScene();
 }
 
-void SandBoxLayer::OnEvent(ignis::EventBase& event)
+void EditorSceneLayer::OnEvent(ignis::EventBase& event)
 {
 	if (auto* resize_event = dynamic_cast<ignis::WindowResizeEvent*>(&event))
 	{
