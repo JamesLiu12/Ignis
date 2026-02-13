@@ -1,11 +1,17 @@
 #pragma once
 
 #include "Ignis.h"
+#include "Editor/Panels/EditorCamera.h"
+
+namespace ignis {
+	class Renderer;
+	class EditorApp;
+}
 
 class SandBoxLayer : public ignis::Layer
 {
 public:
-	SandBoxLayer(ignis::Renderer& renderer);
+	SandBoxLayer(ignis::Renderer& renderer, ignis::EditorApp* editor_app);
 
 	~SandBoxLayer() override = default;
 
@@ -19,6 +25,7 @@ public:
 
 private:
 	ignis::Renderer& m_renderer;
+	ignis::EditorApp* m_editor_app;
 
 	std::shared_ptr<ignis::ShaderLibrary> m_shader_library;
 	

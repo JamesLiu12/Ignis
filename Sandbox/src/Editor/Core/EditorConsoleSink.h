@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Ignis.h"
-#include "Panels/EditorConsolePanel.h"
+#include "Editor/Panels/EditorConsolePanel.h"
 #include <spdlog/sinks/base_sink.h>
 
 namespace ignis {
