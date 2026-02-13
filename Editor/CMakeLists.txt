@@ -1,15 +1,15 @@
-file(GLOB_RECURSE SANDBOX_SOURCES CONFIGURE_DEPENDS
+file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS
   ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
   ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 )
 
-add_executable(Sandbox ${SANDBOX_SOURCES})
+add_executable(Editor ${EDITOR_SOURCES})
 
-target_include_directories(Sandbox PRIVATE
+target_include_directories(Editor PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-target_link_libraries(Sandbox
+target_link_libraries(Editor
 	PRIVATE Ignis::Ignis
 )
 
