@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Ignis/Core/Events/Event.h"
+#include "Ignis.h"
 
 namespace ignis {
 

@@ -1,4 +1,4 @@
-#include "PanelManager.h"
+#include "Editor/PanelManager.h"
 
 namespace ignis {
 

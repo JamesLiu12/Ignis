@@ -1,8 +1,11 @@
-#include "SandboxLayer.h"
+#include "Editor/EditorSceneLayer.h"
+#include "Editor/EditorApp.h"
+#include "Editor/Panels/PropertiesPanel.h"
+#include "Editor/Panels/SceneHierarchyPanel.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-SandBoxLayer::SandBoxLayer(ignis::Renderer& renderer)
-	: Layer("SandboxLayer"), m_renderer(renderer)
+EditorSceneLayer::EditorSceneLayer(ignis::Renderer& renderer, ignis::EditorApp* editor_app)
+	: Layer("EditorSceneLayer"), m_renderer(renderer), m_editor_app(editor_app)
 {
 }
 
@@ -56,7 +59,7 @@ static void SceneHierarchyTest(ignis::Scene* scene)
 		});
 }
 
-void SandBoxLayer::OnAttach()
+void EditorSceneLayer::OnAttach()
 {
 	m_shader_library = std::make_shared<ignis::ShaderLibrary>();
 	m_shader_library->Load("assets://shaders/example.glsl");
@@ -137,7 +140,7 @@ void SandBoxLayer::OnAttach()
 		});
 
 	// Set the scene in the hierarchy panel
-	if (auto* hierarchy_panel = ignis::Application::Get().GetSceneHierarchyPanel())
+	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
 	{
 		hierarchy_panel->SetScene(m_scene);
 		ignis::Log::CoreInfo("Scene set in hierarchy panel");
@@ -148,7 +151,7 @@ void SandBoxLayer::OnAttach()
 	}
 	
 	// Set directional light as initially selected in properties panel
-	if (auto* properties_panel = ignis::Application::Get().GetPropertiesPanel())
+	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
 	{
 		properties_panel->SetSelectedEntity(m_light_entity);
 		ignis::Log::CoreInfo("Directional light entity set as selected in properties panel");
@@ -164,7 +167,7 @@ void SandBoxLayer::OnAttach()
 	
 	// Connect mesh to PropertiesPanel for editing
 	// Pass address of m_mesh so PropertiesPanel can update the same mesh we render
-	auto* properties_panel = ignis::Application::Get().GetPropertiesPanel();
+	auto* properties_panel = m_editor_app->GetPropertiesPanel();
 	if (properties_panel)
 	{
 		properties_panel->SetCurrentMesh(&m_mesh, &m_mesh_transform_component);
@@ -173,7 +176,7 @@ void SandBoxLayer::OnAttach()
 	SceneHierarchyTest(m_scene.get());
 }
 
-void SandBoxLayer::OnUpdate(float dt)
+void EditorSceneLayer::OnUpdate(float dt)
 {
 	static glm::mat4 model = glm::mat4(1.0f);
 	// Update editor camera with mouse and keyboard controls
@@ -188,7 +191,7 @@ void SandBoxLayer::OnUpdate(float dt)
 	m_renderer.EndScene();
 }
 
-void SandBoxLayer::OnEvent(ignis::EventBase& event)
+void EditorSceneLayer::OnEvent(ignis::EventBase& event)
 {
 	if (auto* resize_event = dynamic_cast<ignis::WindowResizeEvent*>(&event))
 	{

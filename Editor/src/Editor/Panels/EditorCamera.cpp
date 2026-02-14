@@ -1,5 +1,4 @@
-#include "EditorCamera.h"
-#include "Ignis/Core/Input.h"
+#include "Editor/Panels/EditorCamera.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <imgui.h>
