@@ -6,7 +6,7 @@
 #include "Editor/Panels/EngineStatsPanel.h"
 #include "Editor/Panels/PhysicsDebugPanel.h"
 #include "Editor/Core/EditorConsoleSink.h"
-#include "EditorSceneLayer.h"
+#include "Editor/EditorSceneLayer.h"
 
 namespace ignis {
 
