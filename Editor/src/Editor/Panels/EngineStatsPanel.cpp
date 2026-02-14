@@ -1,10 +1,8 @@
 #include "pch.h"
-#include "EngineStatsPanel.h"
-#include "Ignis/Core/Application.h"
-#include <format>
-
-// ImGui headers
+#include "Editor/Panels/EngineStatsPanel.h"
+#include "Ignis.h"
 #include <imgui.h>
+#include <format>
 
 namespace ignis {
 

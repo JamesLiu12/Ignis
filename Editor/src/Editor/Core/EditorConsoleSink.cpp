@@ -1,5 +1,5 @@
-#include "EditorConsoleSink.h"
-#include "Ignis/Editor/EditorConsolePanel.h"
+#include "Editor/Core/EditorConsoleSink.h"
+#include "Editor/Panels/EditorConsolePanel.h"
 
 namespace ignis {
 

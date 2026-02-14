@@ -3,10 +3,9 @@
 #include "Ignis/Core/KeyCodes.h"
 #include "Ignis/Core/Log.h"
 #include "Ignis/Core/UUID.h"
-
-#include "Ignis/Editor/EditorConsolePanel.h"
-#include "Ignis/Editor/PropertiesPanel.h"
-#include "Ignis/Editor/SceneHierarchyPanel.h"
+#include "Ignis/Core/FileSystem.h"
+#include "Ignis/Core/FileDialog.h"
+#include "Ignis/Core/Layer.h"
 
 #include "Ignis/Renderer/VertexBuffer.h"
 #include "Ignis/Renderer/Shader.h"
@@ -17,9 +16,7 @@
 #include "Ignis/Renderer/Material.h"
 #include "Ignis/Renderer/Pipeline.h"
 #include "Ignis/Renderer/PBRPipeline.h"
-#include "Ignis/Editor/EditorCamera.h"
-
-#include "Ignis/Core/FileSystem.h"
+#include "Ignis/Renderer/Camera.h"
 
 #include "Ignis/Asset/File.h"
 #include "Ignis/Asset/VFS.h"
@@ -33,3 +30,6 @@
 #include "Ignis/Asset/MeshImporter.h"
 #include "Ignis/Renderer/Mesh.h"
 #include "Ignis/Asset/TextureImporter.h"
+
+#include "Ignis/Physics/PhysicsWorld.h"
+#include "Ignis/Physics/PhysicsTypes.h"

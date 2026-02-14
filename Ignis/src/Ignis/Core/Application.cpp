@@ -1,19 +1,11 @@
 #include "Application.h"
 #include "Ignis/ImGui/ImGuiLayer.h"
-#include "Ignis/Editor/EditorLayer.h"
-#include "Ignis/Editor/EditorConsolePanel.h"
-#include "Ignis/Editor/PropertiesPanel.h"
-#include "Ignis/Editor/SceneHierarchyPanel.h"
-#include "Ignis/Debug/EngineStatsPanel.h"
 #include "Ignis/Core/Events/KeyEvents.h"
 #include "Input.h"
-#include "Ignis/Physics/PhysicsWorld.h"
-#include "Ignis/Debug/PhysicsDebugPanel.h"
 #include "Ignis/Renderer/Camera.h"
 #include "Ignis/Renderer/RendererContext.h"
 #include "Ignis/Asset/VFS.h"
 #include "Ignis/Core/FileSystem.h"
-#include "Ignis/Core/EditorConsoleSink.h"
 
 namespace ignis 
 {
@@ -43,50 +35,6 @@ namespace ignis
 		m_imgui_layer = imgui_layer.get();
 		PushOverlay(std::move(imgui_layer));
 
-		// Initialize physics
-		m_physics_world = std::make_unique<PhysicsWorld>();
-		m_physics_world->Init();
-		CreatePhysicsTestScene();
-		Log::CoreInfo("Physics system initialized");
-
-		// Initialize Editor Layer (manages all panels)
-		auto editor_layer = std::make_unique<EditorLayer>();
-		m_editor_layer = editor_layer.get();
-		PushOverlay(std::move(editor_layer));
-
-		// Register debug panels with EditorLayer's PanelManager
-		auto& panel_manager = m_editor_layer->GetPanelManager();
-		
-		// Add Engine Stats panel (closed by default)
-		auto engine_stats = panel_manager.AddPanel<EngineStatsPanel>("EngineStats", "Engine Statistics", false);
-		
-		// Add Physics Debug panel (closed by default)
-		auto physics_debug = panel_manager.AddPanel<PhysicsDebugPanel>("PhysicsDebug", "Physics Debug", false);
-		physics_debug->SetPhysicsWorld(m_physics_world.get());
-		
-		// Add Console panel (bottom section)
-		auto console_panel = panel_manager.AddPanel<EditorConsolePanel>("Console", "Console", true);
-		
-		// Add EditorConsoleSink to forward logs to UI console
-		auto editor_sink = std::make_shared<EditorConsoleSink>(console_panel.get());
-		editor_sink->set_pattern("%v"); // Simple pattern for UI
-		Log::GetCoreLogger()->sinks().push_back(editor_sink);
-		Log::GetClientLogger()->sinks().push_back(editor_sink);
-		
-		// Add Properties panel (right section)
-		m_properties_panel = panel_manager.AddPanel<PropertiesPanel>("Properties", "Properties", true);
-		
-		// Add Scene Hierarchy panel (left section)
-		m_scene_hierarchy_panel = panel_manager.AddPanel<SceneHierarchyPanel>("SceneHierarchy", "Scene Hierarchy", true);
-		m_scene_hierarchy_panel->SetPropertiesPanel(m_properties_panel.get());
-		
-		// Add some test messages to the console
-		console_panel->AddMessage(ConsoleMessageLevel::Info, "Ignis Editor initialized");
-		console_panel->AddMessage(ConsoleMessageLevel::Info, "Console panel ready");
-		console_panel->AddMessage(ConsoleMessageLevel::Info, "Properties panel ready");
-		
-		Log::CoreInfo("Editor panels registered");
-
 		m_subscriptions.emplace_back(
 			m_dispatcher.Subscribe<WindowResizeEvent>(
 				[this](WindowResizeEvent& e) { OnWindowResize(e); }
@@ -96,10 +44,6 @@ namespace ignis
 
 	Application::~Application()
 	{
-		if (m_physics_world)
-		{
-			m_physics_world->Shutdown();
-		}
 		Log::CoreInfo("Application shutting down...");
 		VFS::Shutdown();
 		Log::Shutdown();
@@ -117,10 +61,8 @@ namespace ignis
 			float delta_time = time - last_frame_time;
 			last_frame_time = time;
 
-			if (m_physics_world)
-			{
-				m_physics_world->Step(delta_time);
-			}
+			// Update application (for derived classes to override)
+			OnUpdate(delta_time);
 
 			// Update all layers
 			for (auto& layer : m_layer_stack)
@@ -194,33 +136,4 @@ namespace ignis
 		m_layer_stack.PushOverlay(std::move(overlay));
 	}
 
-	void Application::CreatePhysicsTestScene()
-	{
-		if (!m_physics_world) return;
-
-		Log::CoreInfo("Creating physics test scene...");
-
-		// Create ground plane (static body)
-		RigidBodyDesc ground_desc;
-		ground_desc.type = BodyType::Static;
-		ground_desc.shape = ShapeType::Box;
-		ground_desc.position = glm::vec3(0.0f, -1.0f, 0.0f);
-		ground_desc.size = glm::vec3(10.0f, 0.2f, 10.0f);
-		m_physics_world->CreateBody(ground_desc);
-		Log::CoreInfo("Created ground plane");
-
-		// Create single dynamic box
-		RigidBodyDesc box_desc;
-		box_desc.type = BodyType::Dynamic;
-		box_desc.shape = ShapeType::Box;
-		box_desc.position = glm::vec3(0.0f, 5.0f, 0.0f);
-		box_desc.size = glm::vec3(1.0f, 1.0f, 1.0f);
-		box_desc.mass = 1.0f;
-		box_desc.friction = 0.5f;
-		box_desc.restitution = 0.4f;
-		m_physics_world->CreateBody(box_desc);
-		Log::CoreInfo("Created dynamic box");
-
-		Log::CoreInfo("Physics test scene created: 1 ground + 1 box");
-	}
 }
