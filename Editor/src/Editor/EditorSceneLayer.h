@@ -23,6 +23,9 @@ public:
 	std::shared_ptr<ignis::Mesh> GetCurrentMesh() const { return m_mesh; }
 	ignis::TransformComponent& GetMeshTransform() { return m_mesh_transform_component; }
 
+	// Framebuffer access for viewport rendering
+	std::shared_ptr<ignis::Framebuffer> GetFramebuffer() const { return m_framebuffer; }
+
 private:
 	ignis::Renderer& m_renderer;
 	ignis::EditorApp* m_editor_app;
@@ -43,4 +46,7 @@ private:
 	ignis::TransformComponent m_mesh_transform_component;
 
 	float m_camera_speed = 10.0f;
+
+	// Framebuffer for off-screen rendering
+	std::shared_ptr<ignis::Framebuffer> m_framebuffer;
 };

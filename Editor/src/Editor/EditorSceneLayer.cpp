@@ -69,6 +69,17 @@ void EditorSceneLayer::OnAttach()
 	m_camera->SetPosition({ 1.5f, 0.0f, 10.0f });
 	m_camera->RecalculateViewMatrix();
 
+	// Create framebuffer for viewport rendering
+	ignis::FramebufferSpec fb_spec;
+	fb_spec.Width = 1280;
+	fb_spec.Height = 720;
+	fb_spec.ClearColor = {0.1f, 0.1f, 0.1f, 1.0f};
+	fb_spec.ColorAttachments = {{ignis::ImageFormat::RGBA8}};
+	fb_spec.HasDepthAttachment = true;
+	
+	m_framebuffer = ignis::Framebuffer::Create(fb_spec);
+	ignis::Log::CoreInfo("EditorSceneLayer framebuffer created: {}x{}", fb_spec.Width, fb_spec.Height);
+
 	m_scene = std::make_shared<ignis::Scene>();
 
 	auto face = m_scene->CreateEntity("Smiling Face");
@@ -182,13 +193,13 @@ void EditorSceneLayer::OnUpdate(float dt)
 	// Update editor camera with mouse and keyboard controls
 	m_camera->OnUpdate(dt);
 
+	// Render to framebuffer instead of screen
+	m_framebuffer->Bind();
 	m_renderer.Clear();
-
 	m_renderer.BeginScene(m_pipeline, m_scene, m_camera);
-
 	m_renderer.RenderMesh(m_mesh, m_mesh_transform_component.GetTransform());
-
 	m_renderer.EndScene();
+	m_framebuffer->Unbind();
 }
 
 void EditorSceneLayer::OnEvent(ignis::EventBase& event)
