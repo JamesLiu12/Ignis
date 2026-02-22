@@ -14,6 +14,8 @@ namespace ignis
 		void Bind(uint32_t unit) const override;
 		void UnBind() const override;
 
+		uint32_t GetID() const { return m_id; }
+
 	private:
 		uint32_t m_id = 0;
 
