@@ -49,10 +49,19 @@ namespace ignis {
 		{
 			if (ImGui::BeginMenu("View"))
 			{
-				// Toggle panels on/off
 				auto& panels = m_panel_manager->GetPanels();
+				
+				// Core panels that should not be toggleable (always visible)
+				static const std::unordered_set<std::string> core_panels = {
+					"Console", "Properties", "SceneHierarchy"
+				};
+				
 				for (auto& panel_data : panels)
 				{
+					// Skip core panels - they're always visible
+					if (core_panels.find(panel_data.ID) != core_panels.end())
+						continue;
+						
 					ImGui::MenuItem(panel_data.Name.c_str(), nullptr, &panel_data.IsOpen);
 				}
 				ImGui::EndMenu();
