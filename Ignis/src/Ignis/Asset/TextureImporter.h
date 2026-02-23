@@ -10,7 +10,7 @@ namespace ignis
 		bool FlipVertical = true;
 		bool GenMipmaps = true;
 
-		ImageFormat InternalFormat = ImageFormat::RGBA8;
+		TextureFormat InternalFormat = TextureFormat::RGBA8;
 		TextureWrap WrapS = TextureWrap::Repeat;
 		TextureWrap WrapT = TextureWrap::Repeat;
 		TextureFilter MinFilter = TextureFilter::LinearMipmapLinear;

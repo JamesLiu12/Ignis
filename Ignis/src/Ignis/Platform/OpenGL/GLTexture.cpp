@@ -66,6 +66,23 @@ namespace ignis
 		}
 	}
 
+	static GLenum ToGLInternalFormat(TextureFormat fmt)
+	{
+		switch (fmt)
+		{
+		case TextureFormat::RGBA8:           return GL_RGBA8;
+		case TextureFormat::RGBA8_sRGB:      return GL_SRGB8_ALPHA8;
+		case TextureFormat::RGBA16F:         return GL_RGBA16F;
+		case TextureFormat::RGBA32F:         return GL_RGBA32F;
+
+		case TextureFormat::Depth24:         return GL_DEPTH_COMPONENT24;
+		case TextureFormat::Depth32F:        return GL_DEPTH_COMPONENT32F;
+		case TextureFormat::Depth24Stencil8: return GL_DEPTH24_STENCIL8;
+
+		default:                             return GL_RGBA8;
+		}
+	}
+
 	GLenum ToGLImageFormat(ImageFormat format)
 	{
 		switch (format)
@@ -105,11 +122,11 @@ namespace ignis
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, ToGLMagFilter(specs.MagFilter));
 	}
 
-	void AllocateTextureStorage(const TextureSpecs& specs, const void* pixels)
+	void AllocateTextureStorage(const TextureSpecs& specs, ImageFormat source_format, const void* pixels)
 	{
-		const GLenum internal_format = ToGLInternalFormat(specs.InternalFormat);
-		const GLenum data_format = ToGLImageFormat(specs.SourceFormat);
-		const GLenum data_type = ToGLDataType(specs.SourceFormat);
+		const GLenum internal_format = ToGLInternalFormat(specs.Format);
+		const GLenum data_format = ToGLImageFormat(source_format);
+		const GLenum data_type = ToGLDataType(source_format);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, internal_format, specs.Width, specs.Height, 0, data_format, data_type, pixels);
 
@@ -119,7 +136,7 @@ namespace ignis
 		}
 	}
 
-	GLTexture2D::GLTexture2D(const TextureSpecs& specs, std::span<const std::byte> data)
+	GLTexture2D::GLTexture2D(const TextureSpecs& specs, ImageFormat source_format, std::span<const std::byte> data)
 		: m_specs(specs)
 	{
 		if (m_specs.Width == 0 || m_specs.Height == 0)
@@ -134,7 +151,7 @@ namespace ignis
 		ApplyTextureParameters(m_specs);
 
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		AllocateTextureStorage(m_specs, static_cast<const void*>(data.data()));
+		AllocateTextureStorage(m_specs, source_format, static_cast<const void*>(data.data()));
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -153,7 +170,7 @@ namespace ignis
 
 
 
-	GLTextureCube::GLTextureCube(const TextureSpecs& specs, std::span<const std::byte> data)
+	GLTextureCube::GLTextureCube(const TextureSpecs& specs, ImageFormat source_format, std::span<const std::byte> data)
 		: m_specs(specs)
 	{
 		if (m_specs.Width == 0 || m_specs.Height == 0)
@@ -162,7 +179,7 @@ namespace ignis
 			return;
 		}
 
-		uint32_t face_size = m_specs.Width * m_specs.Height * BytesPerPixel(m_specs.SourceFormat);
+		uint32_t face_size = m_specs.Width * m_specs.Height * BytesPerPixel(source_format);
 
 		if (data.size() != face_size * 6)
 		{
@@ -179,9 +196,9 @@ namespace ignis
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, ToGLMinFilter(m_specs.MinFilter));
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, ToGLMagFilter(m_specs.MagFilter));
 
-		GLenum internal_format = ToGLInternalFormat(m_specs.InternalFormat);
-		GLenum data_format = ToGLImageFormat(m_specs.SourceFormat);
-		GLenum data_type = ToGLDataType(m_specs.SourceFormat);
+		GLenum internal_format = ToGLInternalFormat(m_specs.Format);
+		GLenum data_format = ToGLImageFormat(source_format);
+		GLenum data_type = ToGLDataType(source_format);
 
 		const std::byte* raw_data = data.data();
 
