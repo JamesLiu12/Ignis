@@ -21,8 +21,8 @@ namespace ignis
 			bool Normalized;
 			size_t Offset;
 
-			Attribute(uint32_t index, Shader::DataType type, bool normalized = false, size_t offset = 0)
-				: Index(index), Type(type), Normalized(normalized), Offset(offset) {
+			Attribute(uint32_t index, Shader::DataType type, bool normalized = false)
+				: Index(index), Type(type), Normalized(normalized) {
 			}
 		};
 
@@ -30,6 +30,7 @@ namespace ignis
 		{
 		public:
 			Layout(const std::initializer_list<Attribute>& attributes);
+
 			~Layout() = default;
 
 			const std::vector<Attribute>& GetAttributes() const { return m_attributes; }
