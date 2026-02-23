@@ -6,36 +6,9 @@
 
 namespace ignis
 {
-	static FramebufferAttachmentType GetAttachmentType(TextureFormat format)
-	{
-		switch (format)
-		{
-		case TextureFormat::RGBA8:
-		case TextureFormat::RGBA8_sRGB:
-		case TextureFormat::RGBA16F:
-		case TextureFormat::RGBA32F:
-			return FramebufferAttachmentType::Color;
-
-		case TextureFormat::Depth24:
-		case TextureFormat::Depth32F:
-			return FramebufferAttachmentType::Depth;
-
-		case TextureFormat::Depth24Stencil8:
-			return FramebufferAttachmentType::DepthStencil;
-
-		default:
-			return FramebufferAttachmentType::Color;
-		}
-	}
-
 	GLFramebuffer::GLFramebuffer(const FrameBufferSpecs& specs)
 		: m_specs(specs)
 	{
-		for (auto& attachment_spec : m_specs.Attachments)
-		{
-			attachment_spec.Type = GetAttachmentType(attachment_spec.Format);
-		}
-
 		Invalidate();
 	}
 
@@ -130,9 +103,12 @@ namespace ignis
 			tex_specs.WrapS = TextureWrap::ClampToEdge;
 			tex_specs.WrapT = TextureWrap::ClampToEdge;
 
-			switch (spec.Type)
+			switch (spec.Format)
 			{
-			case FramebufferAttachmentType::Color:
+			case TextureFormat::RGBA8:
+			case TextureFormat::RGBA8_sRGB:
+			case TextureFormat::RGBA16F:
+			case TextureFormat::RGBA32F:
 			{
 				tex_specs.Usage = TextureUsage::RenderTarget | TextureUsage::Sampled;
 				auto texture = Texture2D::Create(tex_specs);
@@ -150,7 +126,8 @@ namespace ignis
 				break;
 			}
 			
-			case FramebufferAttachmentType::Depth:
+			case TextureFormat::Depth24:
+			case TextureFormat::Depth32F:
 			{
 				tex_specs.Usage = TextureUsage::Depth | TextureUsage::Sampled;
 				m_depth_attachment = Texture2D::Create(tex_specs);
@@ -165,7 +142,7 @@ namespace ignis
 				break;
 			}
 			
-			case FramebufferAttachmentType::DepthStencil:
+			case TextureFormat::Depth24Stencil8:
 			{
 				tex_specs.Usage = TextureUsage::Depth | TextureUsage::Stencil | TextureUsage::Sampled;
 				m_depth_attachment = Texture2D::Create(tex_specs);

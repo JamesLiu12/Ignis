@@ -4,17 +4,13 @@
 
 namespace ignis
 {
-	enum class FramebufferAttachmentType { Color, Depth, Stencil, DepthStencil };
-
 	struct FramebufferAttachmentSpecs
 	{
 
 		FramebufferAttachmentSpecs(TextureFormat format)
-			: Format(format) {
-		}
+			: Format(format) {}
 
 		TextureFormat Format;
-		FramebufferAttachmentType Type;
 	};
 
 	struct FrameBufferSpecs
