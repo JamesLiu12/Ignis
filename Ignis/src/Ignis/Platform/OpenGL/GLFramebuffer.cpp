@@ -111,6 +111,7 @@ namespace ignis
 			case TextureFormat::RGBA32F:
 			{
 				tex_specs.Usage = TextureUsage::RenderTarget | TextureUsage::Sampled;
+				tex_specs.Format = spec.Format;
 				auto texture = Texture2D::Create(tex_specs);
 				m_color_attachments.push_back(texture);
 				
@@ -130,6 +131,7 @@ namespace ignis
 			case TextureFormat::Depth32F:
 			{
 				tex_specs.Usage = TextureUsage::Depth | TextureUsage::Sampled;
+				tex_specs.Format = spec.Format;
 				m_depth_attachment = Texture2D::Create(tex_specs);
 				
 				glFramebufferTexture2D(
@@ -145,6 +147,7 @@ namespace ignis
 			case TextureFormat::Depth24Stencil8:
 			{
 				tex_specs.Usage = TextureUsage::Depth | TextureUsage::Stencil | TextureUsage::Sampled;
+				tex_specs.Format = spec.Format;
 				m_depth_attachment = Texture2D::Create(tex_specs);
 				
 				glFramebufferTexture2D(
