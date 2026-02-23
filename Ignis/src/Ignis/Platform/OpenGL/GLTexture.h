@@ -19,8 +19,9 @@ namespace ignis
 
 	private:
 		uint32_t m_id = 0;
-
 		TextureSpecs m_specs;
+
+		friend class GLFramebuffer;
 	};
 
 	class GLTextureCube : public TextureCube
@@ -40,7 +41,6 @@ namespace ignis
 
 	private:
 		uint32_t m_id = 0;
-
 		TextureSpecs m_specs;
 	};
 }
