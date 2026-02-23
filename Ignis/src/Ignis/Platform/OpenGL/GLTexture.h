@@ -12,7 +12,7 @@ namespace ignis
 		uint32_t GetWidth() const override { return m_specs.Width; }
 		uint32_t GetHeight() const override { return m_specs.Height; }
 
-		void SetData(ImageFormat source_format, std::span<const std::byte> data) const;
+		void SetData(ImageFormat source_format, std::span<const std::byte> data) const override;
 
 		void Bind(uint32_t unit) const override;
 		void UnBind() const override;
@@ -33,7 +33,7 @@ namespace ignis
 		uint32_t GetWidth() const override { return m_specs.Width; }
 		uint32_t GetHeight() const override { return m_specs.Height; }
 
-		void SetData(ImageFormat source_format, std::span<const std::byte> data) const;
+		void SetData(ImageFormat source_format, std::span<const std::byte> data) const override;
 
 		void Bind(uint32_t unit) const override;
 		void UnBind() const override;
