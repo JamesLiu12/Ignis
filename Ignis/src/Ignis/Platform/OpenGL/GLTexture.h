@@ -5,7 +5,7 @@ namespace ignis
 	class GLTexture2D : public Texture2D
 	{
 	public:
-		GLTexture2D(const TextureSpecs& specs, std::span<const std::byte> data);
+		GLTexture2D(const TextureSpecs& specs, ImageFormat source_format, std::span<const std::byte> data);
 		~GLTexture2D() override = default;
 
 		uint32_t GetWidth() const override { return m_specs.Width; }
@@ -23,7 +23,7 @@ namespace ignis
 	class GLTextureCube : public TextureCube
 	{
 	public:
-		GLTextureCube (const TextureSpecs& specs, std::span<const std::byte> data);
+		GLTextureCube (const TextureSpecs& specs, ImageFormat source_format, std::span<const std::byte> data);
 		~GLTextureCube() override = default;
 
 		uint32_t GetWidth() const override { return m_specs.Width; }

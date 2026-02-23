@@ -6,23 +6,23 @@
 
 namespace ignis
 {
-	std::shared_ptr<Texture2D> Texture2D::Create(const TextureSpecs& specs, std::span<const std::byte> data)
+	std::shared_ptr<Texture2D> Texture2D::Create(const TextureSpecs& specs, ImageFormat source_format, std::span<const std::byte> data)
 	{
 		switch (GraphicsAPI::GetType())
 		{
 		case GraphicsAPI::Type::OpenGL:
-			return std::make_shared<GLTexture2D>(specs, data);
+			return std::make_shared<GLTexture2D>(specs, source_format, data);
 		default:
 			return nullptr;
 		}
 	}
 
-	std::shared_ptr<TextureCube> TextureCube::Create(const TextureSpecs& specs, std::span<const std::byte> data)
+	std::shared_ptr<TextureCube> TextureCube::Create(const TextureSpecs& specs, ImageFormat source_format, std::span<const std::byte> data)
 	{
 		switch (GraphicsAPI::GetType())
 		{
 		case GraphicsAPI::Type::OpenGL:
-			return std::make_shared<GLTextureCube>(specs, data);
+			return std::make_shared<GLTextureCube>(specs, source_format, data);
 		default:
 			return nullptr;
 		}
