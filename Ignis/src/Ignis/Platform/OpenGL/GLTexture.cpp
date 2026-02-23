@@ -49,10 +49,68 @@ namespace ignis
 		ApplyTextureParameters(m_specs);
 
 		const GLenum internal_format = utils::ToGLTextureFormat(m_specs.Format);
-		glTexImage2D(GL_TEXTURE_2D, 0, internal_format, m_specs.Width, m_specs.Height, 0,
-			GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		
+		GLenum format = GL_RGBA;
+		GLenum type = GL_UNSIGNED_BYTE;
 
-		glBindTexture(GL_TEXTURE_2D, 0);
+		switch (m_specs.Format)
+		{
+		case TextureFormat::RGBA8:
+		case TextureFormat::RGBA8_sRGB:
+			format = GL_RGBA;
+			type = GL_UNSIGNED_BYTE;
+			break;
+
+		case TextureFormat::RGBA16F:
+			format = GL_RGBA;
+			type = GL_HALF_FLOAT;
+			break;
+
+		case TextureFormat::RGBA32F:
+			format = GL_RGBA;
+			type = GL_FLOAT;
+			break;
+
+		case TextureFormat::Depth24:
+			format = GL_DEPTH_COMPONENT;
+			type = GL_UNSIGNED_INT;
+			break;
+
+		case TextureFormat::Depth32F:
+			format = GL_DEPTH_COMPONENT;
+			type = GL_FLOAT;
+			break;
+
+		case TextureFormat::Depth24Stencil8:
+			format = GL_DEPTH_STENCIL;
+			type = GL_UNSIGNED_INT_24_8;
+			break;
+
+		default:
+			Log::CoreError("Unsupported texture format");
+			break;
+		}
+
+		if (m_specs.Samples > 1)
+		{
+			glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_id);
+
+			glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_specs.Samples,
+				internal_format, m_specs.Width, m_specs.Height, GL_TRUE);
+
+			glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+		}
+		else
+		{
+			glBindTexture(GL_TEXTURE_2D, m_id);
+
+			ApplyTextureParameters(m_specs);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, internal_format, m_specs.Width, m_specs.Height, 0,
+				format, type, nullptr);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
 	}
 
 	void GLTexture2D::SetData(ImageFormat source_format, std::span<const std::byte> data) const

@@ -186,6 +186,38 @@ namespace ignis
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, m_id);
 		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+		if (status != GL_FRAMEBUFFER_COMPLETE)
+		{
+			switch (status)
+			{
+			case GL_FRAMEBUFFER_UNDEFINED:
+				Log::CoreError("Framebuffer undefined");
+				break;
+			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+				Log::CoreError("Framebuffer incomplete attachment");
+				break;
+			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+				Log::CoreError("Framebuffer missing attachment");
+				break;
+			case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+				Log::CoreError("Framebuffer incomplete draw buffer");
+				break;
+			case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+				Log::CoreError("Framebuffer incomplete read buffer");
+				break;
+			case GL_FRAMEBUFFER_UNSUPPORTED:
+				Log::CoreError("Framebuffer unsupported");
+				break;
+			case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+				Log::CoreError("Framebuffer incomplete multisample");
+				break;
+			default:
+				Log::CoreError("Unknown framebuffer error: {}", status);
+				break;
+			}
+		}
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		
 		return status == GL_FRAMEBUFFER_COMPLETE;
