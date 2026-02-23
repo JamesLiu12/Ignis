@@ -174,6 +174,15 @@ void EditorSceneLayer::OnAttach()
 	}
 
 	SceneHierarchyTest(m_scene.get());
+
+	ignis::FrameBufferSpecs specs;
+	auto& window = m_editor_app->GetWindow();
+	specs.Width = window.GetWidth();
+	specs.Height = window.GetHeight();
+	specs.Attachments = { ignis::TextureFormat::RGBA8, ignis::TextureFormat::Depth24Stencil8 };
+
+	auto framebuffer = ignis::Framebuffer::Create(specs);
+	m_renderer.SetFramebuffer(framebuffer);
 }
 
 void EditorSceneLayer::OnUpdate(float dt)
@@ -182,11 +191,14 @@ void EditorSceneLayer::OnUpdate(float dt)
 	// Update editor camera with mouse and keyboard controls
 	m_camera->OnUpdate(dt);
 
-	m_renderer.Clear();
-
 	m_renderer.BeginScene(m_pipeline, m_scene, m_camera);
 
+	m_renderer.Clear();
+
 	m_renderer.RenderMesh(m_mesh, m_mesh_transform_component.GetTransform());
+
+	auto& window = m_editor_app->GetWindow();
+	m_renderer.SetViewport(0, 0, window.GetWidth(), window.GetHeight());
 
 	m_renderer.EndScene();
 }
@@ -198,5 +210,13 @@ void EditorSceneLayer::OnEvent(ignis::EventBase& event)
 		float aspect_ratio = static_cast<float>(resize_event->GetWidth()) / static_cast<float>(resize_event->GetHeight());
 		m_camera->SetPerspective(45.0f, aspect_ratio, 0.1f, 1000.0f);
 		m_camera->RecalculateViewMatrix();
+
+		auto framebuffer = m_renderer.GetFramebuffer();
+		if (framebuffer)
+		{
+			framebuffer->Resize(resize_event->GetWidth(), resize_event->GetHeight());
+		}
+
+		m_renderer.SetViewport(0, 0, resize_event->GetWidth(), resize_event->GetHeight());
 	}
 }

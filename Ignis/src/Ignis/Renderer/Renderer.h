@@ -6,6 +6,7 @@
 #include "Mesh.h"
 #include "Pipeline.h"
 #include "Ignis/Scene/Scene.h"
+#include "Framebuffer.h"
 
 namespace ignis
 {	
@@ -27,6 +28,9 @@ namespace ignis
 		virtual void RenderMesh(const std::shared_ptr<Mesh>& mesh, const glm::mat4& model) = 0;
 
 		virtual void Clear() = 0;
+
+		virtual void SetFramebuffer(std::shared_ptr<Framebuffer> framebuffer) = 0;
+		virtual std::shared_ptr<Framebuffer> GetFramebuffer() const = 0;
 
 		static std::unique_ptr<Renderer> Create();
 

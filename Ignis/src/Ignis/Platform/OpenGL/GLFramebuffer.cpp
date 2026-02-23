@@ -25,7 +25,6 @@ namespace ignis
 	void GLFramebuffer::Bind() const
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, m_id);
-		glViewport(0, 0, m_specs.Width, m_specs.Height);
 	}
 
 	void GLFramebuffer::UnBind() const
