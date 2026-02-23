@@ -6,10 +6,13 @@ namespace ignis
 	{
 	public:
 		GLTexture2D(const TextureSpecs& specs, ImageFormat source_format, std::span<const std::byte> data);
+		GLTexture2D(const TextureSpecs& specs);
 		~GLTexture2D() override = default;
 
 		uint32_t GetWidth() const override { return m_specs.Width; }
 		uint32_t GetHeight() const override { return m_specs.Height; }
+
+		void SetData(ImageFormat source_format, std::span<const std::byte> data) const;
 
 		void Bind(uint32_t unit) const override;
 		void UnBind() const override;
@@ -24,10 +27,13 @@ namespace ignis
 	{
 	public:
 		GLTextureCube (const TextureSpecs& specs, ImageFormat source_format, std::span<const std::byte> data);
+		GLTextureCube(const TextureSpecs& specs);
 		~GLTextureCube() override = default;
 
 		uint32_t GetWidth() const override { return m_specs.Width; }
 		uint32_t GetHeight() const override { return m_specs.Height; }
+
+		void SetData(ImageFormat source_format, std::span<const std::byte> data) const;
 
 		void Bind(uint32_t unit) const override;
 		void UnBind() const override;
