@@ -81,6 +81,8 @@ namespace ignis
 
 		virtual void Bind(uint32_t unit) const = 0;
 		virtual void UnBind() const = 0;
+
+		virtual uint32_t GetRendererID() const = 0;
 	};
 
 	class Texture2D : public Texture
