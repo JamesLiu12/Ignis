@@ -3,7 +3,7 @@
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
-using orderer_json = nlohmann::ordered_json;
+using ordered_json = nlohmann::ordered_json;
 
 namespace ignis
 {
@@ -16,13 +16,24 @@ namespace ignis
 			Log::CoreError("[ProjectSerializer::Serialize] Failed to open file for writing");
 		}
 
-		orderer_json data;
+		ordered_json data;
 		data["ProjectName"] = project.GetProjectName();
 		data["ProjectDirectory"] = project.GetProjectDirectory();
 		data["AssetDirectory"] = project.GetAssetDirectory();
 		data["StartScene"] = project.GetStartScene();
 
-		file << std::setw(4) << data;
+		try
+		{
+			file << data.dump(4);
+			file.close();
+			Log::CoreInfo("[ProjectSerializer::Serialize] Successfully serialized project to: {}", filepath.string());
+			return true;
+		}
+		catch (const std::exception& e)
+		{
+			Log::CoreError("[ProjectSerializer::Serialize] Failed to write JSON: {}", e.what());
+			return false;
+		}
 	}
 
 	std::shared_ptr<Project> ProjectSerializer::Deserialize(const std::filesystem::path& filepath)
@@ -34,8 +45,16 @@ namespace ignis
 			Log::CoreError("[ProjectSerializer::Serialize] Failed to open file for reading");
 		}
 
-		orderer_json data;
-		file >> data;
+		ordered_json data;
+		try
+		{
+			file >> data;
+		}
+		catch (const std::exception& e)
+		{
+			Log::CoreError("[ProjectSerializer::Deserialize] Failed to parse JSON: {}", e.what());
+			return nullptr;
+		}
 
 		auto project = std::make_shared<Project>();
 		project->m_config.ProjectName = data["ProjectName"];
