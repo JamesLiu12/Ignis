@@ -17,7 +17,8 @@ namespace ignis
 		void Bind(uint32_t unit) const override;
 		void UnBind() const override;
 
-		uint32_t GetRendererID() const override { return m_id; }
+		// OpenGL-specific method to get texture ID
+		uint32_t GetOpenGLTextureID() const { return m_id; }
 
 	private:
 		uint32_t m_id = 0;
