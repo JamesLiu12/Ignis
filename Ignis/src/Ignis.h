@@ -3,8 +3,10 @@
 #include "Ignis/Core/KeyCodes.h"
 #include "Ignis/Core/Log.h"
 #include "Ignis/Core/UUID.h"
-#include "Ignis/Core/FileSystem.h"
-#include "Ignis/Core/FileDialog.h"
+#include "Ignis/Core/File/FileSystem.h"
+#include "Ignis/Core/File/FileDialog.h"
+#include "Ignis/Core/File/File.h"
+#include "Ignis/Core/File/VFS.h"
 #include "Ignis/Core/Layer.h"
 
 #include "Ignis/Renderer/VertexBuffer.h"
@@ -19,8 +21,7 @@
 #include "Ignis/Renderer/Camera.h"
 #include "Ignis/Renderer/Framebuffer.h"
 
-#include "Ignis/Asset/File.h"
-#include "Ignis/Asset/VFS.h"
+
 #include "Ignis/Asset/AssetManager.h"
 #include "Ignis/Asset/Asset.h"
 
