@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
+using orderer_json = nlohmann::ordered_json;
 
 namespace ignis
 {
@@ -15,7 +16,7 @@ namespace ignis
 			Log::CoreError("[ProjectSerializer::Serialize] Failed to open file for writing");
 		}
 
-		json data;
+		orderer_json data;
 		data["ProjectName"] = project.GetProjectName();
 		data["ProjectDirectory"] = project.GetProjectDirectory();
 		data["AssetDirectory"] = project.GetAssetDirectory();
@@ -33,7 +34,7 @@ namespace ignis
 			Log::CoreError("[ProjectSerializer::Serialize] Failed to open file for reading");
 		}
 
-		json data;
+		orderer_json data;
 		file >> data;
 
 		auto project = std::make_shared<Project>();
