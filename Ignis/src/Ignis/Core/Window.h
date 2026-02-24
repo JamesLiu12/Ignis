@@ -34,6 +34,9 @@ namespace ignis
 		uint32_t GetWidth() const { return m_data.Width; }
 		uint32_t GetHeight() const { return m_data.Height; }
 
+		uint32_t GetFramebufferWidth() const;
+		uint32_t GetFramebufferHeight() const;
+
 		void SetEventCallback(const EventCallbackFn& cb) { m_data.EventCallback = cb; }
 
 		void SetVSync(bool enabled);
