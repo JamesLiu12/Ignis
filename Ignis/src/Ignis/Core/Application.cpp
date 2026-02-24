@@ -4,8 +4,6 @@
 #include "Input.h"
 #include "Ignis/Renderer/Camera.h"
 #include "Ignis/Renderer/RendererContext.h"
-#include "Ignis/Asset/VFS.h"
-#include "Ignis/Core/FileSystem.h"
 
 namespace ignis 
 {
