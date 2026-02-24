@@ -30,6 +30,13 @@ namespace ignis {
 
 		if (ImGui::Begin("Viewport", nullptr, window_flags))
 		{
+			// Track focus state and calculate viewport bounds for camera input gating
+			m_is_focused = ImGui::IsWindowFocused();
+			ImVec2 window_pos = ImGui::GetWindowPos();
+			ImVec2 window_size = ImGui::GetWindowSize();
+			m_viewport_min_bound = window_pos;
+			m_viewport_max_bound = ImVec2(window_pos.x + window_size.x, window_pos.y + window_size.y);
+			
 			ImVec2 content_size = ImGui::GetContentRegionAvail();
 			m_viewport_size = content_size;
 

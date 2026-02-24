@@ -19,10 +19,16 @@ namespace ignis {
 		std::string_view GetID() const override { return "viewport_panel"; }
 
 		ImVec2 GetViewportSize() const { return m_viewport_size; }
+		ImVec2 GetViewportMinBound() const { return m_viewport_min_bound; }
+		ImVec2 GetViewportMaxBound() const { return m_viewport_max_bound; }
+		bool IsFocused() const { return m_is_focused; }
 
 	private:
 		Renderer* m_renderer;
 		ImVec2 m_viewport_size;
+		ImVec2 m_viewport_min_bound;
+		ImVec2 m_viewport_max_bound;
+		bool m_is_focused = false;
 	};
 
 } // namespace ignis

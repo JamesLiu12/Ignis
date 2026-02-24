@@ -193,8 +193,56 @@ void EditorSceneLayer::OnAttach()
 void EditorSceneLayer::OnUpdate(float dt)
 {
 	static glm::mat4 model = glm::mat4(1.0f);
-	// Update editor camera with mouse and keyboard controls
-	m_camera->OnUpdate(dt);
+	
+	// Camera input gating: only allow camera control when mouse is over viewport
+	bool allow_camera_control = false;
+	
+	// Lazy initialization in which viewportPanel is created after EditorSceneLayer
+	if (!m_viewport_panel)
+	{
+		m_viewport_panel = m_editor_app->GetViewportPanel();
+	}
+	
+	if (m_viewport_panel)
+	{
+		// Get viewport bounds
+		ImVec2 min_bound = m_viewport_panel->GetViewportMinBound();
+		ImVec2 max_bound = m_viewport_panel->GetViewportMaxBound();
+		
+		// Check if mouse is within viewport bounds (use ImGui coordinates)
+		ImVec2 mouse_pos = ImGui::GetMousePos();
+		bool mouse_in_viewport = (mouse_pos.x >= min_bound.x && mouse_pos.x <= max_bound.x &&
+		                          mouse_pos.y >= min_bound.y && mouse_pos.y <= max_bound.y);
+		
+		bool viewport_focused = m_viewport_panel->IsFocused();
+		
+		// Track camera drag state
+		bool camera_button_pressed = ignis::Input::IsMouseButtonPressed(ignis::MouseButton::Left) || 
+		                             ignis::Input::IsMouseButtonPressed(ignis::MouseButton::Right);
+		
+		// Start drag if mouse pressed in focused viewport
+		if (camera_button_pressed && !m_started_camera_drag_in_viewport && 
+		    viewport_focused && mouse_in_viewport)
+		{
+			m_started_camera_drag_in_viewport = true;
+		}
+		
+		// Clear drag flag when mouse released
+		if (!camera_button_pressed)
+		{
+			m_started_camera_drag_in_viewport = false;
+		}
+		
+		// Allow camera control if mouse in viewport OR drag started in viewport
+		allow_camera_control = (mouse_in_viewport && viewport_focused) || 
+		                       m_started_camera_drag_in_viewport;
+	}
+	
+	// Only update camera if allowed
+	if (allow_camera_control)
+	{
+		m_camera->OnUpdate(dt);
+	}
 
 	// Update camera aspect ratio based on viewport panel size
 	if (m_viewport_panel)
