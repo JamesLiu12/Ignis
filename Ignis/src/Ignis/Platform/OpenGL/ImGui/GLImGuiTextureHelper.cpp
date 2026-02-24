@@ -1,4 +1,5 @@
 #include "GLImGuiTextureHelper.h"
+#include "Ignis/Platform/OpenGL/GLTexture.h"
 #include <imgui.h>
 
 namespace ignis
@@ -11,8 +12,9 @@ namespace ignis
 		if (!texture)
 			return;
 		
-		// OpenGL-specific: Get texture ID and cast to ImTextureID
-		uint32_t texture_id = texture->GetRendererID();
+		// Cast to OpenGL-specific texture type to access OpenGL texture ID
+		auto gl_texture = std::static_pointer_cast<GLTexture2D>(texture);
+		uint32_t texture_id = gl_texture->GetOpenGLTextureID();
 		ImTextureID imgui_texture_id = (ImTextureID)(intptr_t)texture_id;
 		
 		// OpenGL-specific: UV coordinates (Y-flipped for framebuffer textures)
