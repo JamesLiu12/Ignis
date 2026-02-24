@@ -270,11 +270,11 @@ namespace ignis
 			(uint32_t)(mesh->m_vertices.size() * sizeof(Vertex)));
 
 		mesh->m_vertex_buffer->SetLayout(VertexBuffer::Layout({
-			{0, Shader::DataType::Float3, false, (uint32_t)offsetof(Vertex, Position)},
-			{1, Shader::DataType::Float3, false, (uint32_t)offsetof(Vertex, Normal)},
-			{2, Shader::DataType::Float2, false, (uint32_t)offsetof(Vertex, TexCoords)},
-			{3, Shader::DataType::Float3, false, (uint32_t)offsetof(Vertex, Tangent)},
-			{4, Shader::DataType::Float3, false, (uint32_t)offsetof(Vertex, Bitangent)},
+			{0, Shader::DataType::Float3},
+			{1, Shader::DataType::Float3},
+			{2, Shader::DataType::Float2},
+			{3, Shader::DataType::Float3},
+			{4, Shader::DataType::Float3},
 			}));
 
 		mesh->m_index_buffer = IndexBuffer::Create(mesh->m_indices.data(),

@@ -60,6 +60,55 @@ namespace ignis
 		};
 		skybox_vbo->SetLayout(layout);
 		m_skybox_vao->AddVertexBuffer(skybox_vbo);
+
+		float quad_vertices[] = {
+			// positions   // texCoords
+			-1.0f,  1.0f,  0.0f, 1.0f,
+			-1.0f, -1.0f,  0.0f, 0.0f,
+			 1.0f, -1.0f,  1.0f, 0.0f,
+
+			-1.0f,  1.0f,  0.0f, 1.0f,
+			 1.0f, -1.0f,  1.0f, 0.0f,
+			 1.0f,  1.0f,  1.0f, 1.0f
+		};
+
+		m_quad_vao = VertexArray::Create();
+		std::shared_ptr<VertexBuffer> quad_vbo = VertexBuffer::Create(quad_vertices, sizeof(quad_vertices));
+
+		VertexBuffer::Layout quad_layout
+		{
+			{ 0, Shader::DataType::Float2 }, // position
+			{ 1, Shader::DataType::Float2 }  // texCoord
+		};
+		quad_vbo->SetLayout(quad_layout);
+		m_quad_vao->AddVertexBuffer(quad_vbo);
+
+		m_screen_shader = Shader::Create("screen",
+			// Vertex Shader
+			"#version 330 core\n\
+			layout(location = 0) in vec2 aPos;\
+			layout(location = 1) in vec2 aTexCoords;\
+			\
+			out vec2 TexCoords;\
+			\
+			void main()\
+			{\
+				TexCoords = aTexCoords;\
+				gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);\
+			}",
+			//Fragment Shader
+			"#version 330 core\n\
+			out vec4 FragColor;\
+			\
+			in vec2 TexCoords;\
+			\
+			uniform sampler2D screenTexture;\
+			\
+			void main()\
+			{\
+				FragColor = texture(screenTexture, TexCoords);\
+			}"
+		);
 	}
 
 	void GLRenderer::BeginScene(std::shared_ptr<Pipeline> pipeline, std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera)
@@ -67,6 +116,11 @@ namespace ignis
 		m_pipeline = pipeline;
 		m_scene = scene;
 		m_camera = camera;
+
+		if (m_framebuffer)
+		{
+			m_framebuffer->Bind();
+		}
 
 		glEnable(GL_DEPTH_TEST);
 
@@ -91,6 +145,26 @@ namespace ignis
 
 		glDepthFunc(GL_LESS);
 		glEnable(GL_CULL_FACE);
+
+		if (m_framebuffer)
+		{
+			m_framebuffer->UnBind();
+
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glDisable(GL_DEPTH_TEST);
+
+			m_screen_shader->Bind();
+
+			auto color_texture = m_framebuffer->GetColorAttachment(0);
+			color_texture->Bind(0);
+			Material::Create(m_screen_shader)->Set("screenTexture", 0);
+
+			m_quad_vao->Bind();
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			m_quad_vao->UnBind();
+
+			glEnable(GL_DEPTH_TEST);
+		}
 	}
 
 	void GLRenderer::SetClearColor(float r, float g, float b, float a)

@@ -7,11 +7,13 @@ namespace ignis
 	VertexBuffer::Layout::Layout(const std::initializer_list<Attribute>& attributes)
 		: m_attributes(attributes)
 	{
+		uint32_t offset = 0;
 		m_stride = 0;
-		for (const auto& attribute : m_attributes)
-		{
-			m_stride += Shader::DataTypeSize(attribute.Type);
+		for (auto& attribute : m_attributes) {
+			attribute.Offset = offset;
+			offset += Shader::DataTypeSize(attribute.Type);
 		}
+		m_stride = offset;
 	}
 
 	std::shared_ptr<VertexBuffer> VertexBuffer::Create(size_t size, Usage usage)
