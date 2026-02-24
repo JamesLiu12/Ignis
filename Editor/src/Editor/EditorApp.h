@@ -2,12 +2,11 @@
 
 #include "Ignis.h"
 
-class EditorSceneLayer;
-
 namespace ignis {
 
 // Forward declarations
 class EditorLayer;
+class EditorSceneLayer;
 class PropertiesPanel;
 class SceneHierarchyPanel;
 class ViewportPanel;

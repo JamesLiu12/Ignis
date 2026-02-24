@@ -7,45 +7,46 @@ namespace ignis {
 	class Renderer;
 	class EditorApp;
 	class ViewportPanel;
-}
 
-class EditorSceneLayer : public ignis::Layer
+class EditorSceneLayer : public Layer
 {
 public:
-	EditorSceneLayer(ignis::Renderer& renderer, ignis::EditorApp* editor_app);
+	EditorSceneLayer(Renderer& renderer, EditorApp* editor_app);
 
 	~EditorSceneLayer() override = default;
 
 	void OnAttach() override;
 	void OnUpdate(float dt) override;
-	void OnEvent(ignis::EventBase& event) override;
+	void OnEvent(EventBase& event) override;
 
 	// Mesh access for PropertiesPanel
-	std::shared_ptr<ignis::Mesh> GetCurrentMesh() const { return m_mesh; }
-	ignis::TransformComponent& GetMeshTransform() { return m_mesh_transform_component; }
+	std::shared_ptr<Mesh> GetCurrentMesh() const { return m_mesh; }
+	TransformComponent& GetMeshTransform() { return m_mesh_transform_component; }
 
 private:
-	ignis::Renderer& m_renderer;
-	ignis::EditorApp* m_editor_app;
-	ignis::ViewportPanel* m_viewport_panel = nullptr;
+	Renderer& m_renderer;
+	EditorApp* m_editor_app;
+	ViewportPanel* m_viewport_panel = nullptr;
 
-	std::shared_ptr<ignis::ShaderLibrary> m_shader_library;
+	std::shared_ptr<ShaderLibrary> m_shader_library;
 	
-	std::shared_ptr<ignis::EditorCamera> m_camera;
+	std::shared_ptr<EditorCamera> m_camera;
 
-	std::shared_ptr<ignis::Scene> m_scene;
+	std::shared_ptr<Scene> m_scene;
 
-	std::shared_ptr<ignis::Mesh> m_mesh;
+	std::shared_ptr<Mesh> m_mesh;
 	
 	// Test light entity for properties panel (shared_ptr for weak_ptr compatibility)
-	std::shared_ptr<ignis::Entity> m_light_entity;
+	std::shared_ptr<Entity> m_light_entity;
 
-	std::shared_ptr<ignis::Pipeline> m_pipeline;
+	std::shared_ptr<Pipeline> m_pipeline;
 
-	ignis::TransformComponent m_mesh_transform_component;
+	TransformComponent m_mesh_transform_component;
 
 	float m_camera_speed = 10.0f;
 	
 	// Camera input gate for tracking if drag started in viewport
 	bool m_started_camera_drag_in_viewport = false;
 };
+
+} // namespace ignis
