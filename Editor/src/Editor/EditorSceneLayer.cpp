@@ -2,6 +2,7 @@
 #include "Editor/EditorApp.h"
 #include "Editor/Panels/PropertiesPanel.h"
 #include "Editor/Panels/SceneHierarchyPanel.h"
+#include "Editor/Panels/ViewportPanel.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 EditorSceneLayer::EditorSceneLayer(ignis::Renderer& renderer, ignis::EditorApp* editor_app)
@@ -175,6 +176,9 @@ void EditorSceneLayer::OnAttach()
 		properties_panel->SetCurrentMesh(&m_mesh, &m_mesh_transform_component);
 	}
 
+	// Get viewport panel reference for camera aspect ratio updates
+	m_viewport_panel = m_editor_app->GetViewportPanel();
+
 	SceneHierarchyTest(m_scene.get());
 
 	ignis::FrameBufferSpecs specs;
@@ -192,6 +196,17 @@ void EditorSceneLayer::OnUpdate(float dt)
 	// Update editor camera with mouse and keyboard controls
 	m_camera->OnUpdate(dt);
 
+	// Update camera aspect ratio based on viewport panel size
+	if (m_viewport_panel)
+	{
+		ImVec2 viewport_size = m_viewport_panel->GetViewportSize();
+		if (viewport_size.x > 0 && viewport_size.y > 0)
+		{
+			float aspect = viewport_size.x / viewport_size.y;
+			m_camera->SetPerspective(45.0f, aspect, 0.1f, 1000.0f);
+		}
+	}
+
 	m_renderer.BeginScene(m_pipeline, m_scene, m_camera);
 
 	m_renderer.Clear();
@@ -205,22 +220,6 @@ void EditorSceneLayer::OnUpdate(float dt)
 
 void EditorSceneLayer::OnEvent(ignis::EventBase& event)
 {
-	if (auto* resize_event = dynamic_cast<ignis::WindowResizeEvent*>(&event))
-	{
-		auto& window = m_editor_app->GetWindow();
-		uint32_t fb_width = window.GetFramebufferWidth();
-		uint32_t fb_height = window.GetFramebufferHeight();
-		
-		float aspect_ratio = static_cast<float>(fb_width) / static_cast<float>(fb_height);
-		m_camera->SetPerspective(45.0f, aspect_ratio, 0.1f, 1000.0f);
-		m_camera->RecalculateViewMatrix();
-
-		auto framebuffer = m_renderer.GetFramebuffer();
-		if (framebuffer)
-		{
-			framebuffer->Resize(fb_width, fb_height);
-		}
-
-		m_renderer.SetViewport(0, 0, fb_width, fb_height);
-	}
+	// window resize handling removed, and viewport panel now manages framebuffer size
+	// and camera aspect ratio is updated in OnUpdate() based on viewport panel size
 }
