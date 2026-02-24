@@ -17,16 +17,15 @@ namespace ignis
 
 		specs.Width = image->GetWidth();
 		specs.Height = image->GetHeight();
-		specs.SourceFormat = image->GetFormat();
 
-		specs.InternalFormat = options.InternalFormat;
+		specs.Format = options.InternalFormat;
 		specs.WrapS = options.WrapS;
 		specs.WrapT = options.WrapT;
 		specs.MinFilter = options.MinFilter;
 		specs.MagFilter = options.MagFilter;
 		specs.GenMipmaps = options.GenMipmaps;
 
-		return Texture2D::Create(specs, image->GetPixels());
+		return Texture2D::Create(specs, image->GetFormat(), image->GetPixels());
 	}
 	std::shared_ptr<TextureCube> TextureImporter::ImportTextureCube(const std::string& path, const TextureImportOptions& options)
 	{
@@ -66,20 +65,19 @@ namespace ignis
 
 		specs.Width = width;
 		specs.Height = height;
-		specs.SourceFormat = image->GetFormat();
-		specs.InternalFormat = options.InternalFormat;
+		specs.Format = options.InternalFormat;
 		specs.WrapS = options.WrapS;
 		specs.WrapT = options.WrapT;
 		specs.MinFilter = options.MinFilter;
 		specs.MagFilter = options.MagFilter;
 		specs.GenMipmaps = options.GenMipmaps;
 
-		uint32_t bpp = BytesPerPixel(specs.SourceFormat);
+		uint32_t bpp = BytesPerPixel(image->GetFormat());
 		uint32_t face_size = specs.Width * specs.Height * bpp;
 
 		if (is_vertical)
 		{
-			return TextureCube::Create(specs, image->GetPixels());
+			return TextureCube::Create(specs, image->GetFormat(), image->GetPixels());
 		}
 
 		std::vector<std::byte> reordered_data(face_size * 6);
@@ -102,6 +100,6 @@ namespace ignis
 			}
 		}
 
-		return TextureCube::Create(specs, reordered_data);
+		return TextureCube::Create(specs, image->GetFormat(), reordered_data);
 	}
 }

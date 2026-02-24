@@ -30,10 +30,9 @@ namespace ignis
 			ignis::TextureSpecs specs;
 			specs.Width = 1;
 			specs.Height = 1;
-			specs.SourceFormat = ignis::ImageFormat::RGBA8;
-			specs.InternalFormat = ignis::ImageFormat::RGBA8;
+			specs.Format = TextureFormat::RGBA8;
 
-			s_texture = ignis::Texture2D::Create(specs, s_white_data);
+			s_texture = ignis::Texture2D::Create(specs, ImageFormat::RGBA8, s_white_data);
 		}
 
 		return s_texture;
@@ -52,10 +51,9 @@ namespace ignis
 			ignis::TextureSpecs specs;
 			specs.Width = 1;
 			specs.Height = 1;
-			specs.SourceFormat = ignis::ImageFormat::RGBA8;
-			specs.InternalFormat = ignis::ImageFormat::RGBA8;
+			specs.Format = ignis::TextureFormat::RGBA8;
 
-			s_texture = ignis::Texture2D::Create(specs, s_black_data);
+			s_texture = ignis::Texture2D::Create(specs, ImageFormat::RGBA8, s_black_data);
 		}
 
 		return s_texture;
@@ -74,10 +72,9 @@ namespace ignis
 			ignis::TextureSpecs specs;
 			specs.Width = 1;
 			specs.Height = 1;
-			specs.SourceFormat = ignis::ImageFormat::RGBA8;
-			specs.InternalFormat = ignis::ImageFormat::RGBA8;
+			specs.Format = ignis::TextureFormat::RGBA8;
 
-			s_texture = ignis::Texture2D::Create(specs, s_normal_data);
+			s_texture = ignis::Texture2D::Create(specs, ImageFormat::RGBA8, s_normal_data);
 		}
 
 		return s_texture;
@@ -96,10 +93,9 @@ namespace ignis
 			ignis::TextureSpecs specs;
 			specs.Width = 1;
 			specs.Height = 1;
-			specs.SourceFormat = ignis::ImageFormat::RGBA8;
-			specs.InternalFormat = ignis::ImageFormat::RGBA8;
+			specs.Format = ignis::TextureFormat::RGBA8;
 
-			s_texture = ignis::Texture2D::Create(specs, s_rough_data);
+			s_texture = ignis::Texture2D::Create(specs, ImageFormat::RGBA8, s_rough_data);
 		}
 
 		return s_texture;

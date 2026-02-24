@@ -26,6 +26,9 @@ namespace ignis
 		void RenderMesh(const std::shared_ptr<Mesh>& mesh, const glm::mat4& model) override;
 		void Clear() override;
 
+		void SetFramebuffer(std::shared_ptr<Framebuffer> framebuffer) { m_framebuffer = framebuffer; }
+		std::shared_ptr<Framebuffer> GetFramebuffer() const { return m_framebuffer; }
+
 	private:
 		LightEnvironment m_light_environment;
 		Environment m_scene_environment;
@@ -33,7 +36,10 @@ namespace ignis
 		std::shared_ptr<Pipeline> m_pipeline;
 		std::shared_ptr<Scene> m_scene;
 		std::shared_ptr<Camera> m_camera;
-
 		std::shared_ptr<VertexArray> m_skybox_vao;
+
+		std::shared_ptr<Framebuffer> m_framebuffer;
+		std::shared_ptr<VertexArray> m_quad_vao;
+		std::shared_ptr<Shader> m_screen_shader;
 	};
 }

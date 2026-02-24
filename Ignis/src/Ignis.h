@@ -17,6 +17,7 @@
 #include "Ignis/Renderer/Pipeline.h"
 #include "Ignis/Renderer/PBRPipeline.h"
 #include "Ignis/Renderer/Camera.h"
+#include "Ignis/Renderer/Framebuffer.h"
 
 #include "Ignis/Asset/File.h"
 #include "Ignis/Asset/VFS.h"

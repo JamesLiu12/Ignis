@@ -14,9 +14,9 @@ namespace ignis
 			(uint32_t)(m_vertices.size() * sizeof(Vertex)));
 
 		m_vertex_buffer->SetLayout(VertexBuffer::Layout({
-			{0, Shader::DataType::Float3, false, (uint32_t)offsetof(Vertex, Position)},
-			{1, Shader::DataType::Float3, false, (uint32_t)offsetof(Vertex, Normal)},
-			{2, Shader::DataType::Float2, false, (uint32_t)offsetof(Vertex, TexCoords)},
+			{0, Shader::DataType::Float3},
+			{1, Shader::DataType::Float3},
+			{2, Shader::DataType::Float2},
 			}));
 
 		m_index_buffer = IndexBuffer::Create(m_indices.data(),
