@@ -17,6 +17,8 @@ namespace ignis
 		void Bind(uint32_t unit) const override;
 		void UnBind() const override;
 
+		uint32_t GetRendererID() const override { return m_id; }
+
 	private:
 		uint32_t m_id = 0;
 		TextureSpecs m_specs;
@@ -38,6 +40,8 @@ namespace ignis
 
 		void Bind(uint32_t unit) const override;
 		void UnBind() const override;
+
+		uint32_t GetRendererID() const override { return m_id; }
 
 	private:
 		uint32_t m_id = 0;
