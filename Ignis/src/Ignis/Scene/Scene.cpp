@@ -23,6 +23,20 @@ namespace ignis
 		return entity;
 	}
 
+	Entity Scene::CreateEntityWithID(UUID uuid, const std::string& name)
+	{
+		Entity entity = Entity(m_registry.create(), this);
+
+		auto& id_component = entity.AddComponent<IDComponent>(uuid);
+		m_id_entity_map[id_component.ID] = entity;
+
+		entity.AddComponent<RelationshipComponent>();
+
+		entity.AddComponent<TransformComponent>();
+		entity.AddComponent<TagComponent>(name.empty() ? "Entity" : name);
+		return entity;
+	}
+
 	Entity Scene::GetEntityByHandle(entt::entity handle)
 	{
 		return Entity(handle, this);
