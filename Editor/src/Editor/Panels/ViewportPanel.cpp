@@ -36,6 +36,16 @@ namespace ignis {
 			auto framebuffer = m_renderer->GetFramebuffer();
 			if (framebuffer && content_size.x > 0 && content_size.y > 0)
 			{
+				// Resize framebuffer if viewport size changed
+				uint32_t fb_width = framebuffer->GetWidth();
+				uint32_t fb_height = framebuffer->GetHeight();
+				
+				if (fb_width != (uint32_t)content_size.x || fb_height != (uint32_t)content_size.y)
+				{
+					framebuffer->Resize((uint32_t)content_size.x, (uint32_t)content_size.y);
+					m_renderer->SetViewport(0, 0, (uint32_t)content_size.x, (uint32_t)content_size.y);
+				}
+				
 				auto color_texture = framebuffer->GetColorAttachment(0);
 				if (color_texture)
 				{

@@ -6,6 +6,7 @@
 namespace ignis {
 	class Renderer;
 	class EditorApp;
+	class ViewportPanel;
 }
 
 class EditorSceneLayer : public ignis::Layer
@@ -26,6 +27,7 @@ public:
 private:
 	ignis::Renderer& m_renderer;
 	ignis::EditorApp* m_editor_app;
+	ignis::ViewportPanel* m_viewport_panel = nullptr;
 
 	std::shared_ptr<ignis::ShaderLibrary> m_shader_library;
 	
