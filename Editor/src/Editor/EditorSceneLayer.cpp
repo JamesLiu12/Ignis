@@ -65,7 +65,9 @@ void EditorSceneLayer::OnAttach()
 	m_shader_library->Load("assets://shaders/example.glsl");
 	m_shader_library->Load("assets://shaders/blinn.glsl");
 
-	m_camera = std::make_shared<ignis::EditorCamera>(45.0f, 1280.0f / 720.0f, 0.1f, 1000.0f);
+	auto& window = m_editor_app->GetWindow();
+	float aspect_ratio = static_cast<float>(window.GetFramebufferWidth()) / static_cast<float>(window.GetFramebufferHeight());
+	m_camera = std::make_shared<ignis::EditorCamera>(45.0f, aspect_ratio, 0.1f, 1000.0f);
 	m_camera->SetPosition({ 1.5f, 0.0f, 10.0f });
 	m_camera->RecalculateViewMatrix();
 
@@ -176,9 +178,8 @@ void EditorSceneLayer::OnAttach()
 	SceneHierarchyTest(m_scene.get());
 
 	ignis::FrameBufferSpecs specs;
-	auto& window = m_editor_app->GetWindow();
-	specs.Width = window.GetWidth();
-	specs.Height = window.GetHeight();
+	specs.Width = window.GetFramebufferWidth();
+	specs.Height = window.GetFramebufferHeight();
 	specs.Attachments = { ignis::TextureFormat::RGBA8, ignis::TextureFormat::Depth24Stencil8 };
 
 	auto framebuffer = ignis::Framebuffer::Create(specs);
@@ -198,7 +199,6 @@ void EditorSceneLayer::OnUpdate(float dt)
 	m_renderer.RenderMesh(m_mesh, m_mesh_transform_component.GetTransform());
 
 	auto& window = m_editor_app->GetWindow();
-	m_renderer.SetViewport(0, 0, window.GetWidth(), window.GetHeight());
 
 	m_renderer.EndScene();
 }
@@ -207,16 +207,20 @@ void EditorSceneLayer::OnEvent(ignis::EventBase& event)
 {
 	if (auto* resize_event = dynamic_cast<ignis::WindowResizeEvent*>(&event))
 	{
-		float aspect_ratio = static_cast<float>(resize_event->GetWidth()) / static_cast<float>(resize_event->GetHeight());
+		auto& window = m_editor_app->GetWindow();
+		uint32_t fb_width = window.GetFramebufferWidth();
+		uint32_t fb_height = window.GetFramebufferHeight();
+		
+		float aspect_ratio = static_cast<float>(fb_width) / static_cast<float>(fb_height);
 		m_camera->SetPerspective(45.0f, aspect_ratio, 0.1f, 1000.0f);
 		m_camera->RecalculateViewMatrix();
 
 		auto framebuffer = m_renderer.GetFramebuffer();
 		if (framebuffer)
 		{
-			framebuffer->Resize(resize_event->GetWidth(), resize_event->GetHeight());
+			framebuffer->Resize(fb_width, fb_height);
 		}
 
-		m_renderer.SetViewport(0, 0, resize_event->GetWidth(), resize_event->GetHeight());
+		m_renderer.SetViewport(0, 0, fb_width, fb_height);
 	}
 }

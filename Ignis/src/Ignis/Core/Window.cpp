@@ -62,6 +62,20 @@ namespace ignis
 		m_data.VSync = enabled;
 	}
 
+	uint32_t Window::GetFramebufferWidth() const
+	{
+		int width, height;
+		glfwGetFramebufferSize(m_window, &width, &height);
+		return static_cast<uint32_t>(width);
+	}
+
+	uint32_t Window::GetFramebufferHeight() const
+	{
+		int width, height;
+		glfwGetFramebufferSize(m_window, &width, &height);
+		return static_cast<uint32_t>(height);
+	}
+
 	void Window::Shutdown()
 	{
 		glfwDestroyWindow(m_window);
