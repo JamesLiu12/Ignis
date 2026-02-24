@@ -5,6 +5,7 @@ namespace ignis {
 	ViewportPanel::ViewportPanel(Renderer* renderer)
 		: m_renderer(renderer), m_viewport_size(0.0f, 0.0f)
 	{
+		m_imgui_texture_helper = ImGuiTextureHelper::Create();
 	}
 
 	void ViewportPanel::OnImGuiRender()
@@ -56,12 +57,7 @@ namespace ignis {
 				auto color_texture = framebuffer->GetColorAttachment(0);
 				if (color_texture)
 				{
-					ImGui::Image(
-						(void*)(intptr_t)color_texture->GetRendererID(),
-						content_size,
-						ImVec2(0, 1),
-						ImVec2(1, 0)
-					);
+					m_imgui_texture_helper->RenderTexture(color_texture, content_size);
 				}
 			}
 		}

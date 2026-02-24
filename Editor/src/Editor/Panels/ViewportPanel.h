@@ -2,6 +2,7 @@
 
 #include "Editor/Panels/EditorPanel.h"
 #include "Ignis/Renderer/Renderer.h"
+#include "Ignis/ImGui/ImGuiTextureHelper.h"
 #include <imgui.h>
 
 namespace ignis {
@@ -29,6 +30,8 @@ namespace ignis {
 		ImVec2 m_viewport_min_bound;
 		ImVec2 m_viewport_max_bound;
 		bool m_is_focused = false;
+		
+		std::unique_ptr<ImGuiTextureHelper> m_imgui_texture_helper;
 	};
 
 } // namespace ignis
