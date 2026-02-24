@@ -64,6 +64,7 @@ namespace ignis
 		Entity CreateEntity(const std::string name = "");
 		Entity CreateEntity(Entity parent, const std::string name = "");
 		Entity CreateEntityWithID(UUID uuid, const std::string& name = "");
+		Entity CreateEntityWithID(UUID uuid, Entity parent, const std::string& name = "");
 
 		void OnRender();
 	
