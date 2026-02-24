@@ -8,7 +8,7 @@ namespace ignis
 		Project() = default;
 		~Project() = default;
 
-		class Config
+		struct Config
 		{
 			std::string ProjectName;
 			std::string ProjectDirectory;
@@ -23,12 +23,12 @@ namespace ignis
 		const std::string& GetAssetDirectory() { return m_config.AssetDirectory; }
 		const std::string& GetStartScene() { return m_config.StartScene; }
 
-		static const std::string& GetProjectName() { return s_active_project->m_config.ProjectName; }
-		static const std::string& GetProjectDirectory() { return s_active_project->m_config.ProjectDirectory; }
-		static const std::string& GetAssetDirectory() { return s_active_project->m_config.AssetDirectory; }
-		static const std::string& GetStartScene() { return s_active_project->m_config.StartScene; }
+		static const std::string& GetActiveProjectName() { return s_active_project->m_config.ProjectName; }
+		static const std::string& GetActiveProjectDirectory() { return s_active_project->m_config.ProjectDirectory; }
+		static const std::string& GetActiveAssetDirectory() { return s_active_project->m_config.AssetDirectory; }
+		static const std::string& GetActiveStartScene() { return s_active_project->m_config.StartScene; }
 
-		static std::shared_ptr<Project> GetActive() const { return s_active_project; }
+		static std::shared_ptr<Project> GetActive() { return s_active_project; }
 		static void SetActive(std::shared_ptr<Project> project) { s_active_project = project; }
 
 	private:
