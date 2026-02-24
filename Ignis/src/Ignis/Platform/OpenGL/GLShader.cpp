@@ -1,5 +1,4 @@
 #include "GLShader.h"
-#include "Ignis/Asset/VFS.h"
 #include <glad/glad.h>
 
 namespace ignis

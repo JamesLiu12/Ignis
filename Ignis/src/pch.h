@@ -41,5 +41,5 @@
 
 #include "Ignis/Core/Log.h"
 
-#include "Ignis/Core/FileSystem.h"
-#include "Ignis/Asset/VFS.h"
+#include "Ignis/Core/File/FileSystem.h"
+#include "Ignis/Core/File/VFS.h"
