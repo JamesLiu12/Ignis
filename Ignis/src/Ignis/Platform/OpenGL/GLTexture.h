@@ -17,14 +17,12 @@ namespace ignis
 		void Bind(uint32_t unit) const override;
 		void UnBind() const override;
 
-		// OpenGL-specific method to get texture ID
-		uint32_t GetOpenGLTextureID() const { return m_id; }
-
 	private:
 		uint32_t m_id = 0;
 		TextureSpecs m_specs;
 
 		friend class GLFramebuffer;
+		friend class GLImGuiTextureHelper;
 	};
 
 	class GLTextureCube : public TextureCube
