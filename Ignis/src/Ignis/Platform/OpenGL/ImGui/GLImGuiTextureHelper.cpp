@@ -14,7 +14,7 @@ namespace ignis
 		
 		// Cast to OpenGL-specific texture type to access OpenGL texture ID
 		auto gl_texture = std::static_pointer_cast<GLTexture2D>(texture);
-		uint32_t texture_id = gl_texture->GetOpenGLTextureID();
+		uint32_t texture_id = gl_texture->m_id;
 		ImTextureID imgui_texture_id = (ImTextureID)(intptr_t)texture_id;
 		
 		// OpenGL-specific: UV coordinates (Y-flipped for framebuffer textures)
