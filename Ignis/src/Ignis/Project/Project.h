@@ -18,10 +18,10 @@ namespace ignis
 
 		const Config& GetConfig() const { return m_config; }
 
-		const std::string& GetProjectName() { return m_config.ProjectName; }
-		const std::string& GetProjectDirectory() { return m_config.ProjectDirectory; }
-		const std::string& GetAssetDirectory() { return m_config.AssetDirectory; }
-		const std::string& GetStartScene() { return m_config.StartScene; }
+		const std::string& GetProjectName() const { return m_config.ProjectName; }
+		const std::string& GetProjectDirectory() const { return m_config.ProjectDirectory; }
+		const std::string& GetAssetDirectory() const { return m_config.AssetDirectory; }
+		const std::string& GetStartScene() const { return m_config.StartScene; }
 
 		static const std::string& GetActiveProjectName() { return s_active_project->m_config.ProjectName; }
 		static const std::string& GetActiveProjectDirectory() { return s_active_project->m_config.ProjectDirectory; }
@@ -29,11 +29,12 @@ namespace ignis
 		static const std::string& GetActiveStartScene() { return s_active_project->m_config.StartScene; }
 
 		static std::shared_ptr<Project> GetActive() { return s_active_project; }
-		static void SetActive(std::shared_ptr<Project> project) { s_active_project = project; }
+		static void SetActive(std::shared_ptr<Project> project);
 
 	private:
 		Config m_config;
-
 		static inline std::shared_ptr<Project> s_active_project;
+
+		friend class ProjectSerializer;
 	};
 }
