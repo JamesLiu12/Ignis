@@ -20,6 +20,9 @@ namespace ignis {
 
 		PanelManager& GetPanelManager() { return *m_panel_manager; }
 
+		void OpenProject(const std::filesystem::path& filepath);
+		void SaveProject(const std::filesystem::path& filepath);
+
 	private:
 		void RenderMenuBar();
 

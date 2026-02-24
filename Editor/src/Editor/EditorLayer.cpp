@@ -1,4 +1,6 @@
 #include "Editor/EditorLayer.h"
+#include "Ignis/Project/ProjectSerializer.h"
+#include "Ignis/Project/Project.h"
 #include <imgui.h>
 
 namespace ignis {
@@ -43,6 +45,37 @@ namespace ignis {
 		m_panel_manager->OnEvent(event);
 	}
 
+	void EditorLayer::OpenProject(const std::filesystem::path& filepath)
+	{
+		ProjectSerializer project_serializer;
+
+		if (auto project = project_serializer.Deserialize(filepath))
+		{
+			Project::SetActive(project);
+		}
+		else
+		{
+			Log::CoreError("Failed to open project: {}", filepath.string());
+		}
+	}
+	
+	void EditorLayer::SaveProject(const std::filesystem::path& filepath)
+	{
+		ProjectSerializer project_serializer;
+
+		if (auto project = Project::GetActive())
+		{
+			if (!project_serializer.Serialize(*project, filepath))
+			{
+				Log::CoreError("Failed to save project: {}", filepath.string());
+			}
+		}
+		else
+		{
+			Log::CoreError("No active project to save");
+		}
+	}
+
 	void EditorLayer::RenderMenuBar()
 	{
 		if (ImGui::BeginMainMenuBar())
@@ -70,5 +103,4 @@ namespace ignis {
 			ImGui::EndMainMenuBar();
 		}
 	}
-
 } // namespace ignis
