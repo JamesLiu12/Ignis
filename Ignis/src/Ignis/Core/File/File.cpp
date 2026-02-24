@@ -1,5 +1,5 @@
 #include "File.h"
-#include "Ignis/Core/FileSystem.h"
+#include "FileSystem.h"
 #include "Ignis/Core/Log.h"
 
 namespace ignis {
