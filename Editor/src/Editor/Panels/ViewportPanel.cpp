@@ -24,13 +24,11 @@ namespace ignis {
 		ImGui::SetNextWindowPos(viewport_pos);
 		ImGui::SetNextWindowSize(viewport_size);
 
-		ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove |
-		                         ImGuiWindowFlags_NoResize |
-		                         ImGuiWindowFlags_NoCollapse;
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
-		if (ImGui::Begin("Viewport", nullptr, flags))
+		if (ImGui::Begin("Viewport", nullptr, window_flags))
 		{
 			ImVec2 content_size = ImGui::GetContentRegionAvail();
 			m_viewport_size = content_size;
