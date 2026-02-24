@@ -149,21 +149,8 @@ namespace ignis
 		if (m_framebuffer)
 		{
 			m_framebuffer->UnBind();
-
+			// ImGui expects a clean buffer to render correctly
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glDisable(GL_DEPTH_TEST);
-
-			m_screen_shader->Bind();
-
-			auto color_texture = m_framebuffer->GetColorAttachment(0);
-			color_texture->Bind(0);
-			Material::Create(m_screen_shader)->Set("screenTexture", 0);
-
-			m_quad_vao->Bind();
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			m_quad_vao->UnBind();
-
-			glEnable(GL_DEPTH_TEST);
 		}
 	}
 

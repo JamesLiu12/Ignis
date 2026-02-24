@@ -5,6 +5,7 @@
 #include "Editor/Panels/SceneHierarchyPanel.h"
 #include "Editor/Panels/EngineStatsPanel.h"
 #include "Editor/Panels/PhysicsDebugPanel.h"
+#include "Editor/Panels/ViewportPanel.h"
 #include "Editor/Core/EditorConsoleSink.h"
 #include "Editor/EditorSceneLayer.h"
 
@@ -65,15 +66,19 @@ EditorApp::EditorApp()
 	m_scene_hierarchy_panel = panel_manager.AddPanel<SceneHierarchyPanel>("SceneHierarchy", "Scene Hierarchy", true);
 	m_scene_hierarchy_panel->SetPropertiesPanel(m_properties_panel.get());
 	
+	// Create EditorSceneLayer with test scene content (must be before ViewportPanel)
+	PushLayer(std::make_unique<EditorSceneLayer>(GetRenderer(), this));
+	
+	// Add Viewport panel (center area) - needs renderer to be initialized
+	m_viewport_panel = panel_manager.AddPanel<ViewportPanel>("Viewport", "Viewport", true, &GetRenderer());
+	
 	// Add some test messages to the console
 	console_panel->AddMessage(ConsoleMessageLevel::Info, "Ignis Editor initialized");
 	console_panel->AddMessage(ConsoleMessageLevel::Info, "Console panel ready");
 	console_panel->AddMessage(ConsoleMessageLevel::Info, "Properties panel ready");
+	console_panel->AddMessage(ConsoleMessageLevel::Info, "Viewport panel ready");
 	
 	Log::CoreInfo("Editor panels registered");
-	
-	// Create EditorSceneLayer with test scene content
-	PushLayer(std::make_unique<EditorSceneLayer>(GetRenderer(), this));
 }
 
 EditorApp::~EditorApp()
