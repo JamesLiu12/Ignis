@@ -45,4 +45,7 @@ private:
 	ignis::TransformComponent m_mesh_transform_component;
 
 	float m_camera_speed = 10.0f;
+	
+	// Camera input gate for tracking if drag started in viewport
+	bool m_started_camera_drag_in_viewport = false;
 };
