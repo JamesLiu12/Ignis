@@ -13,14 +13,14 @@ target_link_libraries(Editor
 	PRIVATE Ignis::Ignis
 )
 
-set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
-set(DEST_DIR   "${CMAKE_CURRENT_BINARY_DIR}/assets")
+set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
+set(DEST_DIR   "${CMAKE_CURRENT_BINARY_DIR}/resources")
 
 add_custom_command(
     OUTPUT "${DEST_DIR}"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${SOURCE_DIR}" "${DEST_DIR}"
     DEPENDS "${SOURCE_DIR}"
-    COMMENT "Copying asset directory"
+    COMMENT "Copying resources directory"
 )
 
-add_custom_target(copy_assets ALL DEPENDS "${DEST_DIR}")
+add_custom_target(copy_resources ALL DEPENDS "${DEST_DIR}")
