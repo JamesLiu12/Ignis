@@ -14,6 +14,13 @@ namespace ignis
 		EnvironmentMap
 	};
 
+	struct AssetMetadata
+	{
+		AssetHandle Handle = AssetHandle::Invalid;
+		AssetType Type;
+		std::filesystem::path FilePath;
+	};
+
 	class Asset
 	{
 	public:
