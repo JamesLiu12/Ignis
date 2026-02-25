@@ -37,7 +37,7 @@ private:
 	std::shared_ptr<Mesh> m_mesh;
 	
 	// Test light entity for properties panel (shared_ptr for weak_ptr compatibility)
-	std::shared_ptr<Entity> m_light_entity;
+	Entity m_light_entity;
 
 	std::shared_ptr<Pipeline> m_pipeline;
 

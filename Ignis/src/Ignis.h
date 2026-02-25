@@ -21,13 +21,14 @@
 #include "Ignis/Renderer/Camera.h"
 #include "Ignis/Renderer/Framebuffer.h"
 
-
 #include "Ignis/Asset/AssetManager.h"
 #include "Ignis/Asset/Asset.h"
+#include "Ignis/Asset/AssetSerializer.h"
 
 #include "Ignis/Scene/Scene.h"
 #include "Ignis/Scene/Entity.h"
 #include "Ignis/Scene/Components.h"
+#include "Ignis/Scene/SceneSerializer.h"
 
 #include "Ignis/Asset/MeshImporter.h"
 #include "Ignis/Renderer/Mesh.h"
@@ -35,3 +36,6 @@
 
 #include "Ignis/Physics/PhysicsWorld.h"
 #include "Ignis/Physics/PhysicsTypes.h"
+
+#include "Ignis/Project/Project.h"
+#include "Ignis/Project/ProjectSerializer.h"

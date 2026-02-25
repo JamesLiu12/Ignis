@@ -51,7 +51,8 @@ namespace ignis
 	class Scene
 	{
 	public:
-		Scene() = default;
+		Scene(std::string_view name = "UntitledScene")
+			: m_name(name) {}
 		~Scene() = default;
 
 		Scene(const Scene&) = delete;
@@ -62,19 +63,24 @@ namespace ignis
 
 		Entity CreateEntity(const std::string name = "");
 		Entity CreateEntity(Entity parent, const std::string name = "");
+		Entity CreateEntityWithID(UUID uuid, const std::string& name = "");
+		Entity CreateEntityWithID(UUID uuid, Entity parent, const std::string& name = "");
 
 		void OnRender();
 	
-	template<typename... Components>
-	auto GetAllEntitiesWith()
-	{
-		return m_registry.view<Components...>();
-	}
+		template<typename... Components>
+		auto GetAllEntitiesWith()
+		{
+			return m_registry.view<Components...>();
+		}
 
-	// Get Entity wrapper from handle (for editor)
-	Entity GetEntityByHandle(entt::entity handle);
+		// Get Entity wrapper from handle (for editor)
+		Entity GetEntityByHandle(entt::entity handle);
 
-	Entity GetEntityByID(UUID id) const;
+		Entity GetEntityByID(UUID id) const;
+
+		const std::string& GetName() const { return m_name; }
+		void SetName(std::string_view name) { m_name = name; }
 
 	private:
 		entt::registry m_registry;
@@ -82,10 +88,12 @@ namespace ignis
 		Environment m_scene_environment;
 		EnvironmentSettings m_environment_settings;
 		std::unordered_map<UUID, Entity> m_id_entity_map;
+		std::string m_name;
 
 		friend class Entity;
 		// TODO: Move this to SceneRenderer
 		friend class GLRenderer;
+		friend class SceneSerializer;
 	};
 }
 

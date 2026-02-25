@@ -180,6 +180,13 @@ namespace ignis {
         return path.stem().string();
     }
 
+    std::string FileSystem::ToUnixPath(const std::filesystem::path& path)
+    {
+		std::string result = path.string();
+		std::replace(result.begin(), result.end(), '\\', '/');
+		return result;
+    }
+
     std::filesystem::path FileSystem::GetParentPath(const std::filesystem::path& path)
     {
         return path.parent_path();
@@ -188,6 +195,38 @@ namespace ignis {
     std::filesystem::path FileSystem::GetAbsolutePath(const std::filesystem::path& path)
     {
         return std::filesystem::absolute(path);
+    }
+
+    std::filesystem::path FileSystem::GetExecutableDirectory()
+    {
+        std::filesystem::path executableDir;
+        
+        #ifdef _WIN32
+            char path[MAX_PATH];
+            GetModuleFileNameA(NULL, path, MAX_PATH);
+            executableDir = std::filesystem::path(path).parent_path();
+        #elif defined(__APPLE__)
+            char path[1024];
+            uint32_t size = sizeof(path);
+            if (_NSGetExecutablePath(path, &size) == 0) {
+                executableDir = std::filesystem::path(path).parent_path();
+            } else {
+                executableDir = std::filesystem::current_path();
+            }
+        #elif defined(__linux__)
+            char path[1024];
+            ssize_t len = readlink("/proc/self/exe", path, sizeof(path) - 1);
+            if (len != -1) {
+                path[len] = '\0';
+                executableDir = std::filesystem::path(path).parent_path();
+            } else {
+                executableDir = std::filesystem::current_path();
+            }
+        #else
+            executableDir = std::filesystem::current_path();
+        #endif
+        
+        return executableDir;
     }
 
     std::vector<uint8_t> FileSystem::ReadBinaryFile(const std::filesystem::path& path)

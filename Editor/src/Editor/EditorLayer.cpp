@@ -16,10 +16,16 @@ namespace ignis {
 		m_panel_manager = std::make_unique<PanelManager>();
 		
 		Log::CoreInfo("EditorLayer initialized with PanelManager");
+		VFS::Mount("resources", "resources");
+		
+		// Put your test project here
+		OpenProject("MyProject/MyProject.igproj");
+		SaveProject("MyProject/MyProjectSaved.igproj");
 	}
 
 	void EditorLayer::OnDetach()
 	{
+		// Put your test project here
 		// Don't log here - logging system may already be shut down during application destruction
 	}
 
@@ -41,6 +47,37 @@ namespace ignis {
 	{
 		// Forward events to all panels
 		m_panel_manager->OnEvent(event);
+	}
+
+	void EditorLayer::OpenProject(const std::filesystem::path& filepath)
+	{
+		ProjectSerializer project_serializer;
+
+		if (auto project = project_serializer.Deserialize(filepath))
+		{
+			Project::SetActive(project);
+		}
+		else
+		{
+			Log::CoreError("Failed to open project: {}", filepath.string());
+		}
+	}
+	
+	void EditorLayer::SaveProject(const std::filesystem::path& filepath)
+	{
+		ProjectSerializer project_serializer;
+
+		if (auto project = Project::GetActive())
+		{
+			if (!project_serializer.Serialize(*project, filepath))
+			{
+				Log::CoreError("Failed to save project: {}", filepath.string());
+			}
+		}
+		else
+		{
+			Log::CoreError("No active project to save");
+		}
 	}
 
 	void EditorLayer::RenderMenuBar()
@@ -70,5 +107,4 @@ namespace ignis {
 			ImGui::EndMainMenuBar();
 		}
 	}
-
 } // namespace ignis

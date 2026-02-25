@@ -4,13 +4,6 @@
 
 namespace ignis
 {
-	struct AssetMetadata
-	{
-		AssetHandle handle = AssetHandle::Invalid;
-		AssetType Type;
-		std::filesystem::path FilePath;
-	};
-
 	class AssetManager
 	{
 	public:
@@ -67,6 +60,11 @@ namespace ignis
 
 		static const AssetMetadata* GetMetadata(AssetHandle handle);
 		static const AssetMetadata* GetMetadata(std::filesystem::path path);
+
+		static bool LoadAssetRegistry(const std::filesystem::path& path);
+		static bool SaveAssetRegistry(const std::filesystem::path& path);
+
+		static const std::unordered_map<AssetHandle, AssetMetadata>& GetAssetRegistry() { return s_asset_registry; }
 
 	private:
 		static std::shared_ptr<Asset> LoadAssetFromFile(const AssetMetadata& metadata);

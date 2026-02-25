@@ -6,6 +6,11 @@ namespace ignis
 		requires std::is_base_of_v<Component, T>
 	T& Entity::AddComponent(Args&&... args)
 	{
+		if (HasComponent<T>())
+		{
+			return GetComponent<T>();
+		}
+
 		return m_scene->m_registry.emplace<T>(m_handle, std::forward<Args>(args)...);
 	}
 

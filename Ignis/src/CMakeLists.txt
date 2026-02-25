@@ -20,6 +20,7 @@ target_link_libraries(Ignis
         entt
         assimp
         stduuid
+        nlohmannjson
 )
 
 target_include_directories(Ignis PUBLIC

@@ -5,13 +5,23 @@
 namespace ignis {
 
     File::File(const std::filesystem::path& physical_path)
-        : m_path(physical_path)
-        , m_exists(false)
+        : m_exists(false)
         , m_is_open(false)
         , m_is_readable(false)
         , m_is_writable(false)
         , m_size(0)
     {
+        // Resolve relative paths from executable directory, keep absolute paths as-is
+        if (physical_path.is_absolute())
+        {
+            m_path = physical_path;
+        }
+        else
+        {
+            m_path = FileSystem::GetExecutableDirectory() / physical_path;
+            m_path = m_path.lexically_normal(); // Normalize path (resolve . and ..)
+        }
+        
         CheckFileState();
     }
 
@@ -157,6 +167,29 @@ namespace ignis {
         }
 
         return success;
+    }
+
+    std::ifstream File::OpenInputStream() const
+    {
+        if (!m_is_open || !m_is_readable)
+        {
+            Log::CoreError("File: Cannot create input stream for unreadable file: {}", m_path.string());
+            return std::ifstream(); // Return closed stream
+        }
+        
+        return std::ifstream(m_path);
+    }
+
+    std::ofstream File::OpenOutputStream(bool append) const
+    {
+        if (!m_is_writable)
+        {
+            Log::CoreError("File: Cannot create output stream for unwritable file: {}", m_path.string());
+            return std::ofstream(); // Return closed stream
+        }
+        
+        auto mode = append ? std::ios::app : std::ios::trunc;
+        return std::ofstream(m_path, mode);
     }
 
 }
