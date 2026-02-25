@@ -4,8 +4,8 @@
 
 namespace ignis
 {
-	static std::string PBRShaderPath = "assets://shaders/IgnisPBR.glsl";
-	static std::string SkyboxShaderPath = "assets://shaders/Skybox.glsl";
+	static std::string PBRShaderPath = "resources://shaders/IgnisPBR.glsl";
+	static std::string SkyboxShaderPath = "resources://shaders/Skybox.glsl";
 
 	PBRPipeline::PBRPipeline(std::shared_ptr<ShaderLibrary> shader_library)
 		: m_shader_library(std::move(shader_library))
@@ -20,7 +20,7 @@ namespace ignis
 			m_shader_library->Load(SkyboxShaderPath);
 		}
 
-		AssetHandle texture_handle = AssetManager::ImportAsset("assets://images/ibl_brdf_lut.png");
+		AssetHandle texture_handle = AssetManager::ImportAsset("resources://images/ibl_brdf_lut.png");
 		m_brdf_lut_texture = AssetManager::GetAsset<Texture2D>(texture_handle);
 	}
 
