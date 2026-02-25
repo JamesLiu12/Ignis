@@ -43,7 +43,17 @@ namespace ignis
 		ordered_json data;
 		data["Assets"] = ordered_json::array();
 
-		for (const auto& [asset_handle, meta_data] : asset_registry)
+		std::vector<std::pair<AssetHandle, AssetMetadata>> sorted_assets(
+			asset_registry.begin(),
+			asset_registry.end()
+		);
+
+		std::sort(sorted_assets.begin(), sorted_assets.end(),
+			[](const auto& a, const auto& b) {
+				return a.first < b.first;
+			});
+
+		for (const auto& [asset_handle, meta_data] : sorted_assets)
 		{
 			AssetMetadata meta = meta_data;
 			meta.Handle = asset_handle;
