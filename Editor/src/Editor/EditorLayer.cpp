@@ -20,12 +20,12 @@ namespace ignis {
 		
 		// Put your test project here
 		OpenProject("MyProject/MyProject.igproj");
+		SaveProject("MyProject/MyProjectSaved.igproj");
 	}
 
 	void EditorLayer::OnDetach()
 	{
 		// Put your test project here
-		SaveProject("MyProject/MyProjectSaved.igproj");
 		// Don't log here - logging system may already be shut down during application destruction
 	}
 

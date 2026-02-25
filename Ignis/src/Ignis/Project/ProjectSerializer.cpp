@@ -18,9 +18,9 @@ namespace ignis
 
 		ordered_json data;
 		data["ProjectName"] = project.GetProjectName();
-		data["AssetDirectory"] = project.GetAssetDirectory();
-		data["AssetRegistry"] = project.GetAssetRegistry();
-		data["StartScene"] = project.GetStartScene();
+		data["AssetDirectory"] = project.GetConfig().AssetDirectory;
+		data["AssetRegistry"] = project.GetConfig().AssetRegistry;
+		data["StartScene"] = project.GetConfig().StartScene;
 
 		try
 		{
@@ -57,10 +57,10 @@ namespace ignis
 		}
 
 		auto project = std::make_shared<Project>();
-		project->m_config.ProjectName = data["ProjectName"];
-		project->m_config.AssetDirectory = data["AssetDirectory"];
-		project->m_config.AssetRegistry = data["AssetRegistry"];
-		project->m_config.StartScene = data["StartScene"];
+		project->m_config.ProjectName = data.at("ProjectName").get<std::string>();
+		project->m_config.AssetDirectory = data.at("AssetDirectory").get<std::string>();
+		project->m_config.AssetRegistry = data.at("AssetRegistry").get<std::string>();
+		project->m_config.StartScene = data.at("StartScene").get<std::string>();
 		project->m_project_directory = filepath.parent_path();
 
 		return project;

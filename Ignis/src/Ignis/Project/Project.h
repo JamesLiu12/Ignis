@@ -11,9 +11,9 @@ namespace ignis
 		struct Config
 		{
 			std::string ProjectName;
-			std::string AssetDirectory;
-			std::string AssetRegistry;
-			std::string StartScene;
+			std::filesystem::path AssetDirectory;
+			std::filesystem::path AssetRegistry;
+			std::filesystem::path StartScene;
 		};
 
 		const Config& GetConfig() const { return m_config; }
