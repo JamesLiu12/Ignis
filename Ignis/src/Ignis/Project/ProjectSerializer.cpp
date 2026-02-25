@@ -18,8 +18,8 @@ namespace ignis
 
 		ordered_json data;
 		data["ProjectName"] = project.GetProjectName();
-		data["ProjectDirectory"] = project.GetProjectDirectory();
 		data["AssetDirectory"] = project.GetAssetDirectory();
+		data["AssetRegistry"] = project.GetAssetRegistry();
 		data["StartScene"] = project.GetStartScene();
 
 		try
@@ -59,6 +59,7 @@ namespace ignis
 		auto project = std::make_shared<Project>();
 		project->m_config.ProjectName = data["ProjectName"];
 		project->m_config.AssetDirectory = data["AssetDirectory"];
+		project->m_config.AssetRegistry = data["AssetRegistry"];
 		project->m_config.StartScene = data["StartScene"];
 		project->m_project_directory = filepath.parent_path();
 
