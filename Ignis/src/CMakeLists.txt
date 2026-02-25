@@ -6,9 +6,13 @@ file(GLOB_RECURSE IGNIS_SOURCES CONFIGURE_DEPENDS
 add_library(Ignis STATIC ${IGNIS_SOURCES})
 add_library(Ignis::Ignis ALIAS Ignis)
 
+if(MSVC)
+    target_compile_options(Ignis PRIVATE /utf-8)
+endif()
+
 target_link_libraries(Ignis 
     PUBLIC
-        spdlog::spdlog
+        spdlog
         imgui
         glfw
         glad

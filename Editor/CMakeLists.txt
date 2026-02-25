@@ -5,6 +5,10 @@ file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS
 
 add_executable(Editor ${EDITOR_SOURCES})
 
+if(MSVC)
+    target_compile_options(Editor PRIVATE /utf-8)
+endif()
+
 target_include_directories(Editor PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/src
 )
