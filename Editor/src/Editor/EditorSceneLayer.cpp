@@ -195,6 +195,11 @@ void EditorSceneLayer::OnAttach()
 	scene_serializer.Serialize(*m_scene, "MyProject/TestScene.scene");
 	auto saved_scene = scene_serializer.Deserialize("MyProject/TestScene.scene");
 	scene_serializer.Serialize(*saved_scene, "MyProject/TestScene.tscene");
+
+	AssetSerializer asset_serializer;
+	asset_serializer.Serialize(AssetManager::GetAssetRegistry(), "MyProject/TestAR.igar");
+	auto saved_ar = asset_serializer.Deserialize("MyProject/TestAR.igar");
+	asset_serializer.Serialize(saved_ar, "MyProject/TestAR.tigar");
 }
 
 void EditorSceneLayer::OnUpdate(float dt)
