@@ -9,11 +9,24 @@ namespace ignis
 {
 	bool ProjectSerializer::Serialize(const Project& project, const std::filesystem::path& filepath)
 	{
-		std::ofstream file(filepath);
+		// Resolve relative paths from executable directory
+		std::filesystem::path absolute_filepath;
+		if (filepath.is_absolute())
+		{
+			absolute_filepath = filepath;
+		}
+		else
+		{
+			auto exe_dir = FileSystem::GetExecutableDirectory();
+			absolute_filepath = exe_dir / filepath;
+			absolute_filepath = absolute_filepath.lexically_normal();
+		}
+		
+		std::ofstream file(absolute_filepath);
 		if (!file.is_open())
 		{
+			Log::CoreError("[ProjectSerializer::Serialize] Failed to open file for writing: {}", absolute_filepath.string());
 			return false;
-			Log::CoreError("[ProjectSerializer::Serialize] Failed to open file for writing");
 		}
 
 		ordered_json data;
@@ -26,7 +39,7 @@ namespace ignis
 		{
 			file << data.dump(4);
 			file.close();
-			Log::CoreInfo("[ProjectSerializer::Serialize] Successfully serialized project to: {}", filepath.string());
+			Log::CoreInfo("[ProjectSerializer::Serialize] Successfully serialized project to: {}", absolute_filepath.string());
 			return true;
 		}
 		catch (const std::exception& e)
@@ -38,11 +51,24 @@ namespace ignis
 
 	std::shared_ptr<Project> ProjectSerializer::Deserialize(const std::filesystem::path& filepath)
 	{
-		std::ifstream file(filepath);
+		// Resolve relative paths from executable directory
+		std::filesystem::path absolute_filepath;
+		if (filepath.is_absolute())
+		{
+			absolute_filepath = filepath;
+		}
+		else
+		{
+			auto exe_dir = FileSystem::GetExecutableDirectory();
+			absolute_filepath = exe_dir / filepath;
+			absolute_filepath = absolute_filepath.lexically_normal();
+		}
+		
+		std::ifstream file(absolute_filepath);
 		if (!file.is_open())
 		{
+			Log::CoreError("[ProjectSerializer::Deserialize] Failed to open file for reading: {}", absolute_filepath.string());
 			return nullptr;
-			Log::CoreError("[ProjectSerializer::Serialize] Failed to open file for reading");
 		}
 
 		ordered_json data;
@@ -61,7 +87,7 @@ namespace ignis
 		project->m_config.AssetDirectory = data.at("AssetDirectory").get<std::string>();
 		project->m_config.AssetRegistry = data.at("AssetRegistry").get<std::string>();
 		project->m_config.StartScene = data.at("StartScene").get<std::string>();
-		project->m_project_directory = filepath.parent_path();
+		project->m_project_directory = absolute_filepath.parent_path();
 
 		return project;
 	}
