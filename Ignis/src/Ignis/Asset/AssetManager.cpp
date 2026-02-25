@@ -45,7 +45,7 @@ namespace ignis
 		return s_memory_assets.find(handle) != s_memory_assets.end();
 	}
 
-	AssetHandle AssetManager::ImportAsset(const std::filesystem::path& path, AssetType asset_type)
+	AssetHandle AssetManager::ImportAsset(const Path& path, AssetType asset_type)
 	{
 		const AssetMetadata* metadata = GetMetadata(path);
 
@@ -57,7 +57,7 @@ namespace ignis
 		AssetHandle handle = AssetHandle();
 		AssetMetadata new_metadata;
 		new_metadata.FilePath = path;
-		if (asset_type == AssetType::Unknown) new_metadata.Type = DetermineTypeFromExtension(path);
+		if (asset_type == AssetType::Unknown) new_metadata.Type = DetermineTypeFromExtension(path.native());
 		else new_metadata.Type = asset_type;
 		new_metadata.Handle = handle;
 
@@ -81,7 +81,7 @@ namespace ignis
 		return nullptr;
 	}
 
-	const AssetMetadata* AssetManager::GetMetadata(std::filesystem::path path)
+	const AssetMetadata* AssetManager::GetMetadata(const Path& path)
 	{
 		for (const auto& [handle, metadata] : s_asset_registry)
 		{
@@ -94,7 +94,7 @@ namespace ignis
 		return nullptr;
 	}
 
-	bool AssetManager::LoadAssetRegistry(const std::filesystem::path& path)
+	bool AssetManager::LoadAssetRegistry(const Path& path)
 	{
 		AssetSerializer asset_serializer;
 		if (auto registry = asset_serializer.Deserialize(path))
@@ -105,7 +105,7 @@ namespace ignis
 		return false;
 	}
 
-	bool AssetManager::SaveAssetRegistry(const std::filesystem::path& path)
+	bool AssetManager::SaveAssetRegistry(const Path& path)
 	{
 		AssetSerializer asset_serializer;
 		return asset_serializer.Serialize(s_asset_registry, path);

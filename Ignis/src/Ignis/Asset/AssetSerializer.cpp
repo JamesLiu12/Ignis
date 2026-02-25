@@ -32,7 +32,7 @@ namespace ignis
 		return true;
 	}
 
-	bool AssetSerializer::Serialize(const std::unordered_map<AssetHandle, AssetMetadata>& asset_registry, const std::filesystem::path& filepath)
+	bool AssetSerializer::Serialize(const std::unordered_map<AssetHandle, AssetMetadata>& asset_registry, const Path& filepath)
 	{
 		File file(filepath);
 		auto stream = file.OpenOutputStream();
@@ -77,7 +77,7 @@ namespace ignis
 		}
 	}
 
-	std::optional<std::unordered_map<AssetHandle, AssetMetadata>> AssetSerializer::Deserialize(const std::filesystem::path& filepath)
+	std::optional<std::unordered_map<AssetHandle, AssetMetadata>> AssetSerializer::Deserialize(const Path& filepath)
 	{
 		std::unordered_map<AssetHandle, AssetMetadata> registry;
 
