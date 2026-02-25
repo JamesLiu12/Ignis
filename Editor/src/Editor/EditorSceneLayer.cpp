@@ -12,56 +12,6 @@ EditorSceneLayer::EditorSceneLayer(Renderer& renderer, EditorApp* editor_app)
 {
 }
 
-static void SceneHierarchyTest(Scene* scene)
-{
-	auto a = scene->CreateEntity();
-	auto b = scene->CreateEntity();
-	auto c = scene->CreateEntity();
-	auto d = scene->CreateEntity();
-	b.SetParent(a);
-	c.SetParent(a);
-	a.AddChild(d);
-
-	std::unordered_map<UUID, std::string> id_to_name;
-	id_to_name[a.GetID()] = "a";
-	id_to_name[b.GetID()] = "b";
-	id_to_name[c.GetID()] = "c";
-	id_to_name[d.GetID()] = "d";
-
-	Log::CoreInfo("{} is the parent of {}", id_to_name[b.GetParentID()], id_to_name[b.GetID()]);
-	Log::CoreInfo("{} is the parent of {}", id_to_name[c.GetParentID()], id_to_name[c.GetID()]);
-	Log::CoreInfo("{} is the parent of {}", id_to_name[d.GetParent().GetID()], id_to_name[d.GetID()]);
-
-	auto children = a.GetChildren();
-	for (const auto& child : children)
-	{
-		Log::CoreInfo("a's child: {}", id_to_name[child.GetID()]);
-	}
-
-	a.ForEachChild([&](Entity entity) {
-		Log::CoreInfo("a's child: {}", id_to_name[entity.GetID()]);
-		});
-
-	b.Unparent();
-	b.RemoveChild(c);
-	b.AddChild(c);
-	Log::CoreInfo("{} is the parent of {}", id_to_name[b.GetParentID()], id_to_name[b.GetID()]);
-	Log::CoreInfo("{} is the parent of {}", id_to_name[c.GetParentID()], id_to_name[c.GetID()]);
-	Log::CoreInfo("{} is the parent of {}", id_to_name[d.GetParent().GetID()], id_to_name[d.GetID()]);
-
-	a.MoveToAfter(c);
-	d.MoveToAfter(a);
-	c.SetSiblingIndex(2);
-	d.SetSiblingIndex(0);
-
-	a.ForEachChild([&](Entity entity) {
-		Log::CoreInfo("a's child: {}", id_to_name[entity.GetID()]);
-		});
-	b.ForEachChild([&](Entity entity) {
-		Log::CoreInfo("b's child: {}", id_to_name[entity.GetID()]);
-		});
-}
-
 void EditorSceneLayer::OnAttach()
 {
 	m_shader_library = std::make_shared<ShaderLibrary>();
@@ -176,8 +126,6 @@ void EditorSceneLayer::OnAttach()
 
 	// Get viewport panel reference for camera aspect ratio updates
 	m_viewport_panel = m_editor_app->GetViewportPanel();
-
-	SceneHierarchyTest(m_scene.get());
 
 	FrameBufferSpecs specs;
 	specs.Width = window.GetFramebufferWidth();
