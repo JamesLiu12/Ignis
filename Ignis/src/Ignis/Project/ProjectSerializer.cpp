@@ -9,8 +9,9 @@ namespace ignis
 {
 	bool ProjectSerializer::Serialize(const Project& project, const std::filesystem::path& filepath)
 	{
-		std::ofstream file(filepath);
-		if (!file.is_open())
+		File file(filepath);
+		auto stream = file.OpenOutputStream();
+		if (!stream.is_open())
 		{
 			return false;
 			Log::CoreError("[ProjectSerializer::Serialize] Failed to open file for writing");
@@ -24,9 +25,9 @@ namespace ignis
 
 		try
 		{
-			file << data.dump(4);
-			file.close();
-			Log::CoreInfo("[ProjectSerializer::Serialize] Successfully serialized project to: {}", filepath.string());
+			stream << data.dump(4);
+			stream.close();
+			Log::CoreInfo("[ProjectSerializer::Serialize] Successfully serialized project to: {}", file.GetPath().string());
 			return true;
 		}
 		catch (const std::exception& e)
@@ -38,8 +39,9 @@ namespace ignis
 
 	std::shared_ptr<Project> ProjectSerializer::Deserialize(const std::filesystem::path& filepath)
 	{
-		std::ifstream file(filepath);
-		if (!file.is_open())
+		File file(filepath);
+		auto stream = file.OpenInputStream();
+		if (!stream.is_open())
 		{
 			return nullptr;
 			Log::CoreError("[ProjectSerializer::Serialize] Failed to open file for reading");
@@ -48,7 +50,7 @@ namespace ignis
 		ordered_json data;
 		try
 		{
-			file >> data;
+			stream >> data;
 		}
 		catch (const std::exception& e)
 		{
@@ -61,7 +63,7 @@ namespace ignis
 		project->m_config.AssetDirectory = data.at("AssetDirectory").get<std::string>();
 		project->m_config.AssetRegistry = data.at("AssetRegistry").get<std::string>();
 		project->m_config.StartScene = data.at("StartScene").get<std::string>();
-		project->m_project_directory = filepath.parent_path();
+		project->m_project_directory = file.GetPath().parent_path(); // Use resolved absolute path
 
 		return project;
 	}
