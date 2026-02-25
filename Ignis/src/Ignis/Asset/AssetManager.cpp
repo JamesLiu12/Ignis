@@ -50,7 +50,7 @@ namespace ignis
 
 		if (metadata)
 		{
-			return metadata->handle;
+			return metadata->Handle;
 		}
 		
 		AssetHandle handle = AssetHandle();
@@ -58,7 +58,7 @@ namespace ignis
 		new_metadata.FilePath = path;
 		if (asset_type == AssetType::Unknown) new_metadata.Type = DetermineTypeFromExtension(path);
 		else new_metadata.Type = asset_type;
-		new_metadata.handle = handle;
+		new_metadata.Handle = handle;
 
 		s_asset_registry[handle] = new_metadata;
 

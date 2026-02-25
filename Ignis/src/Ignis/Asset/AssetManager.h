@@ -4,13 +4,6 @@
 
 namespace ignis
 {
-	struct AssetMetadata
-	{
-		AssetHandle handle = AssetHandle::Invalid;
-		AssetType Type;
-		std::filesystem::path FilePath;
-	};
-
 	class AssetManager
 	{
 	public:
