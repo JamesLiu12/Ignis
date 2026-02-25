@@ -1,4 +1,5 @@
 #include "AssetSerializer.h"
+#include "Ignis/Core/File/File.h"
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -33,8 +34,9 @@ namespace ignis
 
 	bool AssetSerializer::Serialize(const std::unordered_map<AssetHandle, AssetMetadata>& asset_registry, const std::filesystem::path& filepath)
 	{
-		std::ofstream file(filepath);
-		if (!file.is_open())
+		File file(filepath);
+		auto stream = file.OpenOutputStream();
+		if (!stream.is_open())
 		{
 			return false;
 			Log::CoreError("[AssetSerializer::Serialize] Failed to open file for writing");
@@ -53,9 +55,9 @@ namespace ignis
 
 		try
 		{
-			file << data.dump(4);
-			file.close();
-			Log::CoreInfo("[AssetSerializer::Serialize] Successfully serialized asset to: {}", filepath.string());
+			stream << data.dump(4);
+			stream.close();
+			Log::CoreInfo("[AssetSerializer::Serialize] Successfully serialized asset to: {}", file.GetPath().string());
 			return true;
 		}
 		catch (const std::exception& e)
@@ -69,8 +71,9 @@ namespace ignis
 	{
 		std::unordered_map<AssetHandle, AssetMetadata> registry;
 
-		std::ifstream file(filepath);
-		if (!file.is_open())
+		File file(filepath);
+		auto stream = file.OpenInputStream();
+		if (!stream.is_open())
 		{
 			Log::CoreError("[AssetSerializer::Deserialize] Failed to open file for reading: {}",
 				filepath.string());
@@ -80,7 +83,7 @@ namespace ignis
 		ordered_json data;
 		try
 		{
-			file >> data;
+			stream >> data;
 		}
 		catch (const std::exception& e)
 		{
@@ -108,7 +111,7 @@ namespace ignis
 		}
 
 		Log::CoreInfo("[AssetSerializer::Deserialize] Successfully deserialized assets from: {}",
-			filepath.string());
+			file.GetPath().string());
 		return registry;
 	}
 }

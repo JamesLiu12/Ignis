@@ -1,6 +1,7 @@
 #include "SceneSerializer.h"
 #include "Components.h"
 #include "Scene.h"
+#include "Ignis/Core/File/File.h"
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -144,8 +145,9 @@ namespace ignis
 
 	bool SceneSerializer::Serialize(const Scene& scene, const std::filesystem::path& filepath)
 	{
-		std::ofstream file(filepath);
-		if (!file.is_open())
+		File file(filepath);
+		auto stream = file.OpenOutputStream();
+		if (!stream.is_open())
 		{
 			return false;
 			Log::CoreError("[SceneSerializer::Serialize] Failed to open file for writing");
@@ -177,9 +179,9 @@ namespace ignis
 
 		try
 		{
-			file << data.dump(4);
-			file.close();
-			Log::CoreInfo("[SceneSerializer::Serialize] Successfully serialized scene to: {}", filepath.string());
+			stream << data.dump(4);
+			stream.close();
+			Log::CoreInfo("[SceneSerializer::Serialize] Successfully serialized scene to: {}", file.GetPath().string());
 			return true;
 		}
 		catch (const std::exception& e)
@@ -264,8 +266,9 @@ namespace ignis
 
 	std::shared_ptr<Scene> SceneSerializer::Deserialize(const std::filesystem::path& filepath)
 	{
-		std::ifstream file(filepath);
-		if (!file.is_open())
+		File file(filepath);
+		auto stream = file.OpenInputStream();
+		if (!stream.is_open())
 		{
 			Log::CoreError("[SceneSerializer::Deserialize] Failed to open file for reading: {}", filepath.string());
 			return nullptr;
@@ -274,7 +277,7 @@ namespace ignis
 		json data;
 		try
 		{
-			file >> data;
+			stream >> data;
 		}
 		catch (const std::exception& e)
 		{
