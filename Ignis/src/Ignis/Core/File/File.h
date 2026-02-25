@@ -26,6 +26,10 @@ namespace ignis {
         bool WriteBinary(const std::vector<uint8_t>& data);
         bool WriteText(const std::string& text);
 
+        // Stream access for serialization
+        std::ifstream OpenInputStream() const;
+        std::ofstream OpenOutputStream(bool append = false) const;
+
     private:
         std::filesystem::path m_path;
         bool m_exists;
