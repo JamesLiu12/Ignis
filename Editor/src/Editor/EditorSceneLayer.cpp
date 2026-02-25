@@ -65,8 +65,8 @@ static void SceneHierarchyTest(Scene* scene)
 void EditorSceneLayer::OnAttach()
 {
 	m_shader_library = std::make_shared<ShaderLibrary>();
-	m_shader_library->Load("assets://shaders/example.glsl");
-	m_shader_library->Load("assets://shaders/blinn.glsl");
+	m_shader_library->Load("resources://shaders/example.glsl");
+	m_shader_library->Load("resources://shaders/blinn.glsl");
 
 	auto& window = m_editor_app->GetWindow();
 	float aspect_ratio = static_cast<float>(window.GetFramebufferWidth()) / static_cast<float>(window.GetFramebufferHeight());
@@ -190,6 +190,11 @@ void EditorSceneLayer::OnAttach()
 
 	auto framebuffer = Framebuffer::Create(specs);
 	m_renderer.SetFramebuffer(framebuffer);
+
+	SceneSerializer scene_serializer;
+	scene_serializer.Serialize(*m_scene, "MyProject/TestScene.scene");
+	auto saved_scene = scene_serializer.Deserialize("MyProject/TestScene.scene");
+	scene_serializer.Serialize(*saved_scene, "MyProject/TestScene.tscene");
 }
 
 void EditorSceneLayer::OnUpdate(float dt)
