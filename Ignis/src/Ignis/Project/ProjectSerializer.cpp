@@ -7,7 +7,7 @@ using ordered_json = nlohmann::ordered_json;
 
 namespace ignis
 {
-	bool ProjectSerializer::Serialize(const Project& project, const Path& filepath)
+	bool ProjectSerializer::Serialize(const Project& project, const std::filesystem::path& filepath)
 	{
 		File file(filepath);
 		auto stream = file.OpenOutputStream();
@@ -37,7 +37,7 @@ namespace ignis
 		}
 	}
 
-	std::shared_ptr<Project> ProjectSerializer::Deserialize(const Path& filepath)
+	std::shared_ptr<Project> ProjectSerializer::Deserialize(const std::filesystem::path& filepath)
 	{
 		File file(filepath);
 		auto stream = file.OpenInputStream();

@@ -10,7 +10,7 @@ namespace ignis
 		ProjectSerializer() = default;
 		~ProjectSerializer() = default;
 
-		bool Serialize(const Project& project, const Path& filepath);
-		std::shared_ptr<Project> Deserialize(const Path& filepath);
+		bool Serialize(const Project& project, const std::filesystem::path& filepath);
+		std::shared_ptr<Project> Deserialize(const std::filesystem::path& filepath);
 	};
 }
