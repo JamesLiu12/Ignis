@@ -11,7 +11,6 @@ namespace ignis
 		struct Config
 		{
 			std::string ProjectName;
-			std::string ProjectDirectory;
 			std::string AssetDirectory;
 			std::string StartScene;
 		};
@@ -19,20 +18,21 @@ namespace ignis
 		const Config& GetConfig() const { return m_config; }
 
 		const std::string& GetProjectName() const { return m_config.ProjectName; }
-		const std::string& GetProjectDirectory() const { return m_config.ProjectDirectory; }
-		const std::string& GetAssetDirectory() const { return m_config.AssetDirectory; }
-		const std::string& GetStartScene() const { return m_config.StartScene; }
+		const std::filesystem::path& GetProjectDirectory() const { return m_project_directory; }
+		std::filesystem::path GetAssetDirectory() const { return m_project_directory / m_config.AssetDirectory; }
+		std::filesystem::path GetStartScene() const { return GetAssetDirectory() / m_config.StartScene; }
 
 		static const std::string& GetActiveProjectName() { return s_active_project->m_config.ProjectName; }
-		static const std::string& GetActiveProjectDirectory() { return s_active_project->m_config.ProjectDirectory; }
-		static const std::string& GetActiveAssetDirectory() { return s_active_project->m_config.AssetDirectory; }
-		static const std::string& GetActiveStartScene() { return s_active_project->m_config.StartScene; }
+		static const std::filesystem::path& GetActiveProjectDirectory() { return s_active_project->m_project_directory; }
+		static std::filesystem::path GetActiveAssetDirectory() { return s_active_project->m_project_directory / s_active_project->m_config.AssetDirectory; }
+		static std::filesystem::path GetActiveStartScene() { return s_active_project->GetAssetDirectory() / s_active_project->m_config.StartScene; }
 
 		static std::shared_ptr<Project> GetActive() { return s_active_project; }
 		static void SetActive(std::shared_ptr<Project> project);
 
 	private:
 		Config m_config;
+		std::filesystem::path m_project_directory;
 		static inline std::shared_ptr<Project> s_active_project;
 
 		friend class ProjectSerializer;

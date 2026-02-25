@@ -59,8 +59,8 @@ namespace ignis
 		auto project = std::make_shared<Project>();
 		project->m_config.ProjectName = data["ProjectName"];
 		project->m_config.AssetDirectory = data["AssetDirectory"];
-		project->m_config.ProjectDirectory = data["ProjectDirectory"];
 		project->m_config.StartScene = data["StartScene"];
+		project->m_project_directory = filepath.parent_path();
 
 		return project;
 	}
