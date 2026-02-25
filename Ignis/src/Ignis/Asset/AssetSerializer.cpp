@@ -31,7 +31,7 @@ namespace ignis
 		return true;
 	}
 
-	bool AssetSerializer::Serialize(const std::unordered_map<AssetHandle, AssetMetadata>& asset_registry, std::filesystem::path filepath)
+	bool AssetSerializer::Serialize(const std::unordered_map<AssetHandle, AssetMetadata>& asset_registry, const std::filesystem::path& filepath)
 	{
 		std::ofstream file(filepath);
 		if (!file.is_open())
@@ -65,7 +65,7 @@ namespace ignis
 		}
 	}
 
-	std::unordered_map<AssetHandle, AssetMetadata> AssetSerializer::Deserialize(std::filesystem::path filepath)
+	std::optional<std::unordered_map<AssetHandle, AssetMetadata>> AssetSerializer::Deserialize(const std::filesystem::path& filepath)
 	{
 		std::unordered_map<AssetHandle, AssetMetadata> registry;
 
@@ -74,7 +74,7 @@ namespace ignis
 		{
 			Log::CoreError("[AssetSerializer::Deserialize] Failed to open file for reading: {}",
 				filepath.string());
-			return registry;
+			return {};
 		}
 
 		ordered_json data;
@@ -85,13 +85,13 @@ namespace ignis
 		catch (const std::exception& e)
 		{
 			Log::CoreError("[AssetSerializer::Deserialize] Failed to parse JSON: {}", e.what());
-			return registry;
+			return {};
 		}
 
 		if (!data.contains("Assets") || !data["Assets"].is_array())
 		{
 			Log::CoreError("[AssetSerializer::Deserialize] Invalid format: missing 'Assets' array");
-			return registry;
+			return {};
 		}
 
 		for (const auto& item : data["Assets"])

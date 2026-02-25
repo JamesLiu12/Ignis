@@ -1,6 +1,7 @@
 #include "AssetManager.h"
 #include "MeshImporter.h"
 #include "TextureImporter.h"
+#include "AssetSerializer.h"
 
 namespace ignis
 {
@@ -91,6 +92,23 @@ namespace ignis
 		}
 
 		return nullptr;
+	}
+
+	bool AssetManager::LoadAssetRegistry(const std::filesystem::path& path)
+	{
+		AssetSerializer asset_serializer;
+		if (auto registry = asset_serializer.Deserialize(path))
+		{
+			s_asset_registry = registry.value();
+			return true;
+		}
+		return false;
+	}
+
+	bool AssetManager::SaveAssetRegistry(const std::filesystem::path& path)
+	{
+		AssetSerializer asset_serializer;
+		return asset_serializer.Serialize(s_asset_registry, path);
 	}
 
 	std::shared_ptr<Asset> AssetManager::LoadAssetFromFile(const AssetMetadata& metadata)
