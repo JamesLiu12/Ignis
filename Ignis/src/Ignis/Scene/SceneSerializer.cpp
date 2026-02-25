@@ -143,7 +143,7 @@ namespace ignis
 		return entity_data;
 	}
 
-	bool SceneSerializer::Serialize(const Scene& scene, const std::filesystem::path& filepath)
+	bool SceneSerializer::Serialize(const Scene& scene, const Path& filepath)
 	{
 		File file(filepath);
 		auto stream = file.OpenOutputStream();
@@ -264,7 +264,7 @@ namespace ignis
 		return entity;
 	}
 
-	std::shared_ptr<Scene> SceneSerializer::Deserialize(const std::filesystem::path& filepath)
+	std::shared_ptr<Scene> SceneSerializer::Deserialize(const Path& filepath)
 	{
 		File file(filepath);
 		auto stream = file.OpenInputStream();
