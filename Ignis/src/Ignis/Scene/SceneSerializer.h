@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Ignis/Core/File/Path.h"
-
 namespace ignis
 {
 	class Scene;
@@ -11,7 +9,7 @@ namespace ignis
 	public:
 		SceneSerializer() = default;
 
-		bool Serialize(const Scene& scene, const Path& filepath);
-		std::shared_ptr<Scene> Deserialize(const Path& filepath);
+		bool Serialize(const Scene& scene, const std::filesystem::path& filepath);
+		std::shared_ptr<Scene> Deserialize(const std::filesystem::path& filepath);
 	};
 }

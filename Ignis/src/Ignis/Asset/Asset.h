@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Ignis/Core/UUID.h"
-#include "Ignis/Core/File/Path.h"
 
 namespace ignis
 {
@@ -19,7 +18,7 @@ namespace ignis
 	{
 		AssetHandle Handle = AssetHandle::Invalid;
 		AssetType Type;
-		Path FilePath;
+		std::filesystem::path FilePath;
 	};
 
 	class Asset
