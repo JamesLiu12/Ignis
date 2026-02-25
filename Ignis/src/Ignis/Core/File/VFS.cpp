@@ -40,7 +40,18 @@ namespace ignis {
             return;
         }
 
-        auto absolute_path = FileSystem::GetAbsolutePath(physical_path);
+        // Resolve relative paths from executable directory, not current working directory
+        std::filesystem::path absolute_path;
+        if (physical_path.is_absolute())
+        {
+            absolute_path = physical_path;
+        }
+        else
+        {
+            auto exe_dir = FileSystem::GetExecutableDirectory();
+            absolute_path = exe_dir / physical_path;
+            absolute_path = absolute_path.lexically_normal(); // Normalize path (resolve . and ..)
+        }
         
         if (!FileSystem::Exists(absolute_path))
         {

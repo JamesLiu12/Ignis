@@ -29,6 +29,7 @@ namespace ignis {
         static std::string GetFileNameWithoutExtension(const std::filesystem::path& path);
         static std::filesystem::path GetParentPath(const std::filesystem::path& path);
         static std::filesystem::path GetAbsolutePath(const std::filesystem::path& path);
+        static std::filesystem::path GetExecutableDirectory();
 
         // File I/O
         static std::vector<uint8_t> ReadBinaryFile(const std::filesystem::path& path);
