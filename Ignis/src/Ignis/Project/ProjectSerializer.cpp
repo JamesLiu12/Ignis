@@ -19,9 +19,9 @@ namespace ignis
 
 		ordered_json data;
 		data["ProjectName"] = project.GetProjectName();
-		data["AssetDirectory"] = project.GetConfig().AssetDirectory;
-		data["AssetRegistry"] = project.GetConfig().AssetRegistry;
-		data["StartScene"] = project.GetConfig().StartScene;
+		data["AssetDirectory"] = FileSystem::ToUnixPath(project.GetConfig().AssetDirectory);
+		data["AssetRegistry"] = FileSystem::ToUnixPath(project.GetConfig().AssetRegistry);
+		data["StartScene"] = FileSystem::ToUnixPath(project.GetConfig().StartScene);
 
 		try
 		{

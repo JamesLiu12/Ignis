@@ -12,7 +12,7 @@ namespace ignis
 		ordered_json data;
 		data["Handle"] = meta.Handle.ToString();
 		data["Type"] = static_cast<int>(meta.Type);
-		data["FilePath"] = meta.FilePath.string();
+		data["FilePath"] = FileSystem::ToUnixPath(meta.FilePath);
 		return data;
 	}
 

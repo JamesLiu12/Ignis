@@ -180,6 +180,13 @@ namespace ignis {
         return path.stem().string();
     }
 
+    std::string FileSystem::ToUnixPath(const std::filesystem::path& path)
+    {
+		std::string result = path.string();
+		std::replace(result.begin(), result.end(), '\\', '/');
+		return result;
+    }
+
     std::filesystem::path FileSystem::GetParentPath(const std::filesystem::path& path)
     {
         return path.parent_path();
