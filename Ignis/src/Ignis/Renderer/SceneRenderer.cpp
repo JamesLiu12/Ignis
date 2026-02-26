@@ -47,6 +47,9 @@ namespace ignis
 
 	void SceneRenderer::SubmitSkybox() const
 	{
-		m_renderer.RenderSkybox(m_context.Scene->m_scene_environment);
+		if (m_context.Scene->m_scene_environment.GetSkyboxMap().has_value())
+		{
+			m_renderer.RenderSkybox(m_context.Scene->m_scene_environment);
+		}
 	}
 }
