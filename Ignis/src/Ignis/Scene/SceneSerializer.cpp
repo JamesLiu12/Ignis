@@ -2,6 +2,7 @@
 #include "Components.h"
 #include "Scene.h"
 #include "Ignis/Core/File/File.h"
+#include "Ignis/Renderer/Material.h"
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -55,6 +56,34 @@ namespace ignis
 			ibl.PrefilteredMap = UUID(ibl_data["PrefilteredMap"]);
 			env.SetIBLMaps(ibl);
 		}
+	}
+
+	static MaterialData DeserializeMaterialData(const json& data)
+	{
+		MaterialData material_data{};
+
+		material_data.AlbedoMap = UUID(data["AlbedoMap"]);
+		material_data.NormalMap = UUID(data["NormalMap"]);
+		material_data.MetalnessMap = UUID(data["MetalnessMap"]);
+		material_data.RoughnessMap = UUID(data["RoughnessMap"]);
+		material_data.EmissiveMap = UUID(data["EmissiveMap"]);
+		material_data.AOMap = UUID(data["AOMap"]);
+
+		return material_data;
+	}
+
+	static ordered_json SerializeMaterialData(const MaterialData& material_data)
+	{
+		ordered_json data;
+
+		data["AlbedoMap"] = material_data.AlbedoMap.ToString();
+		data["NormalMap"] = material_data.NormalMap.ToString();
+		data["MetalnessMap"] = material_data.MetalnessMap.ToString();
+		data["RoughnessMap"] = material_data.RoughnessMap.ToString();
+		data["EmissiveMap"] = material_data.EmissiveMap.ToString();
+		data["AOMap"] = material_data.AOMap.ToString();
+
+		return data;
 	}
 
 	static ordered_json SerializeEntity(const Scene& scene, entt::entity entity_handle)
@@ -138,6 +167,15 @@ namespace ignis
 			skylight_data["Tint"] = SerializeVec3(skylight.Tint);
 			skylight_data["SkyboxLod"] = skylight.SkyboxLod;
 			entity_data["SkyLight"] = skylight_data;
+		}
+
+		if (entity.HasComponent<MeshComponent>())
+		{
+			const auto& mesh = entity.GetComponent<MeshComponent>();
+			ordered_json mesh_data;
+			mesh_data["Mesh"] = mesh.Mesh.ToString();
+			mesh_data["MaterialData"] = SerializeMaterialData(mesh.MeterialData);
+			entity_data["Mesh"] = mesh_data;
 		}
 
 		return entity_data;
@@ -259,6 +297,20 @@ namespace ignis
 			skylight.Rotation = skylight_data["Rotation"];
 			skylight.Tint = DeserializeVec3(skylight_data["Tint"]);
 			skylight.SkyboxLod = skylight_data["SkyboxLod"];
+		}
+
+		if (entity_data.contains("Mesh"))
+		{
+			const auto& mesh_data = entity_data["Mesh"];
+			auto& mesh = entity.AddComponent<MeshComponent>();
+
+			if (mesh_data.contains("Mesh"))
+				mesh.Mesh = AssetHandle(mesh_data["Mesh"].get<std::string>());
+			else
+				mesh.Mesh = AssetHandle::Invalid;
+
+			if (mesh_data.contains("MaterialData"))
+				mesh.MeterialData = DeserializeMaterialData(mesh_data["MaterialData"]);
 		}
 
 		return entity;

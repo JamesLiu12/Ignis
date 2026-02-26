@@ -24,11 +24,10 @@ void EditorSceneLayer::OnAttach()
 	m_camera->SetPosition({ 1.5f, 0.0f, 10.0f });
 	m_camera->RecalculateViewMatrix();
 
-	//AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
+	AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
 
 	SceneSerializer scene_serializer;
 	m_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
-	m_scene = std::make_shared<Scene>();
 
 	AssetHandle mesh_handle = AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Cerberus_LP.FBX");
 	m_mesh = AssetManager::GetAsset<Mesh>(mesh_handle);
@@ -42,65 +41,65 @@ void EditorSceneLayer::OnAttach()
 	auto roughness_map_handle = AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_R.tga");
 	m_mesh->SetMaterialDataTexture(0, MaterialType::Roughness, roughness_map_handle);
 
-	 // Create Directional Light entity
-	auto directional_light_entity = m_scene->CreateEntity("Directional Light");
-	m_light_entity = Entity(directional_light_entity);
-	//auto view = m_scene->GetAllEntitiesWith<DirectionalLightComponent>();
-	//if (!view.empty())
-	//{
-	//	m_light_entity = Entity(view.front(), m_scene.get());
-	//}
+	//// Create Directional Light entity
+	//auto directional_light_entity = m_scene->CreateEntity("Directional Light");
+	//m_light_entity = Entity(directional_light_entity);
+	auto view = m_scene->GetAllEntitiesWith<DirectionalLightComponent>();
+	if (!view.empty())
+	{
+		m_light_entity = Entity(view.front(), m_scene.get());
+	}
 
-	auto& dir_light = m_light_entity.AddComponent<DirectionalLightComponent>();
-	dir_light.Color = glm::vec3(1.0f, 0.95f, 0.8f); // Warm white light
-	dir_light.Intensity = 1.5f;
-	
-	auto& dir_transform = m_light_entity.GetComponent<TransformComponent>();
-	dir_transform.Translation = glm::vec3(0.0f, 5.0f, 5.0f);
+	//auto& dir_light = m_light_entity.AddComponent<DirectionalLightComponent>();
+	//dir_light.Color = glm::vec3(1.0f, 0.95f, 0.8f); // Warm white light
+	//dir_light.Intensity = 1.5f;
+	//
+	//auto& dir_transform = m_light_entity.GetComponent<TransformComponent>();
+	//dir_transform.Translation = glm::vec3(0.0f, 5.0f, 5.0f);
 
-	// Create Point Light entity
-	auto point_light_entity = m_scene->CreateEntity("Point Light");
-	auto& point_light = point_light_entity.AddComponent<PointLightComponent>();
-	point_light.Color = glm::vec3(1.0f, 0.0f, 0.0f); // Red
-	point_light.Intensity = 5.0f;
-	point_light.Range = 10.0f;
-	
-	auto& point_transform = point_light_entity.GetComponent<TransformComponent>();
-	point_transform.Translation = glm::vec3(2.0f, 2.0f, 0.0f);
+	//// Create Point Light entity
+	//auto point_light_entity = m_scene->CreateEntity("Point Light");
+	//auto& point_light = point_light_entity.AddComponent<PointLightComponent>();
+	//point_light.Color = glm::vec3(1.0f, 0.0f, 0.0f); // Red
+	//point_light.Intensity = 5.0f;
+	//point_light.Range = 10.0f;
+	//
+	//auto& point_transform = point_light_entity.GetComponent<TransformComponent>();
+	//point_transform.Translation = glm::vec3(2.0f, 2.0f, 0.0f);
 
-	// Create Spot Light entity
-	auto spot_light_entity = m_scene->CreateEntity("Spot Light");
-	auto& spot_light = spot_light_entity.AddComponent<SpotLightComponent>();
-	spot_light.Color = glm::vec3(0.0f, 1.0f, 0.0f); // Green
-	spot_light.Intensity = 10.0f;
-	spot_light.Range = 15.0f;
-	spot_light.InnerConeAngle = 12.5f;
-	spot_light.OuterConeAngle = 17.5f;
-	
-	auto& spot_transform = spot_light_entity.GetComponent<TransformComponent>();
-	spot_transform.Translation = glm::vec3(-2.0f, 2.0f, 0.0f);
+	//// Create Spot Light entity
+	//auto spot_light_entity = m_scene->CreateEntity("Spot Light");
+	//auto& spot_light = spot_light_entity.AddComponent<SpotLightComponent>();
+	//spot_light.Color = glm::vec3(0.0f, 1.0f, 0.0f); // Green
+	//spot_light.Intensity = 10.0f;
+	//spot_light.Range = 15.0f;
+	//spot_light.InnerConeAngle = 12.5f;
+	//spot_light.OuterConeAngle = 17.5f;
+	//
+	//auto& spot_transform = spot_light_entity.GetComponent<TransformComponent>();
+	//spot_transform.Translation = glm::vec3(-2.0f, 2.0f, 0.0f);
 
-	// Create Sky Light entity
-	auto sky_light_entity = m_scene->CreateEntity("Sky Light");
-	auto& sky_light_component = sky_light_entity.AddComponent<SkyLightComponent>();
-	sky_light_component.SceneEnvironment.SetIBLMaps({
-		AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_irradiance.hdr", AssetType::EnvironmentMap),
-		AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_radiance.hdr", AssetType::EnvironmentMap)
-		});
-	sky_light_component.SceneEnvironment.SetSkyboxMap({
-		AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_skybox.hdr", AssetType::EnvironmentMap)
-		});
+	//// Create Sky Light entity
+	//auto sky_light_entity = m_scene->CreateEntity("Sky Light");
+	//auto& sky_light_component = sky_light_entity.AddComponent<SkyLightComponent>();
+	//sky_light_component.SceneEnvironment.SetIBLMaps({
+	//	AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_irradiance.hdr", AssetType::EnvironmentMap),
+	//	AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_radiance.hdr", AssetType::EnvironmentMap)
+	//	});
+	//sky_light_component.SceneEnvironment.SetSkyboxMap({
+	//	AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_skybox.hdr", AssetType::EnvironmentMap)
+	//	});
 
-	// Create gun entity
-	auto gun_entity = m_scene->CreateEntity("Gun");
-	auto& gun = gun_entity.AddComponent<MeshComponent>();
-	gun.Mesh = mesh_handle;
-	gun.MeterialData = {
-		albedo_map_handle,
-		normal_map_handle,
-		metallic_map_handle,
-		roughness_map_handle,
-	};
+	//// Create gun entity
+	//auto gun_entity = m_scene->CreateEntity("Gun");
+	//auto& gun = gun_entity.AddComponent<MeshComponent>();
+	//gun.Mesh = mesh_handle;
+	//gun.MeterialData = {
+	//	albedo_map_handle,
+	//	normal_map_handle,
+	//	metallic_map_handle,
+	//	roughness_map_handle,
+	//};
 
 	// Set the scene in the hierarchy panel
 	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
