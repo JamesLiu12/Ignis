@@ -1,6 +1,8 @@
 #include "PBRPipeline.h"
 #include "Ignis/Asset/AssetManager.h"
 #include "Renderer.h"
+#include "Environment.h"
+#include "Ignis/Scene/Scene.h"
 
 namespace ignis
 {

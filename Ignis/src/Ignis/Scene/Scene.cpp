@@ -1,6 +1,7 @@
 #include "Scene.h"
 #include "Entity.h"
 #include "Ignis/Asset/AssetManager.h"
+#include "Ignis/Renderer/SceneRenderer.h"
 
 namespace ignis
 {
@@ -75,7 +76,7 @@ namespace ignis
 		out_quadratic = (1.0f / edge - 1.0f) / (range * range);
 	}
 
-	void Scene::OnRender()
+	void Scene::OnRender(const SceneRenderer& scene_renderer)
 	{
 		m_light_environment = LightEnvironment();
 
@@ -164,6 +165,9 @@ namespace ignis
 				});
 		}
 
+		// -------------------------
+		// SkyLight
+		// -------------------------
 		{
 			auto sky_lights = m_registry.group<SkyLightComponent>();
 
@@ -174,8 +178,25 @@ namespace ignis
 					m_environment_settings.Rotation = sky_light.Rotation;
 					m_environment_settings.Tint = sky_light.Tint;
 					m_environment_settings.SkyboxLod = sky_light.SkyboxLod;
-
 				});
 		}
+
+		// -------------------------
+		// Mesh
+		// -------------------------
+		{
+			auto meshes = m_registry.group<MeshComponent>(entt::get<TransformComponent>);
+
+			meshes.each([&](auto entity_handle, MeshComponent& mesh_component, TransformComponent& transform)
+				{
+					if (auto mesh = AssetManager::GetAsset<Mesh>(mesh_component.Mesh))
+					{
+						Entity entity(entity_handle, this);
+						scene_renderer.SubmitMesh(*mesh, entity.GetWorldTransform());
+					}
+				});
+		}
+
+		scene_renderer.SubmitSkybox();
 	}
 }

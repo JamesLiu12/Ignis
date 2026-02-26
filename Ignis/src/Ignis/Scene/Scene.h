@@ -46,7 +46,7 @@ namespace ignis
 		std::vector<SpotLight> SpotLights;
 	};
 
-
+	class SceneRenderer;
 
 	class Scene
 	{
@@ -66,7 +66,7 @@ namespace ignis
 		Entity CreateEntityWithID(UUID uuid, const std::string& name = "");
 		Entity CreateEntityWithID(UUID uuid, Entity parent, const std::string& name = "");
 
-		void OnRender();
+		void OnRender(const SceneRenderer& scene_renderer);
 	
 		template<typename... Components>
 		auto GetAllEntitiesWith()
@@ -91,9 +91,8 @@ namespace ignis
 		std::string m_name;
 
 		friend class Entity;
-		// TODO: Move this to SceneRenderer
-		friend class GLRenderer;
 		friend class SceneSerializer;
+		friend class SceneRenderer;
 	};
 }
 

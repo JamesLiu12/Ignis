@@ -5,7 +5,6 @@
 #include "Camera.h"
 #include "Mesh.h"
 #include "Pipeline.h"
-#include "Ignis/Scene/Scene.h"
 #include "Framebuffer.h"
 
 namespace ignis
@@ -15,8 +14,8 @@ namespace ignis
 	public:
 		virtual ~Renderer() = default;
 
-		virtual void BeginScene(std::shared_ptr<Pipeline> pipeline, std::shared_ptr<Scene> scene, std::shared_ptr<Camera> camera) = 0;
-		virtual void EndScene() = 0;
+		virtual void BeginFrame() = 0;
+		virtual void EndFrame() = 0;
 
 		virtual void SetClearColor(float r, float g, float b, float a) = 0;
 		virtual void SetClearColor(const glm::vec4& color) = 0;
@@ -25,12 +24,17 @@ namespace ignis
 		virtual void SetViewport(const glm::ivec4& viewport) = 0;
 
 		virtual void DrawIndexed(VertexArray& va) = 0;
-		virtual void RenderMesh(const std::shared_ptr<Mesh>& mesh, const glm::mat4& model) = 0;
+		virtual void RenderMesh(const Mesh& mesh, const glm::mat4& model,
+			const Environment& scene_environment, const EnvironmentSettings& environment_settings, const LightEnvironment& light_environment) = 0;
+		virtual void RenderSkybox(const Environment& environment) = 0;
 
 		virtual void Clear() = 0;
 
 		virtual void SetFramebuffer(std::shared_ptr<Framebuffer> framebuffer) = 0;
 		virtual std::shared_ptr<Framebuffer> GetFramebuffer() const = 0;
+
+		virtual void SetCamera(std::shared_ptr<Camera> camera) = 0;
+		virtual void SetPipeline(std::shared_ptr<Pipeline> pipeline) = 0;
 
 		static std::unique_ptr<Renderer> Create();
 
