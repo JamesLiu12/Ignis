@@ -24,6 +24,29 @@ void EditorSceneLayer::OnAttach()
 	m_camera->SetPosition({ 1.5f, 0.0f, 10.0f });
 	m_camera->RecalculateViewMatrix();
 
+	// Create pipeline and framebuffer (always needed)
+	m_pipeline = std::make_shared<PBRPipeline>(m_shader_library);
+	
+	FrameBufferSpecs specs;
+	specs.Width = window.GetFramebufferWidth();
+	specs.Height = window.GetFramebufferHeight();
+	specs.Attachments = { TextureFormat::RGBA8, TextureFormat::Depth24Stencil8 };
+	auto framebuffer = Framebuffer::Create(specs);
+	m_renderer.SetFramebuffer(framebuffer);
+	
+	// Get viewport panel reference for camera aspect ratio updates
+	m_viewport_panel = m_editor_app->GetViewportPanel();
+
+	// Check if project is active before loading scene
+	if (!Project::GetActive())
+	{
+		Log::CoreInfo("No active project - EditorSceneLayer starting in empty state");
+		m_scene = nullptr;
+		m_mesh = nullptr;
+		return;
+	}
+
+	// Project is loaded - proceed with normal initialization
 	AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
 
 	SceneSerializer scene_serializer;
@@ -40,55 +63,6 @@ void EditorSceneLayer::OnAttach()
 	m_mesh->SetMaterialDataTexture(0, MaterialType::Metal, metallic_map_handle);
 	auto roughness_map_handle = AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_R.tga");
 	m_mesh->SetMaterialDataTexture(0, MaterialType::Roughness, roughness_map_handle);
-
-	// // Create Directional Light entity
-	//auto directional_light_entity = m_scene->CreateEntity("Directional Light");
-	//m_light_entity = std::make_shared<Entity>(directional_light_entity);
-	auto view = m_scene->GetAllEntitiesWith<DirectionalLightComponent>();
-	if (!view.empty())
-	{
-		m_light_entity = Entity(view.front(), m_scene.get());
-	}
-
-	//auto& dir_light = m_light_entity.AddComponent<DirectionalLightComponent>();
-	//dir_light.Color = glm::vec3(1.0f, 0.95f, 0.8f); // Warm white light
-	//dir_light.Intensity = 1.5f;
-	//
-	//auto& dir_transform = m_light_entity.GetComponent<TransformComponent>();
-	//dir_transform.Translation = glm::vec3(0.0f, 5.0f, 5.0f);
-
-	//// Create Point Light entity
-	//auto point_light_entity = m_scene->CreateEntity("Point Light");
-	//auto& point_light = point_light_entity.AddComponent<PointLightComponent>();
-	//point_light.Color = glm::vec3(1.0f, 0.0f, 0.0f); // Red
-	//point_light.Intensity = 5.0f;
-	//point_light.Range = 10.0f;
-	//
-	//auto& point_transform = point_light_entity.GetComponent<TransformComponent>();
-	//point_transform.Translation = glm::vec3(2.0f, 2.0f, 0.0f);
-
-	//// Create Spot Light entity
-	//auto spot_light_entity = m_scene->CreateEntity("Spot Light");
-	//auto& spot_light = spot_light_entity.AddComponent<SpotLightComponent>();
-	//spot_light.Color = glm::vec3(0.0f, 1.0f, 0.0f); // Green
-	//spot_light.Intensity = 10.0f;
-	//spot_light.Range = 15.0f;
-	//spot_light.InnerConeAngle = 12.5f;
-	//spot_light.OuterConeAngle = 17.5f;
-	//
-	//auto& spot_transform = spot_light_entity.GetComponent<TransformComponent>();
-	//spot_transform.Translation = glm::vec3(-2.0f, 2.0f, 0.0f);
-
-	//// Create Sky Light entity
-	//auto sky_light_entity = m_scene->CreateEntity("Sky Light");
-	//auto& sky_light_component = sky_light_entity.AddComponent<SkyLightComponent>();
-	//sky_light_component.SceneEnvironment.SetIBLMaps({
-	//	AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_irradiance.hdr", AssetType::EnvironmentMap),
-	//	AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_radiance.hdr", AssetType::EnvironmentMap)
-	//	});
-	//sky_light_component.SceneEnvironment.SetSkyboxMap({
-	//	AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k/brown_photostudio_02_4k_skybox.hdr", AssetType::EnvironmentMap)
-	//	});
 
 	// Set the scene in the hierarchy panel
 	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
@@ -111,29 +85,16 @@ void EditorSceneLayer::OnAttach()
 	{
 		Log::CoreWarn("Properties panel not found");
 	}
-	m_pipeline = std::make_shared<PBRPipeline>(m_shader_library);
 
 	m_mesh_transform_component.Scale *= 0.1;
 	m_mesh_transform_component.Rotation = glm::vec3(0, glm::radians(90.0f), glm::radians(90.0f));
 	
 	// Connect mesh to PropertiesPanel for editing
-	// Pass address of m_mesh so PropertiesPanel can update the same mesh we render
 	auto* properties_panel = m_editor_app->GetPropertiesPanel();
 	if (properties_panel)
 	{
 		properties_panel->SetCurrentMesh(&m_mesh, &m_mesh_transform_component);
 	}
-
-	// Get viewport panel reference for camera aspect ratio updates
-	m_viewport_panel = m_editor_app->GetViewportPanel();
-
-	FrameBufferSpecs specs;
-	specs.Width = window.GetFramebufferWidth();
-	specs.Height = window.GetFramebufferHeight();
-	specs.Attachments = { TextureFormat::RGBA8, TextureFormat::Depth24Stencil8 };
-
-	auto framebuffer = Framebuffer::Create(specs);
-	m_renderer.SetFramebuffer(framebuffer);
 
 	SceneSerializer().Serialize(*m_scene, Project::GetActiveStartScene().replace_filename("StartSceneSaved.igscene"));
 	AssetSerializer().Serialize(AssetManager::GetAssetRegistry(), Project::GetActiveAssetRegistry().replace_filename("TestARSaved.igar"));
@@ -204,13 +165,28 @@ void EditorSceneLayer::OnUpdate(float dt)
 		}
 	}
 
+	// Only render if scene exists
+	if (!m_scene)
+	{
+		// Clear framebuffer to black when no scene is loaded
+		auto framebuffer = m_renderer.GetFramebuffer();
+		if (framebuffer)
+		{
+			framebuffer->Bind();
+			m_renderer.Clear();
+			framebuffer->UnBind();
+		}
+		return;
+	}
+
 	m_renderer.BeginScene(m_pipeline, m_scene, m_camera);
 
 	m_renderer.Clear();
 
-	m_renderer.RenderMesh(m_mesh, m_mesh_transform_component.GetTransform());
-
-	auto& window = m_editor_app->GetWindow();
+	if (m_mesh)
+	{
+		m_renderer.RenderMesh(m_mesh, m_mesh_transform_component.GetTransform());
+	}
 
 	m_renderer.EndScene();
 }
@@ -219,6 +195,61 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 {
 	// window resize handling removed, and viewport panel now manages framebuffer size
 	// and camera aspect ratio is updated in OnUpdate() based on viewport panel size
+}
+
+void EditorSceneLayer::ReloadProject()
+{
+	if (!Project::GetActive())
+	{
+		ClearProject();
+		return;
+	}
+	
+	Log::CoreInfo("Reloading project scene...");
+	
+	// Clear panels Before destroying old scene to prevent accessing stale entities
+	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
+	{
+		properties_panel->SetSelectedEntity(nullptr);
+		properties_panel->SetCurrentMesh(nullptr, nullptr);
+	}
+	
+	// Clear previous project's scene and assets
+	m_scene = nullptr;
+	m_mesh = nullptr;
+	
+	// Reload asset registry and scene
+	AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
+	SceneSerializer scene_serializer;
+	m_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
+	
+	// Update hierarchy panel with all entities from the scene
+	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+	{
+		hierarchy_panel->SetScene(m_scene);
+	}
+	
+	Log::CoreInfo("Project scene reloaded");
+}
+
+void EditorSceneLayer::ClearProject()
+{
+	m_scene = nullptr;
+	m_mesh = nullptr;
+	
+	// Clear panels
+	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+	{
+		hierarchy_panel->SetScene(nullptr);
+	}
+	
+	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
+	{
+		properties_panel->SetSelectedEntity(nullptr);
+		properties_panel->SetCurrentMesh(nullptr, nullptr);
+	}
+	
+	Log::CoreInfo("Project scene cleared");
 }
 
 } // namespace ignis

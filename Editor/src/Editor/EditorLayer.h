@@ -20,14 +20,33 @@ namespace ignis {
 
 		PanelManager& GetPanelManager() { return *m_panel_manager; }
 
-		void OpenProject(const std::filesystem::path& filepath);
-		void SaveProject(const std::filesystem::path& filepath);
+		// Project management methods
+		void OpenProject();  // Shows folder dialog
+		void OpenProject(const std::filesystem::path& filepath);  // Loads project from path
+		void SaveProject();  // Saves to current project path
+		void SaveProject(const std::filesystem::path& filepath);  // Saves to specific path
+		void SaveProjectAs();  // Shows folder dialog, saves to new location
+		void CloseProject();  // Closes current project
+		void CreateNewProject();  // Shows new project popup
 
 	private:
 		void RenderMenuBar();
+		void UI_ShowNewProjectPopup();
+		void HandleKeyboardShortcuts();
+	
+		// Deferred operation helpers
+		void ProcessDeferredProjectLoad();
+		void ProcessDeferredSaveAs();
 
 	private:
 		std::unique_ptr<PanelManager> m_panel_manager;
+
+		// Deferred loading buffers (safe to load outside ImGui rendering)
+		static char s_OpenProjectFilePathBuffer[512];
+		static char s_SaveProjectAsFolderBuffer[512];
+		static char s_NewProjectFolderBuffer[512];
+		static char s_NewProjectNameBuffer[128];
+		static bool s_ShowNewProjectPopup;
 	};
 
 } // namespace ignis

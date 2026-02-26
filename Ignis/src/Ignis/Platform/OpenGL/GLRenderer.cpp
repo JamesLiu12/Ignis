@@ -133,18 +133,22 @@ namespace ignis
 
 	void GLRenderer::EndScene()
 	{
-		auto material = m_pipeline->CreateSkyboxMaterial(m_scene_environment);
-		glDepthFunc(GL_LEQUAL);
-		glDisable(GL_CULL_FACE);
-		glm::mat4 view = glm::mat4(glm::mat3(m_camera->GetView()));
-		material->Set("view", view);
-		material->Set("projection", m_camera->GetProjection());
-		m_skybox_vao->Bind();
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		m_skybox_vao->UnBind();
+		// Only render skybox if environment has a skybox map
+		if (m_scene_environment.GetSkyboxMap().has_value())
+		{
+			auto material = m_pipeline->CreateSkyboxMaterial(m_scene_environment);
+			glDepthFunc(GL_LEQUAL);
+			glDisable(GL_CULL_FACE);
+			glm::mat4 view = glm::mat4(glm::mat3(m_camera->GetView()));
+			material->Set("view", view);
+			material->Set("projection", m_camera->GetProjection());
+			m_skybox_vao->Bind();
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			m_skybox_vao->UnBind();
 
-		glDepthFunc(GL_LESS);
-		glEnable(GL_CULL_FACE);
+			glDepthFunc(GL_LESS);
+			glEnable(GL_CULL_FACE);
+		}
 
 		if (m_framebuffer)
 		{
