@@ -168,7 +168,14 @@ void EditorSceneLayer::OnUpdate(float dt)
 	// Only render if scene exists
 	if (!m_scene)
 	{
-		m_renderer.Clear();
+		// Clear framebuffer to black when no scene is loaded
+		auto framebuffer = m_renderer.GetFramebuffer();
+		if (framebuffer)
+		{
+			framebuffer->Bind();
+			m_renderer.Clear();
+			framebuffer->UnBind();
+		}
 		return;
 	}
 

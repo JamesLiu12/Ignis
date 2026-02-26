@@ -24,9 +24,10 @@ std::optional<std::filesystem::path> ProjectManager::FindProjectFile(const std::
 
 void ProjectManager::OpenProject(const std::filesystem::path& filepath)
 {
-	// Unmount previous project's assets if any project was active
+	// Auto-save current project before switching
 	if (Project::GetActive())
 	{
+		SaveProject();
 		VFS::Unmount("assets");
 	}
 	
@@ -161,8 +162,28 @@ bool ProjectManager::SaveProjectAs(const std::filesystem::path& destinationFolde
 
 void ProjectManager::CloseProject()
 {
-	// TODO: Phase 3 - Save and unload current project
-	Log::CoreInfo("CloseProject() - Not yet implemented");
+	if (!Project::GetActive())
+	{
+		Log::CoreWarn("No active project to close");
+		return;
+	}
+
+	// Auto-save before closing
+	SaveProject();
+
+	// Clear active project
+	Project::SetActive(nullptr);
+
+	// Clear scene in editor
+	if (auto* app = dynamic_cast<EditorApp*>(&Application::Get()))
+	{
+		if (auto* scene_layer = app->GetSceneLayer())
+		{
+			scene_layer->ClearProject();
+		}
+	}
+
+	Log::CoreInfo("Project closed");
 }
 
 bool ProjectManager::CreateNewProject(const std::string& name, const std::filesystem::path& location)
