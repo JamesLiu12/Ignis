@@ -55,32 +55,65 @@ std::string FileDialog::OpenFile(const std::string& filterName, const std::vecto
     ofn.lpstrFile = szFile;
     ofn.nMaxFile = sizeof(szFile);
     
-    // Build filter string from extensions
-    std::string filter;
+    // Build filter string from extensions - must use static buffer for Windows
+    static CHAR filterBuffer[512];
+    ZeroMemory(filterBuffer, sizeof(filterBuffer));
+    
     if (!filterExtensions.empty())
     {
-        filter = filterName + "\0";
+        // Build filter: "FilterName\0*.ext1;*.ext2\0All Files\0*.*\0"
+        size_t offset = 0;
+        
+        // Add filter name
+        strncpy_s(filterBuffer + offset, sizeof(filterBuffer) - offset, filterName.c_str(), _TRUNCATE);
+        offset += filterName.length() + 1; // +1 for null terminator
+        
+        // Add extensions pattern
         for (size_t i = 0; i < filterExtensions.size(); ++i)
         {
-            if (i > 0) filter += ";";
-            filter += "*." + filterExtensions[i];
+            if (i > 0)
+            {
+                filterBuffer[offset++] = ';';
+            }
+            std::string pattern = "*." + filterExtensions[i];
+            strncpy_s(filterBuffer + offset, sizeof(filterBuffer) - offset, pattern.c_str(), _TRUNCATE);
+            offset += pattern.length();
         }
-        filter += "\0All Files\0*.*\0";
+        offset++; // Null terminator after extensions
+        
+        // Add "All Files" option
+        const char* allFiles = "All Files";
+        strncpy_s(filterBuffer + offset, sizeof(filterBuffer) - offset, allFiles, _TRUNCATE);
+        offset += strlen(allFiles) + 1;
+        
+        const char* allPattern = "*.*";
+        strncpy_s(filterBuffer + offset, sizeof(filterBuffer) - offset, allPattern, _TRUNCATE);
+        offset += strlen(allPattern) + 1;
+        
+        // Final null terminator
+        filterBuffer[offset] = '\0';
     }
     else
     {
-        filter = "All Files\0*.*\0";
+        // Default: "All Files\0*.*\0\0"
+        strcpy_s(filterBuffer, sizeof(filterBuffer), "All Files");
+        size_t offset = strlen("All Files") + 1;
+        strcpy_s(filterBuffer + offset, sizeof(filterBuffer) - offset, "*.*");
+        offset += strlen("*.*") + 1;
+        filterBuffer[offset] = '\0';
     }
     
-    ofn.lpstrFilter = filter.c_str();
+    ofn.lpstrFilter = filterBuffer;
     ofn.nFilterIndex = 1;
     
     // Set flags
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
     
-    // Set dialog title
+    // Set dialog title - also needs static buffer
+    static CHAR titleBuffer[256];
     std::string title = "Select " + filterName;
-    ofn.lpstrTitle = title.c_str();
+    strncpy_s(titleBuffer, sizeof(titleBuffer), title.c_str(), _TRUNCATE);
+    ofn.lpstrTitle = titleBuffer;
     
     // Display the Open dialog box
     if (GetOpenFileNameA(&ofn) == TRUE)
