@@ -1,8 +1,10 @@
 #include "ProjectManager.h"
 #include "Ignis/Project/Project.h"
 #include "Ignis/Project/ProjectSerializer.h"
+#include "Ignis/Scene/SceneSerializer.h"
 #include "Ignis/Core/Log.h"
-#include <filesystem>
+#include "Editor/EditorApp.h"
+#include "Editor/EditorSceneLayer.h"
 
 namespace ignis {
 
@@ -22,11 +24,27 @@ std::optional<std::filesystem::path> ProjectManager::FindProjectFile(const std::
 
 void ProjectManager::OpenProject(const std::filesystem::path& filepath)
 {
+	// Unmount previous project's assets if any project was active
+	if (Project::GetActive())
+	{
+		VFS::Unmount("assets");
+	}
+	
 	ProjectSerializer project_serializer;
 
 	if (auto project = project_serializer.Deserialize(filepath))
 	{
 		Project::SetActive(project);
+		
+		// Reload scene in editor
+		if (auto* app = dynamic_cast<EditorApp*>(&Application::Get()))
+		{
+			if (auto* scene_layer = app->GetSceneLayer())
+			{
+				scene_layer->ReloadProject();
+			}
+		}
+		
 		Log::CoreInfo("Project loaded: {}", filepath.string());
 	}
 	else
@@ -56,9 +74,30 @@ void ProjectManager::SaveProject(const std::filesystem::path& filepath)
 
 	if (auto project = Project::GetActive())
 	{
+		// Save project metadata
 		if (project_serializer.Serialize(*project, filepath))
 		{
 			Log::CoreInfo("Project saved: {}", filepath.string());
+			
+			// Save active scene
+			if (auto* app = dynamic_cast<EditorApp*>(&Application::Get()))
+			{
+				if (auto* scene_layer = app->GetSceneLayer())
+				{
+					if (auto scene = scene_layer->GetScene())
+					{
+						SceneSerializer scene_serializer;
+						if (scene_serializer.Serialize(*scene, Project::GetActiveStartScene()))
+						{
+							Log::CoreInfo("Scene saved: {}", Project::GetActiveStartScene().string());
+						}
+						else
+						{
+							Log::CoreError("Failed to save scene: {}", Project::GetActiveStartScene().string());
+						}
+					}
+				}
+			}
 		}
 		else
 		{

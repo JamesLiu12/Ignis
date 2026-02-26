@@ -19,6 +19,13 @@ public:
 	void OnUpdate(float dt) override;
 	void OnEvent(EventBase& event) override;
 
+	// Project lifecycle methods
+	void ReloadProject();  // Called when project is loaded
+	void ClearProject();   // Called when project is closed
+
+	// Scene access
+	std::shared_ptr<Scene> GetScene() const { return m_scene; }
+
 	// Mesh access for PropertiesPanel
 	std::shared_ptr<Mesh> GetCurrentMesh() const { return m_mesh; }
 	TransformComponent& GetMeshTransform() { return m_mesh_transform_component; }

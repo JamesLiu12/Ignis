@@ -27,9 +27,6 @@ namespace ignis {
 		Log::CoreInfo("EditorLayer initialized with PanelManager");
 		VFS::Mount("resources", "resources");
 		
-		// Put your test project here
-		OpenProject("MyProject/MyProject.igproj");
-		SaveProject("MyProject/MyProjectSaved.igproj");
 	}
 
 	void EditorLayer::OnDetach()
