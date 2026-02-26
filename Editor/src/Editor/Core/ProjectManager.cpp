@@ -188,9 +188,59 @@ void ProjectManager::CloseProject()
 
 bool ProjectManager::CreateNewProject(const std::string& name, const std::filesystem::path& location)
 {
-	// TODO: Phase 3 - Implement new project creation
-	Log::CoreInfo("CreateNewProject() - Not yet implemented");
-	return false;
+	std::filesystem::path projectDir = location / name;
+
+	// Check if directory already exists
+	if (std::filesystem::exists(projectDir))
+	{
+		Log::CoreError("Project directory already exists: {}", projectDir.string());
+		return false;
+	}
+
+	// Create project directory structure
+	std::filesystem::create_directories(projectDir);
+	std::filesystem::create_directories(projectDir / "assets");
+	std::filesystem::create_directories(projectDir / "assets" / "scenes");
+
+	// Create project file
+	std::filesystem::path projectFile = projectDir / (name + ".igproj");
+
+	// Create basic project JSON manually
+	std::ofstream projectFileStream(projectFile);
+	if (!projectFileStream.is_open())
+	{
+		Log::CoreError("Failed to create project file: {}", projectFile.string());
+		return false;
+	}
+
+	projectFileStream << "{\n";
+	projectFileStream << "  \"ProjectName\": \"" << name << "\",\n";
+	projectFileStream << "  \"AssetDirectory\": \"assets\",\n";
+	projectFileStream << "  \"AssetRegistry\": \"assets/AssetRegistry.igar\",\n";
+	projectFileStream << "  \"StartScene\": \"scenes/MainScene.igscene\"\n";
+	projectFileStream << "}\n";
+	projectFileStream.close();
+
+	// Create empty asset registry with proper structure
+	std::ofstream assetRegistry(projectDir / "assets" / "AssetRegistry.igar");
+	assetRegistry << "{\n";
+	assetRegistry << "  \"Assets\": []\n";
+	assetRegistry << "}";
+	assetRegistry.close();
+
+	// Create empty scene with proper structure
+	std::ofstream scene(projectDir / "assets" / "scenes" / "MainScene.igscene");
+	scene << "{\n";
+	scene << "  \"Scene\": \"MainScene\",\n";
+	scene << "  \"Entities\": []\n";
+	scene << "}";
+	scene.close();
+
+	Log::CoreInfo("Created new project: {}", projectFile.string());
+
+	// Open the new project
+	OpenProject(projectFile);
+	return true;
 }
 
 } // namespace ignis

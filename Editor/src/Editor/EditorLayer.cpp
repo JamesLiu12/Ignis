@@ -168,8 +168,14 @@ namespace ignis {
 
 			if (ImGui::Button("Create", ImVec2(120, 0)))
 			{
-				// TODO: Phase 3 - Actually create the project
-				Log::CoreInfo("Create project: {} at {}", s_NewProjectNameBuffer, s_NewProjectFolderBuffer);
+				if (strlen(s_NewProjectNameBuffer) > 0 && strlen(s_NewProjectFolderBuffer) > 0)
+				{
+					ProjectManager::CreateNewProject(s_NewProjectNameBuffer, s_NewProjectFolderBuffer);
+
+					// Clear buffers
+					memset(s_NewProjectNameBuffer, 0, sizeof(s_NewProjectNameBuffer));
+					memset(s_NewProjectFolderBuffer, 0, sizeof(s_NewProjectFolderBuffer));
+				}
 				s_ShowNewProjectPopup = false;
 			}
 			ImGui::SameLine();
