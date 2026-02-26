@@ -2,6 +2,7 @@
 
 #include "Ignis/Core/UUID.h"
 #include "Ignis/Renderer/Environment.h"
+#include "Ignis/Renderer/Material.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -113,5 +114,11 @@ namespace ignis
 		float Rotation = 0.0f;
 		glm::vec3 Tint = { 1.0f, 1.0f, 1.0f };
 		float SkyboxLod = 0.0f;
+	};
+
+	struct MeshComponent : Component
+	{
+		AssetHandle Mesh;
+		MaterialData MeterialData;
 	};
 }
