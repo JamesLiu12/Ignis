@@ -57,6 +57,7 @@ namespace ignis
 		std::shared_ptr<IndexBuffer> GetIndexBuffer() const { return m_index_buffer; }
 
 		void SetMaterialDataTexture(uint32_t material_index, MaterialType type, AssetHandle texture_handle);
+		void SetMaterialData(uint32_t material_index, MaterialData material_data);
 
 		void FlipUVs();
 		bool IsUVsFlipped() { return uv_flipped; }

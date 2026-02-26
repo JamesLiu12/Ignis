@@ -43,6 +43,11 @@ namespace ignis
 		}
 	}
 
+	void Mesh::SetMaterialData(uint32_t material_index, MaterialData material_data)
+	{
+		m_materials_data[material_index] = material_data;
+	}
+
 	void Mesh::FlipUVs()
 	{
 		for (auto& vertex : m_vertices)

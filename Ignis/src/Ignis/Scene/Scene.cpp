@@ -191,6 +191,7 @@ namespace ignis
 				{
 					if (auto mesh = AssetManager::GetAsset<Mesh>(mesh_component.Mesh))
 					{
+						mesh->SetMaterialData(0, mesh_component.MeterialData);
 						Entity entity(entity_handle, this);
 						scene_renderer.SubmitMesh(*mesh, entity.GetWorldTransform());
 					}
