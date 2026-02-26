@@ -54,6 +54,47 @@ std::string FileDialog::OpenFile()
     }
 }
 
+std::string FileDialog::OpenFile(const std::string& filterName, const std::vector<std::string>& filterExtensions)
+{
+    @autoreleasepool {
+        NSOpenPanel* panel = [NSOpenPanel openPanel];
+        [panel setCanChooseFiles:YES];
+        [panel setCanChooseDirectories:NO];
+        [panel setAllowsMultipleSelection:NO];
+        
+        // Set allowed file types from parameter
+        if (!filterExtensions.empty())
+        {
+            NSMutableArray* allowedTypes = [NSMutableArray array];
+            for (const auto& ext : filterExtensions)
+            {
+                [allowedTypes addObject:[NSString stringWithUTF8String:ext.c_str()]];
+            }
+            [panel setAllowedFileTypes:allowedTypes];
+            [panel setAllowsOtherFileTypes:NO];
+        }
+        
+        // Set title with filter name
+        NSString* title = [NSString stringWithFormat:@"Select %s", filterName.c_str()];
+        [panel setTitle:title];
+        [panel setPrompt:@"Open"];
+        
+        // Run modal dialog
+        NSModalResponse response = [panel runModal];
+        
+        if (response == NSModalResponseOK)
+        {
+            NSURL* url = [[panel URLs] objectAtIndex:0];
+            NSString* path = [url path];
+            
+            std::string pathStr = std::string([path UTF8String]);
+            return std::filesystem::absolute(pathStr).string();
+        }
+        
+        return "";
+    }
+}
+
 std::vector<std::string> FileDialog::OpenMultipleFiles()
 {
     std::vector<std::string> result;
@@ -124,6 +165,35 @@ std::string FileDialog::SaveFile()
             NSURL* url = [panel URL];
             NSString* path = [url path];
             
+            std::string pathStr = std::string([path UTF8String]);
+            return std::filesystem::absolute(pathStr).string();
+        }
+        
+        return "";
+    }
+}
+
+std::string FileDialog::OpenFolder()
+{
+    @autoreleasepool {
+        NSOpenPanel* panel = [NSOpenPanel openPanel];
+        [panel setCanChooseFiles:NO];
+        [panel setCanChooseDirectories:YES];
+        [panel setAllowsMultipleSelection:NO];
+        
+        // Set title
+        [panel setTitle:@"Select Folder"];
+        [panel setPrompt:@"Select"];
+        
+        // Run modal dialog
+        NSModalResponse response = [panel runModal];
+        
+        if (response == NSModalResponseOK)
+        {
+            NSURL* url = [[panel URLs] objectAtIndex:0];
+            NSString* path = [url path];
+            
+            // Convert to std::string and make absolute
             std::string pathStr = std::string([path UTF8String]);
             return std::filesystem::absolute(pathStr).string();
         }

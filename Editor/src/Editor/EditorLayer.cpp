@@ -1,7 +1,16 @@
 #include "Editor/EditorLayer.h"
 #include <imgui.h>
+#include "Ignis/Core/File/FileDialog.h"
+#include "Editor/Core/ProjectManager.h"
 
 namespace ignis {
+
+	// Initialize static buffers
+	char EditorLayer::s_OpenProjectFilePathBuffer[512] = "";
+	char EditorLayer::s_SaveProjectAsFolderBuffer[512] = "";
+	char EditorLayer::s_NewProjectFolderBuffer[512] = "";
+	char EditorLayer::s_NewProjectNameBuffer[128] = "";
+	bool EditorLayer::s_ShowNewProjectPopup = false;
 
 	EditorLayer::EditorLayer()
 		: Layer("EditorLayer")
@@ -18,9 +27,6 @@ namespace ignis {
 		Log::CoreInfo("EditorLayer initialized with PanelManager");
 		VFS::Mount("resources", "resources");
 		
-		// Put your test project here
-		OpenProject("MyProject/MyProject.igproj");
-		SaveProject("MyProject/MyProjectSaved.igproj");
 	}
 
 	void EditorLayer::OnDetach()
@@ -36,11 +42,24 @@ namespace ignis {
 
 	void EditorLayer::OnImGuiRender()
 	{
+		// Handle keyboard shortcuts first
+		HandleKeyboardShortcuts();
+		
 		// Render menu bar
 		RenderMenuBar();
 
 		// Render all panels managed by PanelManager
 		m_panel_manager->OnImGuiRender();
+
+		// Handle new project popup
+		if (s_ShowNewProjectPopup)
+		{
+			UI_ShowNewProjectPopup();
+		}
+
+		// Process deferred operations (safe after ImGui rendering)
+		ProcessDeferredProjectLoad();
+		ProcessDeferredSaveAs();
 	}
 
 	void EditorLayer::OnEvent(EventBase& event)
@@ -49,34 +68,151 @@ namespace ignis {
 		m_panel_manager->OnEvent(event);
 	}
 
+	void EditorLayer::OpenProject()
+	{
+		// Select .igproj file with filter
+		std::string projectFile = FileDialog::OpenFile("Ignis Project", {"igproj"});
+		if (projectFile.empty())
+			return;
+
+		// Defer actual loading
+		strcpy(s_OpenProjectFilePathBuffer, projectFile.c_str());
+	}
+
 	void EditorLayer::OpenProject(const std::filesystem::path& filepath)
 	{
-		ProjectSerializer project_serializer;
-
-		if (auto project = project_serializer.Deserialize(filepath))
-		{
-			Project::SetActive(project);
-		}
-		else
-		{
-			Log::CoreError("Failed to open project: {}", filepath.string());
-		}
+		ProjectManager::OpenProject(filepath);
 	}
 	
+	void EditorLayer::SaveProject()
+	{
+		ProjectManager::SaveProject();
+	}
+
 	void EditorLayer::SaveProject(const std::filesystem::path& filepath)
 	{
-		ProjectSerializer project_serializer;
+		ProjectManager::SaveProject(filepath);
+	}
 
-		if (auto project = Project::GetActive())
-		{
-			if (!project_serializer.Serialize(*project, filepath))
-			{
-				Log::CoreError("Failed to save project: {}", filepath.string());
-			}
-		}
-		else
+	void EditorLayer::SaveProjectAs()
+	{
+		auto project = Project::GetActive();
+		if (!project)
 		{
 			Log::CoreError("No active project to save");
+			return;
+		}
+
+		// Open folder dialog to select new location
+		std::string folder = FileDialog::OpenFolder();
+		if (folder.empty())
+			return;
+
+		// Defer actual save operation
+		strcpy(s_SaveProjectAsFolderBuffer, folder.c_str());
+	}
+
+	void EditorLayer::CloseProject()
+	{
+		ProjectManager::CloseProject();
+	}
+
+	void EditorLayer::ProcessDeferredProjectLoad()
+	{
+		if (strlen(s_OpenProjectFilePathBuffer) > 0)
+		{
+			OpenProject(s_OpenProjectFilePathBuffer);
+			memset(s_OpenProjectFilePathBuffer, 0, sizeof(s_OpenProjectFilePathBuffer));
+		}
+	}
+
+	void EditorLayer::ProcessDeferredSaveAs()
+	{
+		if (strlen(s_SaveProjectAsFolderBuffer) > 0)
+		{
+			ProjectManager::SaveProjectAs(s_SaveProjectAsFolderBuffer);
+			memset(s_SaveProjectAsFolderBuffer, 0, sizeof(s_SaveProjectAsFolderBuffer));
+		}
+	}
+
+	void EditorLayer::CreateNewProject()
+	{
+		// Show new project popup
+		s_ShowNewProjectPopup = true;
+	}
+
+	void EditorLayer::HandleKeyboardShortcuts()
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		
+		// Don't process shortcuts when typing in text fields
+		if (io.WantTextInput)
+			return;
+		
+		// Cmd/Ctrl + O: Open Project
+		if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_O))
+		{
+			OpenProject();
+		}
+		
+		// Cmd/Ctrl + S: Save Project
+		if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S) && !io.KeyShift)
+		{
+			if (Project::GetActive())
+				SaveProject();
+		}
+		
+		// Cmd/Ctrl + Shift + S: Save Project As
+		if (io.KeyCtrl && io.KeyShift && ImGui::IsKeyPressed(ImGuiKey_S))
+		{
+			if (Project::GetActive())
+				SaveProjectAs();
+		}
+	}
+
+	void EditorLayer::UI_ShowNewProjectPopup()
+	{
+		// TODO: Phase 3 - Implement new project creation popup
+		ImGui::OpenPopup("New Project");
+
+		if (ImGui::BeginPopupModal("New Project", &s_ShowNewProjectPopup, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ImGui::Text("Create a new Ignis project");
+			ImGui::Separator();
+
+			ImGui::InputText("Project Name", s_NewProjectNameBuffer, sizeof(s_NewProjectNameBuffer));
+			ImGui::InputText("Location", s_NewProjectFolderBuffer, sizeof(s_NewProjectFolderBuffer));
+			ImGui::SameLine();
+			if (ImGui::Button("Browse..."))
+			{
+				std::string folder = FileDialog::OpenFolder();
+				if (!folder.empty())
+				{
+					strcpy(s_NewProjectFolderBuffer, folder.c_str());
+				}
+			}
+
+			ImGui::Separator();
+
+			if (ImGui::Button("Create", ImVec2(120, 0)))
+			{
+				if (strlen(s_NewProjectNameBuffer) > 0 && strlen(s_NewProjectFolderBuffer) > 0)
+				{
+					ProjectManager::CreateNewProject(s_NewProjectNameBuffer, s_NewProjectFolderBuffer);
+
+					// Clear buffers
+					memset(s_NewProjectNameBuffer, 0, sizeof(s_NewProjectNameBuffer));
+					memset(s_NewProjectFolderBuffer, 0, sizeof(s_NewProjectFolderBuffer));
+				}
+				s_ShowNewProjectPopup = false;
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel", ImVec2(120, 0)))
+			{
+				s_ShowNewProjectPopup = false;
+			}
+
+			ImGui::EndPopup();
 		}
 	}
 
@@ -84,6 +220,53 @@ namespace ignis {
 	{
 		if (ImGui::BeginMainMenuBar())
 		{
+			// Project Menu
+			if (ImGui::BeginMenu("Project"))
+			{
+				if (ImGui::MenuItem("New Project..."))
+				{
+					CreateNewProject();
+				}
+
+				// Platform-specific shortcut text
+				#ifdef __APPLE__
+					const char* openShortcut = "Cmd+O";
+					const char* saveShortcut = "Cmd+S";
+				#else
+					const char* openShortcut = "Ctrl+O";
+					const char* saveShortcut = "Ctrl+S";
+				#endif
+
+				if (ImGui::MenuItem("Load Project...", openShortcut))
+				{
+					OpenProject();
+				}
+
+				bool hasProject = Project::GetActive() != nullptr;
+				if (ImGui::MenuItem("Save Project", saveShortcut, false, hasProject))
+				{
+					SaveProject();
+				}
+
+				#ifdef __APPLE__
+					const char* saveAsShortcut = "Cmd+Shift+S";
+				#else
+					const char* saveAsShortcut = "Ctrl+Shift+S";
+				#endif
+				if (ImGui::MenuItem("Save Project As...", saveAsShortcut, false, hasProject))
+				{
+					SaveProjectAs();
+				}
+
+				if (ImGui::MenuItem("Close Project", nullptr, false, hasProject))
+				{
+					CloseProject();
+				}
+
+				ImGui::EndMenu();
+			}
+
+			// View Menu
 			if (ImGui::BeginMenu("View"))
 			{
 				// Toggle panels on/off
@@ -95,6 +278,7 @@ namespace ignis {
 				ImGui::EndMenu();
 			}
 
+			// Help Menu
 			if (ImGui::BeginMenu("Help"))
 			{
 				if (ImGui::MenuItem("About Ignis Editor"))

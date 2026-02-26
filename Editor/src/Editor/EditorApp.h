@@ -23,11 +23,13 @@ public:
 	PropertiesPanel* GetPropertiesPanel() { return m_properties_panel.get(); }
 	SceneHierarchyPanel* GetSceneHierarchyPanel() { return m_scene_hierarchy_panel.get(); }
 	ViewportPanel* GetViewportPanel() { return m_viewport_panel.get(); }
+	EditorSceneLayer* GetSceneLayer() { return m_scene_layer; }
 
 private:
 	void CreatePhysicsTestScene(); // Test scene for physics debugging
 	
 	EditorLayer* m_editor_layer = nullptr;
+	EditorSceneLayer* m_scene_layer = nullptr;
 	std::shared_ptr<PropertiesPanel> m_properties_panel;
 	std::shared_ptr<SceneHierarchyPanel> m_scene_hierarchy_panel;
 	std::shared_ptr<ViewportPanel> m_viewport_panel;

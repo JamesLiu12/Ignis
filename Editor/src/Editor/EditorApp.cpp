@@ -66,8 +66,9 @@ EditorApp::EditorApp()
 	m_scene_hierarchy_panel = panel_manager.AddPanel<SceneHierarchyPanel>("SceneHierarchy", "Scene Hierarchy", true);
 	m_scene_hierarchy_panel->SetPropertiesPanel(m_properties_panel.get());
 	
-	// Create EditorSceneLayer with test scene content (must be before ViewportPanel)
-	PushLayer(std::make_unique<EditorSceneLayer>(GetRenderer(), this));
+	auto scene_layer = std::make_unique<EditorSceneLayer>(GetRenderer(), this);
+	m_scene_layer = scene_layer.get();
+	PushLayer(std::move(scene_layer));
 	
 	// Add Viewport panel (center area) - needs renderer to be initialized
 	m_viewport_panel = panel_manager.AddPanel<ViewportPanel>("Viewport", "Viewport", true, &GetRenderer());
