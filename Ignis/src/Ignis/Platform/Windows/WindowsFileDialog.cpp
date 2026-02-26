@@ -134,6 +134,28 @@ std::string FileDialog::SaveFile()
     return "";
 }
 
+std::string FileDialog::OpenFolder()
+{
+    BROWSEINFO bi = { 0 };
+    bi.lpszTitle = "Select Folder";
+    bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+    
+    LPITEMIDLIST pidl = SHBrowseForFolder(&bi);
+    if (pidl != nullptr)
+    {
+        CHAR path[MAX_PATH];
+        if (SHGetPathFromIDList(pidl, path))
+        {
+            CoTaskMemFree(pidl);
+            std::filesystem::path folderPath(path);
+            return std::filesystem::absolute(folderPath).string();
+        }
+        CoTaskMemFree(pidl);
+    }
+    
+    return "";
+}
+
 } // namespace ignis
 
 #endif // _WIN32

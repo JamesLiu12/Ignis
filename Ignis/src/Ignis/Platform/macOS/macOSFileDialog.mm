@@ -132,4 +132,33 @@ std::string FileDialog::SaveFile()
     }
 }
 
+std::string FileDialog::OpenFolder()
+{
+    @autoreleasepool {
+        NSOpenPanel* panel = [NSOpenPanel openPanel];
+        [panel setCanChooseFiles:NO];
+        [panel setCanChooseDirectories:YES];
+        [panel setAllowsMultipleSelection:NO];
+        
+        // Set title
+        [panel setTitle:@"Select Folder"];
+        [panel setPrompt:@"Select"];
+        
+        // Run modal dialog
+        NSModalResponse response = [panel runModal];
+        
+        if (response == NSModalResponseOK)
+        {
+            NSURL* url = [[panel URLs] objectAtIndex:0];
+            NSString* path = [url path];
+            
+            // Convert to std::string and make absolute
+            std::string pathStr = std::string([path UTF8String]);
+            return std::filesystem::absolute(pathStr).string();
+        }
+        
+        return "";
+    }
+}
+
 } // namespace ignis

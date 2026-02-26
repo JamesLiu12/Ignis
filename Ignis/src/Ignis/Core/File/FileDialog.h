@@ -32,6 +32,12 @@ public:
      * @return Selected save path, or empty string if cancelled
      */
     static std::string SaveFile();
+    
+    /**
+     * @brief Open a folder selection dialog
+     * @return Selected folder path, or empty string if cancelled
+     */
+    static std::string OpenFolder();
 };
 
 } // namespace ignis
