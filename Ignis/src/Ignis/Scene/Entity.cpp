@@ -321,4 +321,22 @@ namespace ignis
 
 		MoveTo(target_prev_sibling);
 	}
+
+	glm::mat4 Entity::GetLocalTransform() const
+	{
+		return GetComponent<TransformComponent>().GetTransform();
+	}
+
+	glm::mat4 Entity::GetWorldTransform() const
+	{
+		glm::mat4 transform(1.0f);
+		Entity entity = *this;
+
+		while (auto parent = entity.GetParent())
+		{
+			transform *= parent.GetLocalTransform();
+		}
+
+		return transform;
+	}
 }

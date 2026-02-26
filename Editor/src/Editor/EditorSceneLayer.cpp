@@ -165,10 +165,9 @@ void EditorSceneLayer::OnUpdate(float dt)
 		}
 	}
 
-	// Only render if scene exists
+	SceneRenderer scene_renderer(m_renderer);
 	if (!m_scene)
 	{
-		// Clear framebuffer to black when no scene is loaded
 		auto framebuffer = m_renderer.GetFramebuffer();
 		if (framebuffer)
 		{
@@ -178,17 +177,14 @@ void EditorSceneLayer::OnUpdate(float dt)
 		}
 		return;
 	}
-
-	m_renderer.BeginScene(m_pipeline, m_scene, m_camera);
-
-	m_renderer.Clear();
-
-	if (m_mesh)
+	else
 	{
-		m_renderer.RenderMesh(m_mesh, m_mesh_transform_component.GetTransform());
+		scene_renderer.BeginScene({ m_scene, m_camera, m_pipeline });
+		m_scene->OnRender(scene_renderer);
+		scene_renderer.EndScene();
 	}
-
-	m_renderer.EndScene();
+	
+	auto& window = m_editor_app->GetWindow();
 }
 
 void EditorSceneLayer::OnEvent(EventBase& event)

@@ -20,6 +20,8 @@
 #include "Ignis/Renderer/PBRPipeline.h"
 #include "Ignis/Renderer/Camera.h"
 #include "Ignis/Renderer/Framebuffer.h"
+#include "Ignis/Renderer/Mesh.h"
+#include "Ignis/Renderer/SceneRenderer.h"
 
 #include "Ignis/Asset/AssetManager.h"
 #include "Ignis/Asset/Asset.h"
@@ -31,7 +33,6 @@
 #include "Ignis/Scene/SceneSerializer.h"
 
 #include "Ignis/Asset/MeshImporter.h"
-#include "Ignis/Renderer/Mesh.h"
 #include "Ignis/Asset/TextureImporter.h"
 
 #include "Ignis/Physics/PhysicsWorld.h"

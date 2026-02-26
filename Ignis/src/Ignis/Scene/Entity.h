@@ -58,6 +58,9 @@ namespace ignis
 		void SetSiblingIndex(int index);
 		void MoveToAfter(Entity target_prev_sibling);
 
+		glm::mat4 GetLocalTransform() const;
+		glm::mat4 GetWorldTransform() const;
+
 	private:
 		entt::entity m_handle = entt::null;
 		Scene* m_scene = nullptr;

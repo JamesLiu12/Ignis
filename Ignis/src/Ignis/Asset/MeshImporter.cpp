@@ -49,16 +49,20 @@ namespace ignis
 	)
 	{
 		auto loadTexture = [&](const aiString& rel_path) -> AssetHandle
-			{
-				std::string tex_path = VFS::ConcatPath(model_dir, rel_path.C_Str());
+		{
+			std::string tex_path = VFS::ConcatPath(model_dir, rel_path.C_Str());
 
-				if (!VFS::Exists(tex_path))
-				{
-					Log::Warn("Texture file does not exist: {}", tex_path);
-					return AssetHandle::Invalid;
-				}
-				return AssetManager::ImportAsset(tex_path);
-			};
+			// Normalize path separators: convert backslashes to forward slashes for cross-platform compatibility
+			// Windows accepts both / and \, but macOS/Linux only accept /
+			std::replace(tex_path.begin(), tex_path.end(), '\\', '/');
+
+			if (!VFS::Exists(tex_path))
+			{
+				Log::Warn("Texture file does not exist: {}", tex_path);
+				return AssetHandle::Invalid;
+			}
+			return AssetManager::ImportAsset(tex_path);
+		};
 
 		if (aimat->GetTextureCount(aiTextureType_DIFFUSE) > 0)
 		{
