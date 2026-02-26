@@ -32,6 +32,7 @@ namespace ignis {
 	private:
 		void RenderMenuBar();
 		void UI_ShowNewProjectPopup();
+		void HandleKeyboardShortcuts();
 	
 		// Deferred operation helpers
 		void ProcessDeferredProjectLoad();

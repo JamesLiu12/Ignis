@@ -42,6 +42,9 @@ namespace ignis {
 
 	void EditorLayer::OnImGuiRender()
 	{
+		// Handle keyboard shortcuts first
+		HandleKeyboardShortcuts();
+		
 		// Render menu bar
 		RenderMenuBar();
 
@@ -140,6 +143,35 @@ namespace ignis {
 	{
 		// Show new project popup
 		s_ShowNewProjectPopup = true;
+	}
+
+	void EditorLayer::HandleKeyboardShortcuts()
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		
+		// Don't process shortcuts when typing in text fields
+		if (io.WantTextInput)
+			return;
+		
+		// Cmd/Ctrl + O: Open Project
+		if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_O))
+		{
+			OpenProject();
+		}
+		
+		// Cmd/Ctrl + S: Save Project
+		if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S) && !io.KeyShift)
+		{
+			if (Project::GetActive())
+				SaveProject();
+		}
+		
+		// Cmd/Ctrl + Shift + S: Save Project As
+		if (io.KeyCtrl && io.KeyShift && ImGui::IsKeyPressed(ImGuiKey_S))
+		{
+			if (Project::GetActive())
+				SaveProjectAs();
+		}
 	}
 
 	void EditorLayer::UI_ShowNewProjectPopup()
