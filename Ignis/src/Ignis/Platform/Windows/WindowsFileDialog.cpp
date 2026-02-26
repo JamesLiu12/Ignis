@@ -43,6 +43,56 @@ std::string FileDialog::OpenFile()
     return "";
 }
 
+std::string FileDialog::OpenFile(const std::string& filterName, const std::vector<std::string>& filterExtensions)
+{
+    OPENFILENAMEA ofn;
+    CHAR szFile[260] = { 0 };
+    
+    // Initialize OPENFILENAME structure
+    ZeroMemory(&ofn, sizeof(OPENFILENAME));
+    ofn.lStructSize = sizeof(OPENFILENAME);
+    ofn.hwndOwner = nullptr;
+    ofn.lpstrFile = szFile;
+    ofn.nMaxFile = sizeof(szFile);
+    
+    // Build filter string from extensions
+    std::string filter;
+    if (!filterExtensions.empty())
+    {
+        filter = filterName + "\0";
+        for (size_t i = 0; i < filterExtensions.size(); ++i)
+        {
+            if (i > 0) filter += ";";
+            filter += "*." + filterExtensions[i];
+        }
+        filter += "\0All Files\0*.*\0";
+    }
+    else
+    {
+        filter = "All Files\0*.*\0";
+    }
+    
+    ofn.lpstrFilter = filter.c_str();
+    ofn.nFilterIndex = 1;
+    
+    // Set flags
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+    
+    // Set dialog title
+    std::string title = "Select " + filterName;
+    ofn.lpstrTitle = title.c_str();
+    
+    // Display the Open dialog box
+    if (GetOpenFileNameA(&ofn) == TRUE)
+    {
+        // Convert to absolute path
+        std::filesystem::path filePath(ofn.lpstrFile);
+        return std::filesystem::absolute(filePath).string();
+    }
+    
+    return "";
+}
+
 std::vector<std::string> FileDialog::OpenMultipleFiles()
 {
     std::vector<std::string> result;

@@ -12,13 +12,6 @@ class ProjectManager
 {
 public:
 	/**
-	 * @brief Find .igproj file in a project folder
-	 * @param folder Path to project folder
-	 * @return Path to .igproj file if found, std::nullopt otherwise
-	 */
-	static std::optional<std::filesystem::path> FindProjectFile(const std::filesystem::path& folder);
-
-	/**
 	 * @brief Open a project from file path
 	 * @param filepath Path to .igproj file
 	 */

@@ -70,17 +70,13 @@ namespace ignis {
 
 	void EditorLayer::OpenProject()
 	{
-		std::string folder = FileDialog::OpenFolder();
-		if (folder.empty())
-			return;
-
-		// Find project file
-		auto projectFile = ProjectManager::FindProjectFile(folder);
-		if (!projectFile)
+		// Select .igproj file with filter
+		std::string projectFile = FileDialog::OpenFile("Ignis Project", {"igproj"});
+		if (projectFile.empty())
 			return;
 
 		// Defer actual loading
-		strcpy(s_OpenProjectFilePathBuffer, projectFile->string().c_str());
+		strcpy(s_OpenProjectFilePathBuffer, projectFile.c_str());
 	}
 
 	void EditorLayer::OpenProject(const std::filesystem::path& filepath)

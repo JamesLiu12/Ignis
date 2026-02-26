@@ -8,20 +8,6 @@
 
 namespace ignis {
 
-std::optional<std::filesystem::path> ProjectManager::FindProjectFile(const std::filesystem::path& folder)
-{
-	std::string projectName = folder.filename().string();
-	std::filesystem::path projectFile = folder / (projectName + ".igproj");
-	
-	if (std::filesystem::exists(projectFile))
-	{
-		return projectFile;
-	}
-	
-	Log::CoreError("No .igproj file found in folder: {}", folder.string());
-	return std::nullopt;
-}
-
 void ProjectManager::OpenProject(const std::filesystem::path& filepath)
 {
 	// Auto-save current project before switching
