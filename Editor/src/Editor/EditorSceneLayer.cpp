@@ -14,10 +14,7 @@ EditorSceneLayer::EditorSceneLayer(Renderer& renderer, EditorApp* editor_app)
 
 void EditorSceneLayer::OnAttach()
 {
-	m_shader_library = std::make_shared<ShaderLibrary>();
-	m_shader_library->Load("resources://shaders/example.glsl");
-	m_shader_library->Load("resources://shaders/blinn.glsl");
-
+	m_renderer.Init();
 	auto& window = m_editor_app->GetWindow();
 	float aspect_ratio = static_cast<float>(window.GetFramebufferWidth()) / static_cast<float>(window.GetFramebufferHeight());
 	m_camera = std::make_shared<EditorCamera>(45.0f, aspect_ratio, 0.1f, 1000.0f);
@@ -25,7 +22,7 @@ void EditorSceneLayer::OnAttach()
 	m_camera->RecalculateViewMatrix();
 
 	// Create pipeline and framebuffer (always needed)
-	m_pipeline = std::make_shared<PBRPipeline>(m_shader_library);
+	m_pipeline = std::make_shared<PBRPipeline>(m_renderer.GetShaderLibrary());
 	
 	FrameBufferSpecs specs;
 	specs.Width = window.GetFramebufferWidth();

@@ -111,6 +111,13 @@ namespace ignis
 		);
 	}
 
+	void GLRenderer::Init()
+	{
+		m_shader_library = std::make_unique<ShaderLibrary>();
+
+		m_shader_library->Load("resources://shaders/example.glsl");
+	}
+
 	void GLRenderer::BeginFrame()
 	{
 		if (m_framebuffer)

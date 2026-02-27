@@ -6,6 +6,7 @@
 #include "Mesh.h"
 #include "Pipeline.h"
 #include "Framebuffer.h"
+#include "ShaderLibrary.h"
 
 namespace ignis
 {	
@@ -13,6 +14,8 @@ namespace ignis
 	{
 	public:
 		virtual ~Renderer() = default;
+
+		virtual void Init() = 0;
 
 		virtual void BeginFrame() = 0;
 		virtual void EndFrame() = 0;
@@ -35,6 +38,9 @@ namespace ignis
 
 		virtual void SetCamera(std::shared_ptr<Camera> camera) = 0;
 		virtual void SetPipeline(std::shared_ptr<Pipeline> pipeline) = 0;
+
+		virtual const ShaderLibrary& GetShaderLibrary() const = 0;
+		virtual ShaderLibrary& GetShaderLibrary() = 0;
 
 		static std::unique_ptr<Renderer> Create();
 
