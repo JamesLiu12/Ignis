@@ -15,8 +15,6 @@ namespace ignis
 	public:
 		virtual ~Renderer() = default;
 
-		virtual void Init() = 0;
-
 		virtual void BeginFrame() = 0;
 		virtual void EndFrame() = 0;
 
@@ -41,6 +39,9 @@ namespace ignis
 
 		virtual const ShaderLibrary& GetShaderLibrary() const = 0;
 		virtual ShaderLibrary& GetShaderLibrary() = 0;
+
+		virtual void RenderCube() = 0;
+		virtual void RenderQuad() = 0;
 
 		static std::unique_ptr<Renderer> Create();
 

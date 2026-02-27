@@ -5,117 +5,62 @@
 
 namespace ignis
 {
-	GLRenderer::GLRenderer()
+	namespace
 	{
-		float skybox_vertices[] = {       
-			-1.0f,  1.0f, -1.0f,
-			-1.0f, -1.0f, -1.0f,
-			 1.0f, -1.0f, -1.0f,
-			 1.0f, -1.0f, -1.0f,
-			 1.0f,  1.0f, -1.0f,
-			-1.0f,  1.0f, -1.0f,
+		static constexpr float kCubeVertices[] = {
+			-1.0f,  1.0f, -1.0f,  -1.0f, -1.0f, -1.0f,   1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f, -1.0f,   1.0f,  1.0f, -1.0f,  -1.0f,  1.0f, -1.0f,
 
-			-1.0f, -1.0f,  1.0f,
-			-1.0f, -1.0f, -1.0f,
-			-1.0f,  1.0f, -1.0f,
-			-1.0f,  1.0f, -1.0f,
-			-1.0f,  1.0f,  1.0f,
-			-1.0f, -1.0f,  1.0f,
+			-1.0f, -1.0f,  1.0f,  -1.0f, -1.0f, -1.0f,  -1.0f,  1.0f, -1.0f,
+			-1.0f,  1.0f, -1.0f,  -1.0f,  1.0f,  1.0f,  -1.0f, -1.0f,  1.0f,
 
-			 1.0f, -1.0f, -1.0f,
-			 1.0f, -1.0f,  1.0f,
-			 1.0f,  1.0f,  1.0f,
-			 1.0f,  1.0f,  1.0f,
-			 1.0f,  1.0f, -1.0f,
-			 1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f, -1.0f,   1.0f, -1.0f,  1.0f,   1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,   1.0f,  1.0f, -1.0f,   1.0f, -1.0f, -1.0f,
 
-			-1.0f, -1.0f,  1.0f,
-			-1.0f,  1.0f,  1.0f,
-			 1.0f,  1.0f,  1.0f,
-			 1.0f,  1.0f,  1.0f,
-			 1.0f, -1.0f,  1.0f,
-			-1.0f, -1.0f,  1.0f,
+			-1.0f, -1.0f,  1.0f,  -1.0f,  1.0f,  1.0f,   1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,   1.0f, -1.0f,  1.0f,  -1.0f, -1.0f,  1.0f,
 
-			-1.0f,  1.0f, -1.0f,
-			 1.0f,  1.0f, -1.0f,
-			 1.0f,  1.0f,  1.0f,
-			 1.0f,  1.0f,  1.0f,
-			-1.0f,  1.0f,  1.0f,
-			-1.0f,  1.0f, -1.0f,
+			-1.0f,  1.0f, -1.0f,   1.0f,  1.0f, -1.0f,   1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,  -1.0f,  1.0f,  1.0f,  -1.0f,  1.0f, -1.0f,
 
-			-1.0f, -1.0f, -1.0f,
-			-1.0f, -1.0f,  1.0f,
-			 1.0f, -1.0f, -1.0f,
-			 1.0f, -1.0f, -1.0f,
-			-1.0f, -1.0f,  1.0f,
-			 1.0f, -1.0f,  1.0f
+			-1.0f, -1.0f, -1.0f,  -1.0f, -1.0f,  1.0f,   1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f, -1.0f,  -1.0f, -1.0f,  1.0f,   1.0f, -1.0f,  1.0f
 		};
 
-		m_skybox_vao = VertexArray::Create();
-		std::shared_ptr<VertexBuffer> skybox_vbo = VertexBuffer::Create(skybox_vertices, sizeof(skybox_vertices));
+		static constexpr float kQuadVertices[] = {
+			// pos      // uv
+			-1.0f,  1.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0.0f,
+			 1.0f, -1.0f, 1.0f, 0.0f,
 
-		VertexBuffer::Layout layout
-		{
-			{ 0, Shader::DataType::Float3 }
+			-1.0f,  1.0f, 0.0f, 1.0f,
+			 1.0f, -1.0f, 1.0f, 0.0f,
+			 1.0f,  1.0f, 1.0f, 1.0f
 		};
-		skybox_vbo->SetLayout(layout);
-		m_skybox_vao->AddVertexBuffer(skybox_vbo);
-
-		float quad_vertices[] = {
-			// positions   // texCoords
-			-1.0f,  1.0f,  0.0f, 1.0f,
-			-1.0f, -1.0f,  0.0f, 0.0f,
-			 1.0f, -1.0f,  1.0f, 0.0f,
-
-			-1.0f,  1.0f,  0.0f, 1.0f,
-			 1.0f, -1.0f,  1.0f, 0.0f,
-			 1.0f,  1.0f,  1.0f, 1.0f
-		};
-
-		m_quad_vao = VertexArray::Create();
-		std::shared_ptr<VertexBuffer> quad_vbo = VertexBuffer::Create(quad_vertices, sizeof(quad_vertices));
-
-		VertexBuffer::Layout quad_layout
-		{
-			{ 0, Shader::DataType::Float2 }, // position
-			{ 1, Shader::DataType::Float2 }  // texCoord
-		};
-		quad_vbo->SetLayout(quad_layout);
-		m_quad_vao->AddVertexBuffer(quad_vbo);
-
-		m_screen_shader = Shader::Create("screen",
-			// Vertex Shader
-			"#version 330 core\n\
-			layout(location = 0) in vec2 aPos;\
-			layout(location = 1) in vec2 aTexCoords;\
-			\
-			out vec2 TexCoords;\
-			\
-			void main()\
-			{\
-				TexCoords = aTexCoords;\
-				gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);\
-			}",
-			//Fragment Shader
-			"#version 330 core\n\
-			out vec4 FragColor;\
-			\
-			in vec2 TexCoords;\
-			\
-			uniform sampler2D screenTexture;\
-			\
-			void main()\
-			{\
-				FragColor = texture(screenTexture, TexCoords);\
-			}"
-		);
 	}
 
-	void GLRenderer::Init()
+	GLRenderer::GLRenderer()
 	{
 		m_shader_library = std::make_unique<ShaderLibrary>();
 
 		m_shader_library->Load("resources://shaders/example.glsl");
+
+		// Cube
+		m_cube_vao = VertexArray::Create();
+		auto cube_vbo = VertexBuffer::Create(kCubeVertices, sizeof(kCubeVertices));
+		cube_vbo->SetLayout({ { 0, Shader::DataType::Float3 } });
+		m_cube_vao->AddVertexBuffer(cube_vbo);
+
+		// Quad
+		m_quad_vao = VertexArray::Create();
+		auto quad_vbo = VertexBuffer::Create(kQuadVertices, sizeof(kQuadVertices));
+		quad_vbo->SetLayout({
+			{ 0, Shader::DataType::Float2 },
+			{ 1, Shader::DataType::Float2 }
+			});
+		m_quad_vao->AddVertexBuffer(quad_vbo);
+
+		m_shader_library->Load("resources://screen.glsl");
 	}
 
 	void GLRenderer::BeginFrame()
@@ -201,14 +146,15 @@ namespace ignis
 	void GLRenderer::RenderSkybox(const Environment& environment)
 	{
 		auto material = m_pipeline->CreateSkyboxMaterial(environment);
+
 		glDepthFunc(GL_LEQUAL);
 		glDisable(GL_CULL_FACE);
+
 		glm::mat4 view = glm::mat4(glm::mat3(m_camera->GetView()));
 		material->Set("view", view);
 		material->Set("projection", m_camera->GetProjection());
-		m_skybox_vao->Bind();
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		m_skybox_vao->UnBind();
+
+		RenderCube();
 
 		glDepthFunc(GL_LESS);
 		glEnable(GL_CULL_FACE);
@@ -222,5 +168,19 @@ namespace ignis
 	void GLRenderer::SetFramebuffer(std::shared_ptr<Framebuffer> framebuffer)
 	{
 		m_framebuffer = framebuffer;
+	}
+
+	void GLRenderer::RenderCube()
+	{
+		m_cube_vao->Bind();
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		m_cube_vao->UnBind();
+	}
+
+	void GLRenderer::RenderQuad()
+	{
+		m_quad_vao->Bind();
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		m_quad_vao->UnBind();
 	}
 }
