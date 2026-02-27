@@ -13,6 +13,8 @@ namespace ignis
 		GLRenderer();
 		~GLRenderer() override = default;
 
+		void Init() override;
+
 		void BeginFrame() override;
 		void EndFrame() override;
 

@@ -41,9 +41,16 @@ namespace ignis
 
 	GLRenderer::GLRenderer()
 	{
+
+	}
+
+	void GLRenderer::Init()
+	{
 		m_shader_library = std::make_unique<ShaderLibrary>();
 
-		m_shader_library->Load("resources://shaders/example.glsl");
+		m_shader_library->Load("resources://shaders/IgnisPBR.glsl", "IgnisPBR");
+		m_shader_library->Load("resources://shaders/Skybox.glsl", "Skybox");
+
 
 		// Cube
 		m_cube_vao = VertexArray::Create();

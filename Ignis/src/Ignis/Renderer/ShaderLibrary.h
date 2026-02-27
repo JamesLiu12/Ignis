@@ -8,7 +8,7 @@ namespace ignis
 	{
 	public:
 		void Add(std::shared_ptr<Shader> shader);
-		std::shared_ptr<Shader> Load(const std::string& filepath);
+		std::shared_ptr<Shader> Load(const std::string& filepath, std::string_view name = "");
 		std::shared_ptr<Shader> Get(const std::string& name) const;
 		bool Exists(const std::string& name) const;
 

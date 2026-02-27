@@ -14,6 +14,7 @@ EditorSceneLayer::EditorSceneLayer(Renderer& renderer, EditorApp* editor_app)
 
 void EditorSceneLayer::OnAttach()
 {
+	m_renderer.Init();
 	auto& window = m_editor_app->GetWindow();
 	float aspect_ratio = static_cast<float>(window.GetFramebufferWidth()) / static_cast<float>(window.GetFramebufferHeight());
 	m_camera = std::make_shared<EditorCamera>(45.0f, aspect_ratio, 0.1f, 1000.0f);

@@ -8,10 +8,12 @@ namespace ignis
 		m_shaders[shader->GetName()] = std::move(shader);
 	}
 
-	std::shared_ptr<Shader> ShaderLibrary::Load(const std::string& filepath)
+	std::shared_ptr<Shader> ShaderLibrary::Load(const std::string& filepath, std::string_view name)
 	{
-		m_shaders[filepath] = std::move(Shader::CreateFromFile(filepath));
-		return m_shaders[filepath];
+		std::string key = name.empty() ? filepath : std::string(name);
+
+		m_shaders[key] = std::move(Shader::CreateFromFile(filepath));
+		return m_shaders[key];
 	}
 
 	std::shared_ptr<Shader> ShaderLibrary::Get(const std::string& name) const
