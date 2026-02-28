@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Asset.h"
+#include "AssetImporter.h"
 
 namespace ignis
 {
@@ -66,11 +67,15 @@ namespace ignis
 
 		static const std::unordered_map<AssetHandle, AssetMetadata>& GetAssetRegistry() { return s_asset_registry; }
 
+		static void SetLoadContext(const AssetLoadContext& context);
+		static AssetLoadContext& GetLoadContext();
+
 	private:
 		static std::shared_ptr<Asset> LoadAssetFromFile(const AssetMetadata& metadata);
 
 		inline static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_loaded_assets;
 		inline static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_memory_assets;
 		inline static std::unordered_map<AssetHandle, AssetMetadata> s_asset_registry;
+		inline static AssetLoadContext s_load_context;
 	};
 }

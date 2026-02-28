@@ -1,13 +1,17 @@
 #pragma once
 
 #include "Ignis/Renderer/Mesh.h"
+#include "AssetImporter.h"
 
 namespace ignis
 {
-	class MeshImporter
+	class MeshImporter : public AssetImporter
 	{
 	public:
-		static std::shared_ptr<Mesh> ImportMesh(const std::string& filepath);
+		AssetType GetType() const override;
+		std::shared_ptr<Asset> Import(const std::string& path, const AssetLoadContext& context) override;
+
+		static MeshImporter& Get();
 
 		MeshImporter(const MeshImporter&) = delete;
 		MeshImporter& operator=(const MeshImporter&) = delete;

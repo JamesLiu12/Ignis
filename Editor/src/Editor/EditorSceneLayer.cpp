@@ -3,6 +3,7 @@
 #include "Editor/Panels/PropertiesPanel.h"
 #include "Editor/Panels/SceneHierarchyPanel.h"
 #include "Editor/Panels/ViewportPanel.h"
+#include "Ignis/Renderer/IBLBaker.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace ignis {
@@ -15,6 +16,11 @@ EditorSceneLayer::EditorSceneLayer(Renderer& renderer, EditorApp* editor_app)
 void EditorSceneLayer::OnAttach()
 {
 	m_renderer.Init();
+	
+	AssetManager::SetLoadContext({
+		.IBLBakerService = IBLBaker::Create(m_renderer),
+		});
+
 	auto& window = m_editor_app->GetWindow();
 	float aspect_ratio = static_cast<float>(window.GetFramebufferWidth()) / static_cast<float>(window.GetFramebufferHeight());
 	m_camera = std::make_shared<EditorCamera>(45.0f, aspect_ratio, 0.1f, 1000.0f);
@@ -48,7 +54,8 @@ void EditorSceneLayer::OnAttach()
 
 	SceneSerializer scene_serializer;
 	m_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
-
+	
+	/* Create New Example Scene
 	AssetHandle mesh_handle = AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Cerberus_LP.FBX");
 	m_mesh = AssetManager::GetAsset<Mesh>(mesh_handle);
 	
@@ -60,6 +67,57 @@ void EditorSceneLayer::OnAttach()
 	m_mesh->SetMaterialDataTexture(0, MaterialType::Metal, metallic_map_handle);
 	auto roughness_map_handle = AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_R.tga");
 	m_mesh->SetMaterialDataTexture(0, MaterialType::Roughness, roughness_map_handle);
+
+	AssetHandle environment_handle = AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k.hdr");
+
+	auto environment_entity = m_scene->CreateEntity("Environment");
+	auto& sky_light_component = environment_entity.AddComponent<SkyLightComponent>();
+	sky_light_component.SceneEnvironment = environment_handle;
+
+	// Create Directional Light entity
+	auto directional_light_entity = m_scene->CreateEntity("Directional Light");
+	m_light_entity = Entity(directional_light_entity);
+
+	auto& dir_light = m_light_entity.AddComponent<DirectionalLightComponent>();
+	dir_light.Color = glm::vec3(1.0f, 0.95f, 0.8f); // Warm white light
+	dir_light.Intensity = 1.5f;
+
+	auto& dir_transform = m_light_entity.GetComponent<TransformComponent>();
+	dir_transform.Translation = glm::vec3(0.0f, 5.0f, 5.0f);
+
+	// Create Point Light entity
+	auto point_light_entity = m_scene->CreateEntity("Point Light");
+	auto& point_light = point_light_entity.AddComponent<PointLightComponent>();
+	point_light.Color = glm::vec3(1.0f, 0.0f, 0.0f); // Red
+	point_light.Intensity = 5.0f;
+	point_light.Range = 10.0f;
+
+	auto& point_transform = point_light_entity.GetComponent<TransformComponent>();
+	point_transform.Translation = glm::vec3(2.0f, 2.0f, 0.0f);
+
+	// Create Spot Light entity
+	auto spot_light_entity = m_scene->CreateEntity("Spot Light");
+	auto& spot_light = spot_light_entity.AddComponent<SpotLightComponent>();
+	spot_light.Color = glm::vec3(0.0f, 1.0f, 0.0f); // Green
+	spot_light.Intensity = 10.0f;
+	spot_light.Range = 15.0f;
+	spot_light.InnerConeAngle = 12.5f;
+	spot_light.OuterConeAngle = 17.5f;
+
+	auto& spot_transform = spot_light_entity.GetComponent<TransformComponent>();
+	spot_transform.Translation = glm::vec3(-2.0f, 2.0f, 0.0f);
+
+	// Create gun entity
+	auto gun_entity = m_scene->CreateEntity("Gun");
+	auto& gun = gun_entity.AddComponent<MeshComponent>();
+	gun.Mesh = mesh_handle;
+	gun.MeterialData = {
+		albedo_map_handle,
+		normal_map_handle,
+		metallic_map_handle,
+		roughness_map_handle,
+	};
+	*/
 
 	// Set the scene in the hierarchy panel
 	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())

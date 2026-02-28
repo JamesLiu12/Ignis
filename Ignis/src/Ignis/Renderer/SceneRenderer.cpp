@@ -41,15 +41,15 @@ namespace ignis
 
 	void SceneRenderer::SubmitMesh(const Mesh& mesh, const glm::mat4& transform) const
 	{
-		m_renderer.RenderMesh(mesh, transform, m_context.Scene->m_scene_environment, 
+		m_renderer.RenderMesh(mesh, transform, *m_context.Scene->m_scene_environment, 
 			m_context.Scene->m_environment_settings, m_context.Scene->m_light_environment);
 	}
 
 	void SceneRenderer::SubmitSkybox() const
 	{
-		if (m_context.Scene->m_scene_environment.GetSkyboxMap().has_value())
+		if (m_context.Scene->m_scene_environment->GetSkyboxMap())
 		{
-			m_renderer.RenderSkybox(m_context.Scene->m_scene_environment);
+			m_renderer.RenderSkybox(*m_context.Scene->m_scene_environment);
 		}
 	}
 }

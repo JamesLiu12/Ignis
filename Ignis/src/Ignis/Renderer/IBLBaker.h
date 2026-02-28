@@ -31,6 +31,6 @@ namespace ignis
 			const IBLBakeSettings& settings = {}
 		) const = 0;
 
-		static std::unique_ptr<IBLBaker> Create(Renderer& renderer);
+		static std::shared_ptr<IBLBaker> Create(Renderer& renderer);
 	};
 }

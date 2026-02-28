@@ -5,12 +5,12 @@
 
 namespace ignis
 {
-	std::unique_ptr<IBLBaker> IBLBaker::Create(Renderer& renderer)
+	std::shared_ptr<IBLBaker> IBLBaker::Create(Renderer& renderer)
 	{
 		switch (GraphicsAPI::GetType())
 		{
 		case GraphicsAPI::Type::OpenGL:
-			return std::make_unique<GLIBLBaker>(renderer);
+			return std::make_shared<GLIBLBaker>(renderer);
 		default:
 			return nullptr;
 		}

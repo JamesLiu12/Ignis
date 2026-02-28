@@ -98,13 +98,13 @@ namespace ignis
 		if (ibl_maps)
 		{
 			material.Set("irradianceMap", 6);
-			if (auto texture = AssetManager::GetAsset<TextureCube>(ibl_maps->IrradianceMap))
+			if (auto texture = ibl_maps->IrradianceMap)
 				texture->Bind(6);
 			material.Set("prefilterMap", 7);
-			if (auto texture = AssetManager::GetAsset<TextureCube>(ibl_maps->PrefilteredMap))
+			if (auto texture = ibl_maps->PrefilteredMap)
 				texture->Bind(7);
 			material.Set("brdfLUT", 8);
-			if (auto texture = AssetManager::GetAsset<TextureCube>(ibl_maps->BrdfLUT))
+			if (auto texture = ibl_maps->BrdfLUT)
 				texture->Bind(8);
 		}
 		else
@@ -128,7 +128,7 @@ namespace ignis
 		const auto& skybox_map = scene_environment.GetSkyboxMap();
 		if (skybox_map)
 		{
-			if (auto texture = AssetManager::GetAsset<TextureCube>(skybox_map.value()))
+			if (auto texture = skybox_map)
 				texture->Bind(0);
 		}
 
