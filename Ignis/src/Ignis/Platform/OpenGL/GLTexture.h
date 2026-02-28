@@ -23,6 +23,7 @@ namespace ignis
 
 		friend class GLFramebuffer;
 		friend class GLImGuiTextureHelper;
+		friend class GLIBLBaker;
 	};
 
 	class GLTextureCube : public TextureCube
@@ -46,5 +47,6 @@ namespace ignis
 
 		friend class GLFramebuffer;
 		friend class GLImGuiTextureHelper;
+		friend class GLIBLBaker;
 	};
 }

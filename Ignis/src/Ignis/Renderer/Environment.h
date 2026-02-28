@@ -7,8 +7,11 @@ namespace ignis
 {
 	struct IBLMaps
 	{
+		AssetHandle EnvironmentMap;
 		AssetHandle IrradianceMap;
 		AssetHandle PrefilteredMap;
+		AssetHandle BrdfLUT;
+		uint32_t PrefilterMipLevels = 1;
 	};
 
 	struct EnvironmentSettings

@@ -50,7 +50,10 @@ namespace ignis
 
 		m_shader_library->Load("resources://shaders/IgnisPBR.glsl", "IgnisPBR");
 		m_shader_library->Load("resources://shaders/Skybox.glsl", "Skybox");
-
+		m_shader_library->Load("resources://shaders/EquirectToCube.glsl", "EquirectToCube");
+		m_shader_library->Load("resources://shaders/IrradianceConvolution.glsl", "IrradianceConvolution");
+		m_shader_library->Load("resources://shaders/PrefilterGGX.glsl", "PrefilterGGX");
+		m_shader_library->Load("resources://shaders/BRDFIntegration.glsl", "BRDFIntegration");
 
 		// Cube
 		m_cube_vao = VertexArray::Create();

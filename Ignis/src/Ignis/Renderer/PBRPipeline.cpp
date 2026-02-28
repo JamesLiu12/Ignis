@@ -104,7 +104,8 @@ namespace ignis
 			if (auto texture = AssetManager::GetAsset<TextureCube>(ibl_maps->PrefilteredMap))
 				texture->Bind(7);
 			material.Set("brdfLUT", 8);
-			m_brdf_lut_texture->Bind(8);
+			if (auto texture = AssetManager::GetAsset<TextureCube>(ibl_maps->BrdfLUT))
+				texture->Bind(8);
 		}
 		else
 		{
@@ -119,6 +120,7 @@ namespace ignis
 	std::shared_ptr<Material> PBRPipeline::CreateSkyboxMaterial(const Environment& scene_environment)
 	{
 		auto material = Material::Create(m_shader_library.Get("Skybox"));
+
 
 		material->GetShader()->Bind();
 
