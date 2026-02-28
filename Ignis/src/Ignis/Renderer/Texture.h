@@ -31,11 +31,13 @@ namespace ignis
 		RGBA8_sRGB,
 		RGBA16F,
 		RGBA32F,
+		RG16F,
+		RG32F,
 
 		// Depth/stencil
 		Depth24,
 		Depth32F,
-		Depth24Stencil8
+		Depth24Stencil8,
 	};
 
 	enum class TextureUsage : uint32_t

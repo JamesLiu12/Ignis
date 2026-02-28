@@ -71,6 +71,16 @@ namespace ignis
 			type = GL_FLOAT;
 			break;
 
+		case TextureFormat::RG16F:
+			format = GL_RG;
+			type = GL_HALF_FLOAT;
+			break;
+
+		case TextureFormat::RG32F:
+			format = GL_RG;
+			type = GL_FLOAT;
+			break;
+
 		case TextureFormat::Depth24:
 			format = GL_DEPTH_COMPONENT;
 			type = GL_UNSIGNED_INT;

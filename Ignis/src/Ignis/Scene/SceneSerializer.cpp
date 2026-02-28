@@ -20,44 +20,6 @@ namespace ignis
 		return glm::vec3(data[0], data[1], data[2]);
 	}
 
-	static ordered_json SerializeEnvironment(const Environment& env)
-	{
-		ordered_json env_data;
-
-		if (env.GetSkyboxMap().has_value())
-		{
-			env_data["SkyboxMap"] = env.GetSkyboxMap().value().ToString();
-		}
-
-		if (env.GetIBLMaps().has_value())
-		{
-			const auto& ibl = env.GetIBLMaps().value();
-			ordered_json ibl_data;
-			ibl_data["IrradianceMap"] = ibl.IrradianceMap.ToString();
-			ibl_data["PrefilteredMap"] = ibl.PrefilteredMap.ToString();
-			env_data["IBLMaps"] = ibl_data;
-		}
-
-		return env_data;
-	}
-
-	static void DeserializeEnvironment(Environment& env, const json& env_data)
-	{
-		if (env_data.contains("SkyboxMap"))
-		{
-			env.SetSkyboxMap(UUID(env_data["SkyboxMap"]));
-		}
-
-		if (env_data.contains("IBLMaps"))
-		{
-			const auto& ibl_data = env_data["IBLMaps"];
-			IBLMaps ibl;
-			ibl.IrradianceMap = UUID(ibl_data["IrradianceMap"]);
-			ibl.PrefilteredMap = UUID(ibl_data["PrefilteredMap"]);
-			env.SetIBLMaps(ibl);
-		}
-	}
-
 	static MaterialData DeserializeMaterialData(const json& data)
 	{
 		MaterialData material_data{};
@@ -161,7 +123,7 @@ namespace ignis
 		{
 			const auto& skylight = entity.GetComponent<SkyLightComponent>();
 			ordered_json skylight_data;
-			skylight_data["Environment"] = SerializeEnvironment(skylight.SceneEnvironment);
+			skylight_data["Environment"] = skylight.SceneEnvironment.ToString();
 			skylight_data["Intensity"] = skylight.Intensity;
 			skylight_data["Rotation"] = skylight.Rotation;
 			skylight_data["Tint"] = SerializeVec3(skylight.Tint);
@@ -289,10 +251,7 @@ namespace ignis
 		{
 			const auto& skylight_data = entity_data["SkyLight"];
 			auto& skylight = entity.AddComponent<SkyLightComponent>();
-			if (skylight_data.contains("Environment"))
-			{
-				DeserializeEnvironment(skylight.SceneEnvironment, skylight_data["Environment"]);
-			}
+			skylight.SceneEnvironment = UUID(skylight_data.value("Environment", ""));
 			skylight.Intensity = skylight_data["Intensity"];
 			skylight.Rotation = skylight_data["Rotation"];
 			skylight.Tint = DeserializeVec3(skylight_data["Tint"]);

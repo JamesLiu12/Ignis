@@ -94,6 +94,7 @@ uniform int numSpotLights;
 uniform samplerCube irradianceMap;  // 漫反射环境图
 uniform samplerCube prefilterMap;   // 镜面反射环境图 (带 Mipmap)
 uniform sampler2D brdfLUT;          // BRDF 积分查找表
+uniform float prefilterMaxLod;
 uniform EnvironmentSettings envSettings; // 环境设置
 
 const float PI = 3.14159265359;
@@ -240,21 +241,15 @@ void main()
     // A. 环境漫反射 (Diffuse Irradiance)
     // kS 是菲涅尔反射比例，kD 是漫反射比例
     vec3 kS = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
-    vec3 kD = 1.0 - kS;
-    kD *= 1.0 - metallic; // 金属没有漫反射
+    vec3 kD = vec3(1.0) - kS;
+    kD *= (1.0 - metallic);
     
     vec3 irradiance = texture(irradianceMap, N_rot).rgb;
-    vec3 diffuse    = irradiance * albedo / PI;
+    vec3 diffuse    = irradiance * albedo;
 
     // B. 环境镜面反射 (Specular IBL)
-    // 1. 采样 Prefiltered Map (根据粗糙度选择 Mipmap 层级)
-    const float MAX_REFLECTION_LOD = 4.0; // 假设你的 Prefilter Map 生成了 5 层 mipmap (0-4)
-    vec3 prefilteredColor = textureLod(prefilterMap, R_rot, roughness * MAX_REFLECTION_LOD).rgb;
-    
-    // 2. 采样 BRDF LUT (Split Sum Approximation 的第二部分)
-    vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-    
-    // 3. 组合
+    vec3 prefilteredColor = textureLod(prefilterMap, R_rot, roughness * prefilterMaxLod).rgb;
+    vec2 brdf = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
     vec3 specular = prefilteredColor * (kS * brdf.x + brdf.y);
 
     // C. 合成环境光

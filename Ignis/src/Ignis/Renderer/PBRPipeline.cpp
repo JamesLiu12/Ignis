@@ -6,29 +6,16 @@
 
 namespace ignis
 {
-	static std::string PBRShaderPath = "resources://shaders/IgnisPBR.glsl";
-	static std::string SkyboxShaderPath = "resources://shaders/Skybox.glsl";
-
-	PBRPipeline::PBRPipeline(std::shared_ptr<ShaderLibrary> shader_library)
-		: m_shader_library(std::move(shader_library))
+	PBRPipeline::PBRPipeline(ShaderLibrary& shader_library)
+		: m_shader_library(shader_library)
 	{
-		if (!m_shader_library->Exists(PBRShaderPath))
-		{
-			m_shader_library->Load(PBRShaderPath);
-		}
-
-		if (!m_shader_library->Exists(SkyboxShaderPath))
-		{
-			m_shader_library->Load(SkyboxShaderPath);
-		}
-
 		AssetHandle texture_handle = AssetManager::ImportAsset("resources://images/ibl_brdf_lut.png");
 		m_brdf_lut_texture = AssetManager::GetAsset<Texture2D>(texture_handle);
 	}
 
 	std::shared_ptr<Material> PBRPipeline::CreateMaterial(const MaterialData& data)
 	{
-		auto material = Material::Create(m_shader_library->Get(PBRShaderPath));
+		auto material = Material::Create(m_shader_library.Get("IgnisPBR"));
 		
 		material->GetShader()->Bind();
 
@@ -111,13 +98,17 @@ namespace ignis
 		if (ibl_maps)
 		{
 			material.Set("irradianceMap", 6);
-			if (auto texture = AssetManager::GetAsset<TextureCube>(ibl_maps->IrradianceMap))
+			if (auto texture = ibl_maps->IrradianceMap)
 				texture->Bind(6);
 			material.Set("prefilterMap", 7);
-			if (auto texture = AssetManager::GetAsset<TextureCube>(ibl_maps->PrefilteredMap))
+			if (auto texture = ibl_maps->PrefilteredMap)
 				texture->Bind(7);
 			material.Set("brdfLUT", 8);
-			m_brdf_lut_texture->Bind(8);
+			if (auto texture = ibl_maps->BrdfLUT)
+				texture->Bind(8);
+
+			float max_lod = (ibl_maps->PrefilterMipLevels > 0) ? float(ibl_maps->PrefilterMipLevels - 1) : 0.0f;
+			material.Set("prefilterMaxLod", max_lod);
 		}
 		else
 		{
@@ -131,7 +122,8 @@ namespace ignis
 
 	std::shared_ptr<Material> PBRPipeline::CreateSkyboxMaterial(const Environment& scene_environment)
 	{
-		auto material = Material::Create(m_shader_library->Get(SkyboxShaderPath));
+		auto material = Material::Create(m_shader_library.Get("Skybox"));
+
 
 		material->GetShader()->Bind();
 
@@ -139,7 +131,7 @@ namespace ignis
 		const auto& skybox_map = scene_environment.GetSkyboxMap();
 		if (skybox_map)
 		{
-			if (auto texture = AssetManager::GetAsset<TextureCube>(skybox_map.value()))
+			if (auto texture = skybox_map)
 				texture->Bind(0);
 		}
 
@@ -148,11 +140,11 @@ namespace ignis
 
 	std::shared_ptr<Shader> PBRPipeline::GetStandardShader()
 	{
-		return m_shader_library->Get(PBRShaderPath);
+		return m_shader_library.Get("IgnisPBR");
 	}
 
 	std::shared_ptr<Shader> PBRPipeline::GetSkyboxShader()
 	{
-		return m_shader_library->Get(SkyboxShaderPath);
+		return m_shader_library.Get("Skybox");
 	}
 }

@@ -15,11 +15,11 @@ namespace ignis
 	static AssetType DetermineTypeFromExtension(const std::filesystem::path& path)
 	{
 		static const std::unordered_map<std::string, AssetType> extension_to_type = {
-			{ ".png", AssetType::Texture },
-			{ ".jpg", AssetType::Texture },
-			{ ".jpeg", AssetType::Texture },
-			{ ".tga", AssetType::Texture},
-			{ ".hdr", AssetType::Texture},
+			{ ".png", AssetType::Texture2D },
+			{ ".jpg", AssetType::Texture2D },
+			{ ".jpeg", AssetType::Texture2D },
+			{ ".tga", AssetType::Texture2D},
+			{ ".hdr", AssetType::EquirectIBLEnv},
 			{ ".obj", AssetType::Mesh },
 			{ ".fbx", AssetType::Mesh },
 		};
@@ -111,6 +111,16 @@ namespace ignis
 		return asset_serializer.Serialize(s_asset_registry, path);
 	}
 
+	void AssetManager::SetLoadContext(const AssetLoadContext& context)
+	{
+		s_load_context = context;
+	}
+
+	AssetLoadContext& AssetManager::GetLoadContext()
+	{
+		return s_load_context;
+	}
+
 	std::shared_ptr<Asset> AssetManager::LoadAssetFromFile(const AssetMetadata& metadata)
 	{
 		if (!VFS::Exists(metadata.FilePath.string()))
@@ -121,17 +131,21 @@ namespace ignis
 
 		switch (metadata.Type)
 		{
-		case AssetType::Texture:
+		case AssetType::Texture2D:
 		{
-			 return TextureImporter::ImportTexture2D(metadata.FilePath.string());
+			 return Texture2DImporter::Get().Import(metadata.FilePath.string(), s_load_context);
 		}
 		case AssetType::Mesh:
 		{
-			return MeshImporter::ImportMesh(metadata.FilePath.string());
+			return MeshImporter::Get().Import(metadata.FilePath.string(), s_load_context);
 		}
-		case AssetType::EnvironmentMap:
+		case AssetType::TextureCube:
 		{
-			return TextureImporter::ImportTextureCube(metadata.FilePath.string());
+			return TextureCubeImporter::Get().Import(metadata.FilePath.string(), s_load_context);
+		}
+		case AssetType::EquirectIBLEnv:
+		{
+			return EquirectEnvImporter::Get().Import(metadata.FilePath.string(), s_load_context);
 		}
 		case AssetType::Unknown:
 		{

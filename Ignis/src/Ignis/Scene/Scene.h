@@ -85,7 +85,7 @@ namespace ignis
 	private:
 		entt::registry m_registry;
 		LightEnvironment m_light_environment;
-		Environment m_scene_environment;
+		std::shared_ptr<Environment> m_scene_environment;
 		EnvironmentSettings m_environment_settings;
 		std::unordered_map<UUID, Entity> m_id_entity_map;
 		std::string m_name;

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Ignis/Core/UUID.h"
-#include "Ignis/Renderer/Environment.h"
 #include "Ignis/Renderer/Material.h"
 
 #include <glm/glm.hpp>
@@ -108,7 +107,7 @@ namespace ignis
 
 	struct SkyLightComponent : Component
 	{
-		Environment SceneEnvironment;
+		AssetHandle SceneEnvironment;
 
 		float Intensity = 1.0f;
 		float Rotation = 0.0f;

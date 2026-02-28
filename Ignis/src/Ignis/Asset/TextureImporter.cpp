@@ -1,9 +1,17 @@
 #include "TextureImporter.h"
+#include "Ignis/Renderer/IBLBaker.h"
 
 namespace ignis
 {
-	std::shared_ptr<Texture2D> TextureImporter::ImportTexture2D(const std::string& path, const TextureImportOptions& options)
+	AssetType Texture2DImporter::GetType() const
 	{
+		return AssetType::Texture2D;
+	}
+
+	std::shared_ptr<Asset> Texture2DImporter::Import(const std::string& path, const AssetLoadContext& context)
+	{
+		const TextureImportOptions& options = context.Texture2DOptions;
+
 		std::filesystem::path resolved = VFS::Resolve(path);
 		auto image = Image::LoadFromFile(resolved, options.FlipVertical);
 
@@ -27,12 +35,25 @@ namespace ignis
 
 		return Texture2D::Create(specs, image->GetFormat(), image->GetPixels());
 	}
-	std::shared_ptr<TextureCube> TextureImporter::ImportTextureCube(const std::string& path, const TextureImportOptions& options)
+
+	Texture2DImporter& Texture2DImporter::Get()
 	{
+		static Texture2DImporter instance;
+		return instance;
+	}
+
+	AssetType TextureCubeImporter::GetType() const
+	{
+		return AssetType::TextureCube;
+	}
+
+	std::shared_ptr<Asset> TextureCubeImporter::Import(const std::string& path, const AssetLoadContext& context)
+	{
+		const TextureImportOptions& options = context.TextureCubeOptions;
+
 		std::filesystem::path resolved = VFS::Resolve(path);
 
-		bool flip = false;
-		auto image = Image::LoadFromFile(resolved, flip);
+		auto image = Image::LoadFromFile(resolved, options.FlipVertical);
 
 		if (!image)
 		{
@@ -101,5 +122,50 @@ namespace ignis
 		}
 
 		return TextureCube::Create(specs, image->GetFormat(), reordered_data);
+	}
+
+	TextureCubeImporter& TextureCubeImporter::Get()
+	{
+		static TextureCubeImporter instance;
+		return instance;
+	}
+
+	AssetType EquirectEnvImporter::GetType() const
+	{
+		return AssetType::EquirectIBLEnv;
+	}
+
+	std::shared_ptr<Asset> EquirectEnvImporter::Import(const std::string& path, const AssetLoadContext& context)
+	{
+		const TextureImportOptions& options = context.EquirectOptions;
+		auto ibl_baker = context.IBLBakerService;
+
+		std::filesystem::path resolved = VFS::Resolve(path);
+
+		auto image = Image::LoadFromFile(resolved, options.FlipVertical);
+
+		if (!image)
+		{
+			Log::CoreError("Failed to load texture from file: {}", path);
+			return nullptr;
+		}
+
+		auto bake_result = ibl_baker->BakeFromEquirectangular(*image);
+
+		auto environment = std::make_shared<Environment>();
+		environment->SetSkyboxMap(bake_result.EnvironmentCube);
+		environment->SetIBLMaps({
+			bake_result.IrradianceCube,
+			bake_result.PrefilterCube,
+			bake_result.BrdfLUT
+			});
+
+		return environment;
+	}
+
+	EquirectEnvImporter& EquirectEnvImporter::Get()
+	{
+		static EquirectEnvImporter instance;
+		return instance;
 	}
 }

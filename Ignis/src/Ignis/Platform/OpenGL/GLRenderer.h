@@ -13,6 +13,8 @@ namespace ignis
 		GLRenderer();
 		~GLRenderer() override = default;
 
+		void Init() override;
+
 		void BeginFrame() override;
 		void EndFrame() override;
 
@@ -34,12 +36,19 @@ namespace ignis
 		void SetCamera(std::shared_ptr<Camera> camera) override { m_camera = camera; }
 		void SetPipeline(std::shared_ptr<Pipeline> pipeline) override { m_pipeline = pipeline; }
 
+		const ShaderLibrary& GetShaderLibrary() const override { return *m_shader_library; }
+		ShaderLibrary& GetShaderLibrary() override { return *m_shader_library; }
+
+		void RenderCube() override;
+		void RenderQuad() override;
+
 	private:
-		std::shared_ptr<VertexArray> m_skybox_vao;
-		std::shared_ptr<Framebuffer> m_framebuffer;
+		std::shared_ptr<VertexArray> m_cube_vao;
 		std::shared_ptr<VertexArray> m_quad_vao;
+		std::shared_ptr<Framebuffer> m_framebuffer;
 		std::shared_ptr<Shader> m_screen_shader;
 		std::shared_ptr<Camera> m_camera;
 		std::shared_ptr<Pipeline> m_pipeline;
+		std::unique_ptr<ShaderLibrary> m_shader_library;
 	};
 }

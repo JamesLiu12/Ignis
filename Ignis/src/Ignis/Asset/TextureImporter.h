@@ -2,25 +2,35 @@
 
 #include "Ignis/Renderer/Texture.h"
 #include "Ignis/Renderer/Image.h"
+#include "Ignis/Renderer/Environment.h"
+#include "AssetImporter.h"
 
 namespace ignis
 {
-	struct TextureImportOptions
-	{
-		bool FlipVertical = true;
-		bool GenMipmaps = true;
-
-		TextureFormat InternalFormat = TextureFormat::RGBA8;
-		TextureWrap WrapS = TextureWrap::Repeat;
-		TextureWrap WrapT = TextureWrap::Repeat;
-		TextureFilter MinFilter = TextureFilter::LinearMipmapLinear;
-		TextureFilter MagFilter = TextureFilter::Linear;
-	};
-
-	class TextureImporter
+	class Texture2DImporter : public AssetImporter
 	{
 	public:
-		static std::shared_ptr<Texture2D> ImportTexture2D(const std::string& path, const TextureImportOptions& options = TextureImportOptions());
-		static std::shared_ptr<TextureCube> ImportTextureCube(const std::string& path, const TextureImportOptions& options = TextureImportOptions());
+		AssetType GetType() const override;
+		std::shared_ptr<Asset> Import(const std::string& path, const AssetLoadContext& context) override;
+
+		static Texture2DImporter& Get();
+	};
+
+	class TextureCubeImporter : public AssetImporter
+	{
+	public:
+		AssetType GetType() const override;
+		std::shared_ptr<Asset> Import(const std::string& path, const AssetLoadContext& context) override;
+
+		static TextureCubeImporter& Get();
+	};
+
+	class EquirectEnvImporter : public AssetImporter
+	{
+	public:
+		AssetType GetType() const override;
+		std::shared_ptr<Asset> Import(const std::string& path, const AssetLoadContext& context) override;
+
+		static EquirectEnvImporter& Get();
 	};
 }

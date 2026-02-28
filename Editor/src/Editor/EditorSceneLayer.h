@@ -34,8 +34,6 @@ private:
 	Renderer& m_renderer;
 	EditorApp* m_editor_app;
 	ViewportPanel* m_viewport_panel = nullptr;
-
-	std::shared_ptr<ShaderLibrary> m_shader_library;
 	
 	std::shared_ptr<EditorCamera> m_camera;
 

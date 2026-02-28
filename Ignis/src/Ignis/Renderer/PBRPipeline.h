@@ -8,7 +8,7 @@ namespace ignis
 	class PBRPipeline : public Pipeline
 	{
 	public:
-		PBRPipeline(std::shared_ptr<ShaderLibrary> shader_library);
+		PBRPipeline(ShaderLibrary& shader_library);
 		~PBRPipeline() = default;
 
 		std::shared_ptr<Material> CreateMaterial(const MaterialData& data) override;
@@ -18,7 +18,7 @@ namespace ignis
 		std::shared_ptr<Shader> GetSkyboxShader() override;
 
 	private:
-		std::shared_ptr<ShaderLibrary> m_shader_library;
+		ShaderLibrary& m_shader_library;
 		std::shared_ptr<Texture2D> m_brdf_lut_texture;
 	};
 }

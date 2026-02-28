@@ -9,9 +9,10 @@ namespace ignis
 	enum class AssetType
 	{
 		Unknown = 0,
-		Texture,
+		Texture2D,
+		TextureCube,
 		Mesh,
-		EnvironmentMap
+		EquirectIBLEnv
 	};
 
 	struct AssetMetadata
