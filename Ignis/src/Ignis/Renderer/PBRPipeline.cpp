@@ -106,6 +106,9 @@ namespace ignis
 			material.Set("brdfLUT", 8);
 			if (auto texture = ibl_maps->BrdfLUT)
 				texture->Bind(8);
+
+			float max_lod = (ibl_maps->PrefilterMipLevels > 0) ? float(ibl_maps->PrefilterMipLevels - 1) : 0.0f;
+			material.Set("prefilterMaxLod", max_lod);
 		}
 		else
 		{
