@@ -297,7 +297,7 @@ namespace ignis
 
 	MeshImporter& MeshImporter::Get()
 	{
-		MeshImporter instance;
+		static MeshImporter instance;
 		return instance;
 	}
 }
