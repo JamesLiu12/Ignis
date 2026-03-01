@@ -2,6 +2,9 @@
 #include "Entity.h"
 #include "Ignis/Asset/AssetManager.h"
 #include "Ignis/Renderer/SceneRenderer.h"
+#include "Ignis/Script/ScriptBehaviour.h"
+#include "Ignis/Script/Script.h"
+#include "Ignis/Script/ScriptRegistry.h"
 
 namespace ignis
 {
@@ -199,5 +202,63 @@ namespace ignis
 		}
 
 		scene_renderer.SubmitSkybox();
+	}
+
+	void Scene::OnRuntimeStart()
+	{
+		OnRuntimeStop();
+
+		auto scripts = m_registry.view<ScriptComponent>();
+
+		scripts.each([&](entt::entity entity_handle, ScriptComponent script_component)
+			{
+				Entity entity(entity_handle, this);
+
+				if (!script_component.Enabled)
+					return;
+
+				if (script_component.Script == AssetHandle::Invalid)
+					return;
+
+				auto script = AssetManager::GetAsset<Script>(script_component.Script);
+				if (!script)
+				{
+					Log::CoreWarn("[Scene::OnRuntimeStart] Invalid ScriptAsset on entity {}", entity.GetID().ToString());
+					return;
+				}
+
+				script->GetBehaviour().SetEntity(entity);
+				script->GetBehaviour().OnCreate();
+			});
+	}
+
+	void Scene::OnRuntimeUpdate(float dt)
+	{
+		auto scripts = m_registry.view<ScriptComponent>();
+
+		scripts.each([&](entt::entity entity_handle, ScriptComponent script_component)
+			{
+				if (!script_component.Enabled)
+					return;
+
+				auto script = AssetManager::GetAsset<Script>(script_component.Script);
+
+				script->GetBehaviour().OnUpdate(dt);
+			});
+	}
+
+	void Scene::OnRuntimeStop()
+	{
+		auto scripts = m_registry.view<ScriptComponent>();
+
+		scripts.each([&](entt::entity entity_handle, ScriptComponent script_component)
+			{
+				if (!script_component.Enabled)
+					return;
+
+				auto script = AssetManager::GetAsset<Script>(script_component.Script);
+
+				script->GetBehaviour().OnDestroy();
+			});
 	}
 }

@@ -12,7 +12,8 @@ namespace ignis
 		Texture2D,
 		TextureCube,
 		Mesh,
-		EquirectIBLEnv
+		EquirectIBLEnv,
+		Script
 	};
 
 	struct AssetMetadata

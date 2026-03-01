@@ -82,6 +82,10 @@ namespace ignis
 		const std::string& GetName() const { return m_name; }
 		void SetName(std::string_view name) { m_name = name; }
 
+		void OnRuntimeStart();
+		void OnRuntimeUpdate(float dt);
+		void OnRuntimeStop();
+
 	private:
 		entt::registry m_registry;
 		LightEnvironment m_light_environment;
