@@ -29,56 +29,39 @@ namespace ignis {
 
 	void EditorConsolePanel::OnImGuiRender()
 	{
-		// Fixed position at bottom of screen
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImVec2 work_pos = viewport->WorkPos;
-		ImVec2 work_size = viewport->WorkSize;
-
-		float console_height = 200.0f;
-		float properties_panel_width = 300.0f;
-		
-		// Position: bottom, width = window width - properties panel width
-		ImGui::SetNextWindowPos(ImVec2(work_pos.x, work_pos.y + work_size.y - console_height));
-		ImGui::SetNextWindowSize(ImVec2(work_size.x - properties_panel_width, console_height));
-
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_MenuBar;
-
-		if (ImGui::Begin("Console", nullptr, window_flags))
-		{
-			RenderMenuBar();
-			ImGui::Separator();
-			RenderMessages();
-		}
-		ImGui::End();
+		RenderMenuBar();
+		ImGui::Separator();
+		RenderMessages();
 	}
 
 	void EditorConsolePanel::RenderMenuBar()
 	{
-		if (ImGui::BeginMenuBar())
+		ImGui::Checkbox("Trace", &m_show_trace);
+		ImGui::SameLine();
+		ImGui::Checkbox("Info", &m_show_info);
+		ImGui::SameLine();
+		ImGui::Checkbox("Warn", &m_show_warn);
+		ImGui::SameLine();
+		ImGui::Checkbox("Error", &m_show_error);
+		
+		ImGui::SameLine();
+		ImGui::Spacing();
+		ImGui::SameLine();
+		
+		if (ImGui::Button("Clear"))
 		{
-			ImGui::Checkbox("Trace", &m_show_trace);
-			ImGui::Checkbox("Info", &m_show_info);
-			ImGui::Checkbox("Warn", &m_show_warn);
-			ImGui::Checkbox("Error", &m_show_error);
-			
-			ImGui::Separator();
-			
-			if (ImGui::Button("Clear"))
-			{
-				Clear();
-			}
-			
-			ImGui::Checkbox("Auto-scroll", &m_auto_scroll);
-			
-			ImGui::EndMenuBar();
+			Clear();
 		}
+		
+		ImGui::SameLine();
+		ImGui::Checkbox("Auto-scroll", &m_auto_scroll);
 	}
 
 	void EditorConsolePanel::RenderMessages()
 	{
 		std::lock_guard<std::mutex> lock(m_message_mutex);
 
-		ImGui::BeginChild("ScrollingRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
+		ImGui::BeginChild("ScrollingRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
 		for (const auto& msg : m_messages)
 		{
