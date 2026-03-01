@@ -8,8 +8,7 @@ namespace ignis
 	class AssetManager
 	{
 	public:
-		template<typename T>
-			requires std::derived_from<T, Asset>
+		template<std::derived_from<Asset> T>
 		static std::shared_ptr<T> GetAsset(AssetHandle handle)
 		{
 			if (IsAssetLoaded(handle))
@@ -43,8 +42,7 @@ namespace ignis
 		}
 
 		// Add memory-only asset (for default textures, procedural meshes, etc.)
-		template<typename T>
-			requires std::derived_from<T, Asset>
+		template<std::derived_from<Asset> T>
 		static AssetHandle AddMemoryOnlyAsset(std::shared_ptr<T> asset)
 		{
 			AssetHandle handle = AssetHandle();
