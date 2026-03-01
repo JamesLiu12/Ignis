@@ -15,20 +15,16 @@ namespace ignis
 		Entity(entt::entity handle, Scene* scene);
 		~Entity() = default;
 
-		template<typename T, typename... Args>
-			requires std::is_base_of_v<Component, T>
+		template<std::derived_from<Component> T, typename... Args>
 		T& AddComponent(Args&&... args);
 		
-		template<typename T>
-			requires std::is_base_of_v<Component, T>
+		template<std::derived_from<Component> T>
 		T& GetComponent() const;
 
-		template<typename T>
-			requires std::is_base_of_v<Component, T>
+		template<std::derived_from<Component> T>
 		bool HasComponent() const;
 
-		template<typename T>
-			requires std::is_base_of_v<Component, T>
+		template<std::derived_from<Component> T>
 		void RemoveComponent();
 
 		bool IsValid() const;
@@ -50,8 +46,7 @@ namespace ignis
 		void RemoveChild(Entity child);
 		std::vector<Entity> GetChildren() const;
 		
-		template<typename Func>
-			requires std::invocable<Func, Entity>
+		template<std::invocable<Entity> Func>
 		void ForEachChild(Func func);
 
 		void MoveTo(Entity target_prev_sibling);

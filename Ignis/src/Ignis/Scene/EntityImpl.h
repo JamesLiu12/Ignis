@@ -2,8 +2,7 @@
 
 namespace ignis
 {
-	template<typename T, typename... Args>
-		requires std::is_base_of_v<Component, T>
+	template<std::derived_from<Component> T, typename... Args>
 	T& Entity::AddComponent(Args&&... args)
 	{
 		if (HasComponent<T>())
@@ -14,29 +13,25 @@ namespace ignis
 		return m_scene->m_registry.emplace<T>(m_handle, std::forward<Args>(args)...);
 	}
 
-	template<typename T>
-		requires std::is_base_of_v<Component, T>
+	template<std::derived_from<Component> T>
 	T& Entity::GetComponent() const
 	{
 		return m_scene->m_registry.get<T>(m_handle);
 	}
 
-	template<typename T>
-		requires std::is_base_of_v<Component, T>
+	template<std::derived_from<Component> T>
 	bool Entity::HasComponent() const
 	{
 		return m_scene->m_registry.all_of<T>(m_handle);
 	}
 
-	template<typename T>
-		requires std::is_base_of_v<Component, T>
+	template<std::derived_from<Component> T>
 	void Entity::RemoveComponent()
 	{
 		m_scene->m_registry.remove<T>(m_handle);
 	}
 
-	template<typename Func>
-		requires std::invocable<Func, Entity>
+	template<std::invocable<Entity> Func>
 	void Entity::ForEachChild(Func func)
 	{
 		const auto& rel = GetComponent<RelationshipComponent>();
