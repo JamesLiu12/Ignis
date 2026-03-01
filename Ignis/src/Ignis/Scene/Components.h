@@ -120,4 +120,10 @@ namespace ignis
 		AssetHandle Mesh;
 		MaterialData MeterialData;
 	};
+
+	struct ScriptComponent : Component
+	{
+		AssetHandle Script;
+		bool Enabled = true;
+	};
 }
