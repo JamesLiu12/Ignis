@@ -23,7 +23,7 @@ namespace ignis
 
 	template<typename T>
 		requires std::is_base_of_v<Component, T>
-	bool Entity::HasComponent()
+	bool Entity::HasComponent() const
 	{
 		return m_scene->m_registry.all_of<T>(m_handle);
 	}

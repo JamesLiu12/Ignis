@@ -25,7 +25,7 @@ namespace ignis
 
 		template<typename T>
 			requires std::is_base_of_v<Component, T>
-		bool HasComponent();
+		bool HasComponent() const;
 
 		template<typename T>
 			requires std::is_base_of_v<Component, T>
