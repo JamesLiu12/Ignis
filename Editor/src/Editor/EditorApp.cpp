@@ -1,6 +1,7 @@
 #include "Editor/EditorApp.h"
 #include "Editor/EditorLayer.h"
 #include "Editor/Panels/EditorConsolePanel.h"
+#include "Editor/Panels/TabbedPanelContainer.h"
 #include "Editor/Panels/PropertiesPanel.h"
 #include "Editor/Panels/SceneHierarchyPanel.h"
 #include "Editor/Panels/EngineStatsPanel.h"
@@ -50,8 +51,12 @@ EditorApp::EditorApp()
 	auto physics_debug = panel_manager.AddPanel<PhysicsDebugPanel>("PhysicsDebug", "Physics Debug", false);
 	physics_debug->SetPhysicsWorld(m_physics_world.get());
 	
-	// Add Console panel (bottom section)
-	auto console_panel = panel_manager.AddPanel<EditorConsolePanel>("Console", "Console", true);
+	// Add Tabbed Panel Container (bottom section)
+	auto tabbed_container = panel_manager.AddPanel<TabbedPanelContainer>("BottomPanel", "Bottom Panel", true);
+	
+	// Create console panel and add it as a tab
+	auto console_panel = std::make_shared<EditorConsolePanel>();
+	tabbed_container->AddTab("console", "Console", console_panel);
 	
 	// Add EditorConsoleSink to forward logs to UI console
 	auto editor_sink = std::make_shared<EditorConsoleSink>(console_panel.get());
