@@ -13,8 +13,8 @@ namespace ignis
 		auto stream = file.OpenOutputStream();
 		if (!stream.is_open())
 		{
-			return false;
 			Log::CoreError("[ProjectSerializer::Serialize] Failed to open file for writing");
+			return false;
 		}
 
 		ordered_json data;
@@ -22,6 +22,11 @@ namespace ignis
 		data["AssetDirectory"] = FileSystem::ToUnixPath(project.GetConfig().AssetDirectory);
 		data["AssetRegistry"] = FileSystem::ToUnixPath(project.GetConfig().AssetRegistry);
 		data["StartScene"] = FileSystem::ToUnixPath(project.GetConfig().StartScene);
+		data["ScriptModule"]["Name"] = project.GetConfig().ScriptModule.Name;
+		data["ScriptModule"]["Directory"] = FileSystem::ToUnixPath(project.GetConfig().ScriptModule.Directory);
+		data["ScriptModule"]["Windows"] = project.GetConfig().ScriptModule.Windows;
+		data["ScriptModule"]["Linux"] = project.GetConfig().ScriptModule.Linux;
+		data["ScriptModule"]["macOS"] = project.GetConfig().ScriptModule.macOS;
 
 		try
 		{
@@ -43,8 +48,8 @@ namespace ignis
 		auto stream = file.OpenInputStream();
 		if (!stream.is_open())
 		{
-			return nullptr;
 			Log::CoreError("[ProjectSerializer::Serialize] Failed to open file for reading");
+			return nullptr;
 		}
 
 		ordered_json data;
@@ -63,7 +68,25 @@ namespace ignis
 		project->m_config.AssetDirectory = data.at("AssetDirectory").get<std::string>();
 		project->m_config.AssetRegistry = data.at("AssetRegistry").get<std::string>();
 		project->m_config.StartScene = data.at("StartScene").get<std::string>();
-		project->m_project_directory = file.GetPath().parent_path(); // Use resolved absolute path
+		project->m_project_directory = file.GetPath().parent_path();
+
+		if (data.contains("ScriptModule"))
+		{
+			const auto& sm = data["ScriptModule"];
+			project->m_config.ScriptModule.Name = sm.value("Name", project->m_config.ProjectName);
+			project->m_config.ScriptModule.Directory = sm.value("Directory", "bin/{Platform}/{Config}/");
+			project->m_config.ScriptModule.Windows = sm.value("Windows", "{Name}.dll");
+			project->m_config.ScriptModule.Linux = sm.value("Linux", "lib{Name}.so");
+			project->m_config.ScriptModule.macOS = sm.value("macOS", "lib{Name}.dylib");
+		}
+		else
+		{
+			project->m_config.ScriptModule.Name = project->m_config.ProjectName;
+			project->m_config.ScriptModule.Directory = "bin/{Platform}/{Config}/";
+			project->m_config.ScriptModule.Windows = "{Name}.dll";
+			project->m_config.ScriptModule.Linux = "lib{Name}.so";
+			project->m_config.ScriptModule.macOS = "lib{Name}.dylib";
+		}
 
 		return project;
 	}
