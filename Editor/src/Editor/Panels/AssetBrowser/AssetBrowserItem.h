@@ -31,7 +31,7 @@ namespace ignis {
 		void SetPanel(AssetBrowserPanel* panel) { m_panel = panel; }
 
 		// Delete
-		virtual void Delete() {}
+		virtual void Delete() = 0;
 
 		// Move to new location
 		virtual bool Move(const std::filesystem::path& destination) { return false; }
@@ -47,6 +47,9 @@ namespace ignis {
 		void StopRenaming();
 		bool IsRenaming() const { return m_is_renaming; }
 		void Rename(const std::string& new_name);
+		
+		// File operations
+		void ShowInExplorer();
 
 		// Selection
 		bool IsSelected() const { return m_is_selected; }
@@ -88,11 +91,10 @@ namespace ignis {
 		AssetBrowserDirectory(const std::shared_ptr<DirectoryInfo>& directory_info);
 		virtual ~AssetBrowserDirectory() = default;
 
-		std::shared_ptr<DirectoryInfo>& GetDirectoryInfo() { return m_directory_info; }
+		const std::shared_ptr<DirectoryInfo>& GetDirectoryInfo() const { return m_directory_info; }
 
-		void OnActivate() override;
-		void Delete() override;
-		bool Move(const std::filesystem::path& destination) override;
+	void OnActivate() override;
+	void Delete() override;
 
 	protected:
 		void OnRenamed(const std::string& new_name) override;
@@ -110,8 +112,8 @@ namespace ignis {
 
 		const AssetMetadata& GetAssetInfo() const { return m_asset_info; }
 
-		void Delete() override;
-		bool Move(const std::filesystem::path& destination) override;
+	void OnActivate() override;
+	void Delete() override;
 
 	protected:
 		void OnRenamed(const std::string& new_name) override;

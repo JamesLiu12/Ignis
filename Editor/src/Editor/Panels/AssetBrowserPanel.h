@@ -27,6 +27,14 @@ namespace ignis {
 		
 		// Project integration (public for external refresh)
 		void Refresh();
+		
+		// Selection management (public for item callbacks)
+		bool IsItemSelected(AssetBrowserItem* item) const;
+		void SetSelectedItem(AssetBrowserItem* item);
+		AssetBrowserItem* GetSelectedItem() const { return m_selected_item; }
+		
+		// File operations (public for item callbacks)
+		void ShowInExplorer(const std::filesystem::path& path);
 
 	private:
 		void RenderTopBar();
@@ -36,6 +44,7 @@ namespace ignis {
 		// Directory processing
 		void LoadCurrentDirectory();
 		std::shared_ptr<DirectoryInfo> ProcessDirectory(const std::filesystem::path& directory_path, const std::shared_ptr<DirectoryInfo>& parent);
+		std::shared_ptr<DirectoryInfo> FindDirectoryByPath(const std::shared_ptr<DirectoryInfo>& root, const std::filesystem::path& target_path);
 		
 		// Navigation
 		void NavigateToParent();
@@ -44,6 +53,9 @@ namespace ignis {
 		
 		// Project integration
 		void InitializeFromProject();
+		
+		void HandleKeyboardInput();
+		void CreateNewFolder();
 
 	private:
 		std::vector<std::shared_ptr<AssetBrowserItem>> m_current_items;
@@ -64,6 +76,9 @@ namespace ignis {
 		// Grid layout settings
 		float m_thumbnail_size = 64.0f;
 		float m_padding = 16.0f;
+		
+		// Selection management
+		AssetBrowserItem* m_selected_item = nullptr;
 		
 		// State flags
 		bool m_update_breadcrumbs = false;

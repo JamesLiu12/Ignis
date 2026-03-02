@@ -24,6 +24,9 @@ namespace ignis {
 		RenderBreadcrumbs();
 		ImGui::Separator();
 		RenderItems();
+		
+		// Handle keyboard input
+		HandleKeyboardInput();
 	}
 
 	ImVec4 AssetBrowserPanel::GetIconColor(const AssetBrowserItem& item) const
@@ -79,6 +82,16 @@ namespace ignis {
 		}
 
 		ImGui::Columns(1);
+		
+		// Right-click on empty space for context menu
+		if (ImGui::BeginPopupContextWindow("empty_context", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+		{
+			if (ImGui::MenuItem("Create New Folder"))
+			{
+				CreateNewFolder();
+			}
+			ImGui::EndPopup();
+		}
 		
 		ImGui::EndChild();
 	}
@@ -204,6 +217,25 @@ namespace ignis {
 		return directory_info;
 	}
 	
+	std::shared_ptr<DirectoryInfo> AssetBrowserPanel::FindDirectoryByPath(const std::shared_ptr<DirectoryInfo>& root, const std::filesystem::path& target_path)
+	{
+		if (!root)
+			return nullptr;
+		
+		if (root->file_path == target_path)
+			return root;
+		
+		// Recursively search subdirectories
+		for (const auto& [handle, subdir] : root->sub_directories)
+		{
+			auto found = FindDirectoryByPath(subdir, target_path);
+			if (found)
+				return found;
+		}
+		
+		return nullptr;
+	}
+	
 	void AssetBrowserPanel::ChangeDirectory(const std::shared_ptr<DirectoryInfo>& directory)
 	{
 		if (!directory)
@@ -217,6 +249,9 @@ namespace ignis {
 		
 		// Clear forward history when navigating to a new directory
 		m_forward_history.clear();
+		
+		// Clear single selection when changing directories
+		m_selected_item = nullptr;
 		
 		m_current_directory = directory;
 		m_update_breadcrumbs = true;
@@ -271,14 +306,55 @@ namespace ignis {
 	
 	void AssetBrowserPanel::Refresh()
 	{
-		if (Project::GetActive())
+		if (!Project::GetActive())
 		{
-			InitializeFromProject();
+			Log::Warn("No active project to refresh");
+			return;
+		}
+		
+		// Save current directory path before refresh
+		std::filesystem::path current_path;
+		if (m_current_directory)
+			current_path = m_current_directory->file_path;
+		
+		// Rebuild entire tree from filesystem
+		std::filesystem::path asset_directory = Project::GetActiveAssetDirectory();
+		
+		if (!std::filesystem::exists(asset_directory))
+		{
+			Log::Error("Asset directory does not exist: {}", asset_directory.string());
+			return;
+		}
+		
+		Log::Info("Refreshing Asset Browser from: {}", asset_directory.string());
+		
+		m_base_directory = ProcessDirectory(asset_directory, nullptr);
+		
+		// Navigate back to saved path if it still exists
+		if (!current_path.empty() && std::filesystem::exists(current_path))
+		{
+			// Find directory in new tree
+			m_current_directory = FindDirectoryByPath(m_base_directory, current_path);
+			if (!m_current_directory)
+			{
+				// Fallback to root if path not found in tree
+				m_current_directory = m_base_directory;
+			}
 		}
 		else
 		{
-			Log::Warn("No active project to refresh");
+			// No saved path or path doesn't exist, go to root
+			m_current_directory = m_base_directory;
 		}
+		
+		// Clear navigation history since tree was rebuilt
+		m_backward_history.clear();
+		m_forward_history.clear();
+		
+		m_update_breadcrumbs = true;
+		LoadCurrentDirectory();
+		
+		Log::Info("Asset Browser refreshed with {} items", m_current_items.size());
 	}
 	
 	void AssetBrowserPanel::InitializeFromProject()
@@ -312,6 +388,146 @@ namespace ignis {
 		LoadCurrentDirectory();
 		
 		Log::Info("Asset Browser initialized with {} items", m_current_items.size());
+	}
+	
+	// Selection management
+	bool AssetBrowserPanel::IsItemSelected(AssetBrowserItem* item) const
+	{
+		return m_selected_item == item;
+	}
+	
+	void AssetBrowserPanel::SetSelectedItem(AssetBrowserItem* item)
+	{
+		m_selected_item = item;
+	}
+	
+	// Keyboard input handling
+	void AssetBrowserPanel::HandleKeyboardInput()
+	{
+		// Only handle input if panel is focused
+		if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
+			return;
+		
+		// Check if any item is currently being renamed
+		bool any_renaming = false;
+		for (const auto& item : m_current_items)
+		{
+			if (item->IsRenaming())
+			{
+				any_renaming = true;
+				break;
+			}
+		}
+		
+		// Don't process keyboard shortcuts if an item is being renamed
+		// (except Escape to cancel rename)
+		if (any_renaming)
+		{
+			// Escape - Cancel rename
+			if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+			{
+				for (const auto& item : m_current_items)
+				{
+					if (item->IsRenaming())
+					{
+						item->StopRenaming();
+					}
+				}
+			}
+			return; // Don't process other shortcuts during rename
+		}
+		
+		// F2 - Rename selected item
+		if (ImGui::IsKeyPressed(ImGuiKey_F2) && m_selected_item)
+		{
+			m_selected_item->StartRenaming();
+		}
+		
+		// Delete/Backspace - Delete selected item
+		if ((ImGui::IsKeyPressed(ImGuiKey_Delete) || ImGui::IsKeyPressed(ImGuiKey_Backspace)) && m_selected_item)
+		{
+			m_selected_item->Delete();
+			m_selected_item = nullptr;
+		}
+		
+		// Escape - Clear selection
+		if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+		{
+			m_selected_item = nullptr;
+		}
+	}
+	
+	// Create new folder
+	void AssetBrowserPanel::CreateNewFolder()
+	{
+		if (!m_current_directory)
+			return;
+		
+		std::filesystem::path new_folder_path = m_current_directory->file_path / "New Folder";
+		
+		// Find unique name if "New Folder" already exists
+		int counter = 1;
+		while (std::filesystem::exists(new_folder_path))
+		{
+			new_folder_path = m_current_directory->file_path / ("New Folder " + std::to_string(counter));
+			counter++;
+		}
+		
+		try
+		{
+			std::filesystem::create_directory(new_folder_path);
+			Log::Info("Created new folder: {}", new_folder_path.string());
+			
+			// Re-scan current directory from filesystem to update tree
+			auto updated_dir = ProcessDirectory(m_current_directory->file_path, m_current_directory->parent);
+			
+			// Update parent's reference to this directory
+			if (m_current_directory->parent)
+			{
+				m_current_directory->parent->sub_directories[updated_dir->handle] = updated_dir;
+			}
+			else
+			{
+				// Root directory
+				m_base_directory = updated_dir;
+			}
+			
+			m_current_directory = updated_dir;
+			LoadCurrentDirectory();
+			
+			// Find and start renaming the new folder
+			for (auto& item : m_current_items)
+			{
+				if (item->GetType() == AssetBrowserItem::ItemType::Directory)
+				{
+					if (item->GetName() == new_folder_path.filename().string())
+					{
+						item->StartRenaming();
+						break;
+					}
+				}
+			}
+		}
+		catch (const std::exception& e)
+		{
+			Log::Error("Failed to create folder: {}", e.what());
+		}
+	}
+	
+	// Show in Explorer (macOS Finder)
+	void AssetBrowserPanel::ShowInExplorer(const std::filesystem::path& path)
+	{
+		#ifdef __APPLE__
+			std::string command = "open -R \"" + path.string() + "\"";
+			system(command.c_str());
+		#elif _WIN32
+			std::string command = "explorer /select,\"" + path.string() + "\"";
+			system(command.c_str());
+		#else
+			// Linux - open parent directory
+			std::string command = "xdg-open \"" + path.parent_path().string() + "\"";
+			system(command.c_str());
+		#endif
 	}
 
 } // namespace ignis
