@@ -280,6 +280,13 @@ void EditorSceneLayer::ReloadProject()
 		properties_panel->SetSelectedEntity(nullptr);
 		properties_panel->SetCurrentMesh(nullptr, nullptr);
 	}
+
+	if (m_scene)
+	{
+		m_scene->OnRuntimeStop();
+	}
+	m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
+	m_script_module.Unload();
 	
 	// Clear previous project's scene and assets
 	m_scene = nullptr;
@@ -311,6 +318,13 @@ void EditorSceneLayer::ReloadProject()
 
 void EditorSceneLayer::ClearProject()
 {
+	if (m_scene)
+	{
+		m_scene->OnRuntimeStop();
+	}
+	m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
+	m_script_module.Unload();
+
 	m_scene = nullptr;
 	m_mesh = nullptr;
 	
