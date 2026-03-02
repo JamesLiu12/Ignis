@@ -21,17 +21,41 @@ namespace ignis {
 
 		// Get icon color for an item
 		ImVec4 GetIconColor(const AssetBrowserItem& item) const;
+		
+		// Navigation (public for item callbacks)
+		void ChangeDirectory(const std::shared_ptr<DirectoryInfo>& directory);
+		
+		// Project integration (public for external refresh)
+		void Refresh();
 
 	private:
 		void RenderTopBar();
+		void RenderBreadcrumbs();
 		void RenderItems();
+		
+		// Directory processing
 		void LoadCurrentDirectory();
-		void CreateTestItems();
+		std::shared_ptr<DirectoryInfo> ProcessDirectory(const std::filesystem::path& directory_path, const std::shared_ptr<DirectoryInfo>& parent);
+		
+		// Navigation
+		void NavigateToParent();
+		void NavigateBack();
+		void NavigateForward();
+		
+		// Project integration
+		void InitializeFromProject();
 
 	private:
 		std::vector<std::shared_ptr<AssetBrowserItem>> m_current_items;
 		std::shared_ptr<DirectoryInfo> m_current_directory;
 		std::shared_ptr<DirectoryInfo> m_base_directory;
+		
+		// Navigation history
+		std::vector<std::shared_ptr<DirectoryInfo>> m_backward_history;
+		std::vector<std::shared_ptr<DirectoryInfo>> m_forward_history;
+		
+		// Breadcrumb data
+		std::vector<std::shared_ptr<DirectoryInfo>> m_breadcrumb_data;
 
 		// Icon colors
 		ImVec4 m_folder_color = ImVec4(0.2f, 0.6f, 1.0f, 1.0f);
@@ -40,6 +64,9 @@ namespace ignis {
 		// Grid layout settings
 		float m_thumbnail_size = 64.0f;
 		float m_padding = 16.0f;
+		
+		// State flags
+		bool m_update_breadcrumbs = false;
 	};
 
 } // namespace ignis

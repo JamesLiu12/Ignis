@@ -1,4 +1,5 @@
 #include "AssetBrowserItem.h"
+#include "Editor/Panels/AssetBrowserPanel.h"
 #include <imgui.h>
 
 namespace ignis {
@@ -66,7 +67,7 @@ namespace ignis {
 		// Handle double click on the entire group (avoid single click interference)
 		if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 		{
-			Log::Info("Double-clicked: {}", m_display_name);
+			OnActivate();
 		}
 		// Handle single click selection (only if not double clicking)
 		else if (ImGui::IsItemClicked())
@@ -123,6 +124,14 @@ namespace ignis {
 		: AssetBrowserItem(ItemType::Directory, directory_info->handle, directory_info->file_path.filename().string())
 		, m_directory_info(directory_info)
 	{
+	}
+
+	void AssetBrowserDirectory::OnActivate()
+	{
+		if (m_panel)
+		{
+			m_panel->ChangeDirectory(m_directory_info);
+		}
 	}
 
 	void AssetBrowserDirectory::Delete()

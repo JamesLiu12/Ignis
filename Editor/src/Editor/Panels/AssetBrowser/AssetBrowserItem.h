@@ -23,6 +23,12 @@ namespace ignis {
 
 		// Render the item in the asset UI
 		void OnRender();
+		
+		// Called when item is activated (double-clicked)
+		virtual void OnActivate() {}
+		
+		// Set the owning panel (for navigation callbacks)
+		void SetPanel(AssetBrowserPanel* panel) { m_panel = panel; }
 
 		// Delete
 		virtual void Delete() {}
@@ -61,6 +67,8 @@ namespace ignis {
 		bool m_is_dragging = false;
 
 		char m_rename_buffer[128];
+		
+		AssetBrowserPanel* m_panel = nullptr;
 	};
 
 	// Represents directory information
@@ -82,6 +90,7 @@ namespace ignis {
 
 		std::shared_ptr<DirectoryInfo>& GetDirectoryInfo() { return m_directory_info; }
 
+		void OnActivate() override;
 		void Delete() override;
 		bool Move(const std::filesystem::path& destination) override;
 

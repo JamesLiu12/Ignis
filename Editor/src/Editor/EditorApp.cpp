@@ -60,8 +60,8 @@ EditorApp::EditorApp()
 	tabbed_container->AddTab("console", "Console", console_panel);
 	
 	// Create asset browser panel and add it as a tab
-	auto asset_browser_panel = std::make_shared<AssetBrowserPanel>();
-	tabbed_container->AddTab("assets", "Assets", asset_browser_panel);
+	m_asset_browser_panel = std::make_shared<AssetBrowserPanel>();
+	tabbed_container->AddTab("assets", "Assets", m_asset_browser_panel);
 	
 	// Add EditorConsoleSink to forward logs to UI console
 	auto editor_sink = std::make_shared<EditorConsoleSink>(console_panel.get());

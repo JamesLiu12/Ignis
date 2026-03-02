@@ -3,6 +3,7 @@
 #include "Editor/Panels/PropertiesPanel.h"
 #include "Editor/Panels/SceneHierarchyPanel.h"
 #include "Editor/Panels/ViewportPanel.h"
+#include "Editor/Panels/AssetBrowserPanel.h"
 #include "Ignis/Renderer/IBLBaker.h"
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -273,6 +274,12 @@ void EditorSceneLayer::ReloadProject()
 	AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
 	SceneSerializer scene_serializer;
 	m_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
+	
+	// Refresh asset browser with new project files
+	if (auto* asset_browser = m_editor_app->GetAssetBrowserPanel())
+	{
+		asset_browser->Refresh();
+	}
 	
 	// Update hierarchy panel with all entities from the scene
 	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
