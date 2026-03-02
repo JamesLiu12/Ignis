@@ -2,6 +2,7 @@
 
 #include "Entity.h"
 #include "Ignis/Renderer/Environment.h"
+#include "Ignis/Script/Script.h"
 
 #include <entt.hpp>
 #include <glm/glm.hpp>
@@ -93,6 +94,7 @@ namespace ignis
 		EnvironmentSettings m_environment_settings;
 		std::unordered_map<UUID, Entity> m_id_entity_map;
 		std::string m_name;
+		std::unordered_map<UUID, Script> m_runtime_scripts;
 
 		friend class Entity;
 		friend class SceneSerializer;

@@ -3,7 +3,6 @@
 #include "Ignis/Asset/AssetManager.h"
 #include "Ignis/Renderer/SceneRenderer.h"
 #include "Ignis/Script/ScriptBehaviour.h"
-#include "Ignis/Script/Script.h"
 #include "Ignis/Script/ScriptRegistry.h"
 
 namespace ignis
@@ -208,57 +207,64 @@ namespace ignis
 	{
 		OnRuntimeStop();
 
-		auto scripts = m_registry.view<ScriptComponent>();
+		auto scripts = m_registry.group<ScriptComponent>(entt::get<IDComponent>);
 
-		scripts.each([&](entt::entity entity_handle, ScriptComponent script_component)
+		scripts.each([&](entt::entity entity_handle, ScriptComponent& script_component, IDComponent& id_component)
 			{
 				Entity entity(entity_handle, this);
 
 				if (!script_component.Enabled)
 					return;
 
-				if (script_component.Script == AssetHandle::Invalid)
-					return;
+				auto script_behaviour = ScriptRegistry::Get().Create(script_component.ClassName);
 
-				auto script = AssetManager::GetAsset<Script>(script_component.Script);
-				if (!script)
+				if (!script_behaviour)
 				{
 					Log::CoreWarn("[Scene::OnRuntimeStart] Invalid ScriptAsset on entity {}", entity.GetID().ToString());
 					return;
 				}
 
-				script->GetBehaviour().SetEntity(entity);
-				script->GetBehaviour().OnCreate();
+				auto [it, inserted] = m_runtime_scripts.try_emplace(id_component.ID, std::move(script_behaviour));
+				auto& script = it->second;
+
+				script.GetBehaviour().SetEntity(entity);
+				script.GetBehaviour().OnCreate();
 			});
 	}
 
 	void Scene::OnRuntimeUpdate(float dt)
 	{
-		auto scripts = m_registry.view<ScriptComponent>();
+		auto scripts = m_registry.group<ScriptComponent>(entt::get<IDComponent>);
 
-		scripts.each([&](entt::entity entity_handle, ScriptComponent script_component)
+		scripts.each([&](entt::entity entity_handle, ScriptComponent& script_component, IDComponent& id_component)
 			{
 				if (!script_component.Enabled)
 					return;
 
-				auto script = AssetManager::GetAsset<Script>(script_component.Script);
+				auto it = m_runtime_scripts.find(id_component.ID);
+				if (it == m_runtime_scripts.end())
+					return;
 
-				script->GetBehaviour().OnUpdate(dt);
+				it->second.GetBehaviour().OnUpdate(dt);
 			});
 	}
 
 	void Scene::OnRuntimeStop()
 	{
-		auto scripts = m_registry.view<ScriptComponent>();
+		auto scripts = m_registry.group<ScriptComponent>(entt::get<IDComponent>);
 
-		scripts.each([&](entt::entity entity_handle, ScriptComponent script_component)
+		scripts.each([&](entt::entity entity_handle, ScriptComponent& script_component, IDComponent& id_component)
 			{
 				if (!script_component.Enabled)
 					return;
 
-				auto script = AssetManager::GetAsset<Script>(script_component.Script);
+				auto it = m_runtime_scripts.find(id_component.ID);
+				if (it == m_runtime_scripts.end())
+					return;
 
-				script->GetBehaviour().OnDestroy();
+				it->second.GetBehaviour().OnDestroy();
 			});
+
+		m_runtime_scripts.clear();
 	}
 }

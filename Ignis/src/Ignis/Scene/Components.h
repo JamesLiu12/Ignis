@@ -123,7 +123,7 @@ namespace ignis
 
 	struct ScriptComponent : Component
 	{
-		AssetHandle Script;
+		std::string ClassName;
 		bool Enabled = true;
 	};
 }

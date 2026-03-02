@@ -1,11 +1,10 @@
 #pragma once
 
-#include "Ignis/Asset/Asset.h"
 #include "ScriptBehaviour.h"
 
 namespace ignis
 {
-	class Script : public Asset
+	class Script
 	{
 	public:
 		Script(std::unique_ptr<ScriptBehaviour> behaviour)
@@ -13,7 +12,11 @@ namespace ignis
 		}
 		~Script() = default;
 
-		AssetType GetAssetType() const override { return AssetType::Script; }
+		Script(const Script&) = delete;
+		Script& operator=(const Script&) = delete;
+
+		Script(Script&&) noexcept = default;
+		Script& operator=(Script&&) noexcept = default;
 
 		const ScriptBehaviour& GetBehaviour() const { return *m_behaviour; }
 		ScriptBehaviour& GetBehaviour() { return *m_behaviour; }
