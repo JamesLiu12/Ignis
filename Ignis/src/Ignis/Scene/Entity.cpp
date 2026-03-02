@@ -329,7 +329,7 @@ namespace ignis
 
 	glm::mat4 Entity::GetWorldTransform() const
 	{
-		glm::mat4 transform(1.0f);
+		glm::mat4 transform = GetLocalTransform();
 		Entity entity = *this;
 
 		while (auto parent = entity.GetParent())
