@@ -54,8 +54,10 @@ namespace ignis {
 		// Project integration
 		void InitializeFromProject();
 		
+		// File Creation
 		void HandleKeyboardInput();
 		void CreateNewFolder();
+		void CreateNewFile();
 
 	private:
 		std::vector<std::shared_ptr<AssetBrowserItem>> m_current_items;

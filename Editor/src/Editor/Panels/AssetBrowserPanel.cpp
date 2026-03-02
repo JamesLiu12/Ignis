@@ -90,6 +90,10 @@ namespace ignis {
 			{
 				CreateNewFolder();
 			}
+			if (ImGui::MenuItem("Create New File"))
+			{
+				CreateNewFile();
+			}
 			ImGui::EndPopup();
 		}
 		
@@ -511,6 +515,58 @@ namespace ignis {
 		catch (const std::exception& e)
 		{
 			Log::Error("Failed to create folder: {}", e.what());
+		}
+	}
+	
+	void AssetBrowserPanel::CreateNewFile()
+	{
+		if (!m_current_directory)
+			return;
+		
+		std::filesystem::path new_file_path = m_current_directory->file_path / "New File.txt";
+		
+		// Find unique name if "New File.txt" already exists
+		int counter = 1;
+		while (std::filesystem::exists(new_file_path))
+		{
+			new_file_path = m_current_directory->file_path / ("New File " + std::to_string(counter) + ".txt");
+			counter++;
+		}
+		
+		try
+		{
+			// Create empty file
+			std::ofstream file(new_file_path);
+			file.close();
+			Log::Info("Created new file: {}", new_file_path.string());
+			
+			// Import the new file as an asset
+			AssetHandle new_handle = AssetManager::ImportAsset(new_file_path, AssetType::Unknown);
+			if (new_handle.IsValid())
+			{
+				AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
+				Log::Info("Registered new file as asset: {}", new_file_path.string());
+			}
+			
+			// Refresh to show new file
+			Refresh();
+			
+			// Find and start renaming the new file
+			for (auto& item : m_current_items)
+			{
+				if (item->GetType() == AssetBrowserItem::ItemType::Asset)
+				{
+					if (item->GetName() == new_file_path.filename().string())
+					{
+						item->StartRenaming();
+						break;
+					}
+				}
+			}
+		}
+		catch (const std::exception& e)
+		{
+			Log::Error("Failed to create file: {}", e.what());
 		}
 	}
 	
