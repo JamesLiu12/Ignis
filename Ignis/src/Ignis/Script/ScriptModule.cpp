@@ -21,8 +21,8 @@ namespace ignis
 		}
 
 		m_handle = (void*)lib;
-		m_register_fn = (RegisterFn)::GetProcAddress(lib, "RegisterGameScripts");
-		m_unregister_fn = (UnregisterFn)::GetProcAddress(lib, "UnregisterGameScripts");
+		m_register_fn = (RegisterFn)::GetProcAddress(lib, "RegisterProjectScripts");
+		m_unregister_fn = (UnregisterFn)::GetProcAddress(lib, "UnregisterProjectScripts");
 #else
 		void* lib = dlopen(module_path.string().c_str(), RTLD_NOW);
 		if (!lib)
@@ -32,13 +32,13 @@ namespace ignis
 		}
 
 		m_handle = lib;
-		m_register_fn = (RegisterFn)dlsym(lib, "RegisterGameScripts");
-		m_unregister_fn = (UnregisterFn)dlsym(lib, "UnregisterGameScripts");
+		m_register_fn = (RegisterFn)dlsym(lib, "RegisterProjectScripts");
+		m_unregister_fn = (UnregisterFn)dlsym(lib, "UnregisterProjectScripts");
 #endif
 
 		if (!m_register_fn)
 		{
-			Log::CoreError("[ScriptModule] Missing export: RegisterGameScripts");
+			Log::CoreError("[ScriptModule] Missing export: RegisterProjectScripts");
 			Unload();
 			return false;
 		}
