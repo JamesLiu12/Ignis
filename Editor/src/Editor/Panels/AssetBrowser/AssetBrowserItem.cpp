@@ -2,6 +2,11 @@
 #include "Editor/Panels/AssetBrowserPanel.h"
 #include <imgui.h>
 
+#ifdef _WIN32
+#include <Windows.h>
+#include <shellapi.h>
+#endif
+
 namespace ignis {
 
 	AssetBrowserItem::AssetBrowserItem(ItemType type, AssetHandle id, const std::string& name)
@@ -210,27 +215,27 @@ namespace ignis {
 					Log::Error("Failed to move directory to Trash. Please delete via Finder.");
 				}
 			#elif _WIN32
-				// Windows: Use PowerShell to move to Recycle Bin
-				std::string escaped_path = path_to_delete.string();
-				// Escape backslashes for PowerShell
-				for (size_t i = 0; i < escaped_path.length(); ++i)
-				{
-					if (escaped_path[i] == '\\')
-					{
-						escaped_path.insert(i, 1, '\\');
-						i++;
-					}
-				}
-				std::string command = "powershell.exe -Command \"Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteDirectory('" + escaped_path + "', 'OnlyErrorDialogs', 'SendToRecycleBin')\"";
-				int result = system(command.c_str());
-				if (result == 0)
+				// Windows: Use Shell API for fast Recycle Bin operation
+				std::string path_str = path_to_delete.string();
+				// SHFileOperation requires double-null terminated string
+				std::vector<char> double_null_path(path_str.begin(), path_str.end());
+				double_null_path.push_back('\0');
+				double_null_path.push_back('\0');
+				
+				SHFILEOPSTRUCTA file_op = {};
+				file_op.wFunc = FO_DELETE;
+				file_op.pFrom = double_null_path.data();
+				file_op.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+				
+				int result = SHFileOperationA(&file_op);
+				if (result == 0 && !file_op.fAnyOperationsAborted)
 				{
 					Log::Info("Moved directory to Recycle Bin: {}", path_to_delete.string());
 					deleted_successfully = true;
 				}
 				else
 				{
-					Log::Error("Failed to move directory to Recycle Bin. Please delete via File Explorer.");
+					Log::Error("Failed to move directory to Recycle Bin. Error code: {}", result);
 				}
 			#else
 				// Linux: Try multiple trash methods
@@ -403,27 +408,27 @@ namespace ignis {
 					Log::Error("Failed to move asset to Trash. Please delete via Finder.");
 				}
 			#elif _WIN32
-				// Windows: Use PowerShell to move to Recycle Bin
-				std::string escaped_path = path_to_delete.string();
-				// Escape backslashes for PowerShell
-				for (size_t i = 0; i < escaped_path.length(); ++i)
-				{
-					if (escaped_path[i] == '\\')
-					{
-						escaped_path.insert(i, 1, '\\');
-						i++;
-					}
-				}
-				std::string command = "powershell.exe -Command \"Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile('" + escaped_path + "', 'OnlyErrorDialogs', 'SendToRecycleBin')\"";
-				int result = system(command.c_str());
-				if (result == 0)
+				// Windows: Use Shell API for fast Recycle Bin operation
+				std::string path_str = path_to_delete.string();
+				// SHFileOperation requires double-null terminated string
+				std::vector<char> double_null_path(path_str.begin(), path_str.end());
+				double_null_path.push_back('\0');
+				double_null_path.push_back('\0');
+				
+				SHFILEOPSTRUCTA file_op = {};
+				file_op.wFunc = FO_DELETE;
+				file_op.pFrom = double_null_path.data();
+				file_op.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+				
+				int result = SHFileOperationA(&file_op);
+				if (result == 0 && !file_op.fAnyOperationsAborted)
 				{
 					Log::Info("Moved asset to Recycle Bin: {}", path_to_delete.string());
 					deleted_successfully = true;
 				}
 				else
 				{
-					Log::Error("Failed to move asset to Recycle Bin. Please delete via File Explorer.");
+					Log::Error("Failed to move asset to Recycle Bin. Error code: {}", result);
 				}
 			#else
 				// Linux: Try multiple trash methods
