@@ -14,4 +14,21 @@ namespace ignis
 	{
 		return m_factories.contains(std::string(class_name));
 	}
+
+	bool ScriptRegistry::RegisterFactory(std::string_view class_name, FactoryFn factory)
+	{
+		auto key = std::string(class_name);
+		m_factories[key] = std::move(factory);
+		return true;
+	}
+
+	bool ScriptRegistry::Unregister(std::string_view class_name)
+	{
+		return m_factories.erase(std::string(class_name)) > 0;
+	}
+
+	void ScriptRegistry::Clear()
+	{
+		m_factories.clear();
+	}
 }

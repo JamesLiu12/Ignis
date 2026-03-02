@@ -24,6 +24,10 @@ namespace ignis
 
 		bool Contains(std::string_view class_name) const;
 
+		bool RegisterFactory(std::string_view class_name, FactoryFn factory);
+		bool Unregister(std::string_view class_name);
+		void Clear();
+
 	private:
 		std::unordered_map<std::string, FactoryFn> m_factories;
 	};

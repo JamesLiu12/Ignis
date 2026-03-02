@@ -2,6 +2,7 @@
 
 #include "Ignis.h"
 #include "Editor/Panels/EditorCamera.h"
+#include "Ignis/Script/ScriptModule.h";
 
 namespace ignis {
 	class Renderer;
@@ -16,6 +17,7 @@ public:
 	~EditorSceneLayer() override = default;
 
 	void OnAttach() override;
+	void OnDetach() override;
 	void OnUpdate(float dt) override;
 	void OnEvent(EventBase& event) override;
 
@@ -52,6 +54,8 @@ private:
 	
 	// Camera input gate for tracking if drag started in viewport
 	bool m_started_camera_drag_in_viewport = false;
+
+	ScriptModule m_script_module;
 };
 
 } // namespace ignis
