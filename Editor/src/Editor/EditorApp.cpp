@@ -2,6 +2,7 @@
 #include "Editor/EditorLayer.h"
 #include "Editor/Panels/EditorConsolePanel.h"
 #include "Editor/Panels/TabbedPanelContainer.h"
+#include "Editor/Panels/AssetBrowserPanel.h"
 #include "Editor/Panels/PropertiesPanel.h"
 #include "Editor/Panels/SceneHierarchyPanel.h"
 #include "Editor/Panels/EngineStatsPanel.h"
@@ -57,6 +58,10 @@ EditorApp::EditorApp()
 	// Create console panel and add it as a tab
 	auto console_panel = std::make_shared<EditorConsolePanel>();
 	tabbed_container->AddTab("console", "Console", console_panel);
+	
+	// Create asset browser panel and add it as a tab
+	auto asset_browser_panel = std::make_shared<AssetBrowserPanel>();
+	tabbed_container->AddTab("assets", "Assets", asset_browser_panel);
 	
 	// Add EditorConsoleSink to forward logs to UI console
 	auto editor_sink = std::make_shared<EditorConsoleSink>(console_panel.get());
