@@ -53,14 +53,6 @@ namespace ignis {
 			ImGui::SetTooltip("Forward");
 		
 		ImGui::SameLine();
-		if (ImGui::Button("^"))
-		{
-			NavigateToParent();
-		}
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Up to Parent");
-		
-		ImGui::SameLine();
 		if (ImGui::Button("Refresh"))
 		{
 			Refresh();
