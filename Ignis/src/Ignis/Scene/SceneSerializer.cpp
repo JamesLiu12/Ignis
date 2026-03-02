@@ -140,6 +140,15 @@ namespace ignis
 			entity_data["Mesh"] = mesh_data;
 		}
 
+		if (entity.HasComponent<ScriptComponent>())
+		{
+			const auto& script = entity.GetComponent<ScriptComponent>();
+			ordered_json script_data;
+			script_data["ClassName"] = script.ClassName;
+			script_data["Enabled"] = script.Enabled;
+			entity_data["Script"] = script_data;
+		}
+
 		return entity_data;
 	}
 
@@ -270,6 +279,14 @@ namespace ignis
 
 			if (mesh_data.contains("MaterialData"))
 				mesh.MeterialData = DeserializeMaterialData(mesh_data["MaterialData"]);
+		}
+
+		if (entity_data.contains("Script"))
+		{
+			const auto& script_data = entity_data["Script"];
+			auto& script = entity.AddComponent<ScriptComponent>();
+			script.ClassName = script_data.value("ClassName", "");
+			script.Enabled = script_data.value("Enabled", false);
 		}
 
 		return entity;

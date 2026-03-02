@@ -156,6 +156,16 @@ void EditorSceneLayer::OnAttach()
 	AssetSerializer().Serialize(AssetManager::GetAssetRegistry(), Project::GetActiveAssetRegistry().replace_filename("TestARSaved.igar"));
 }
 
+void EditorSceneLayer::OnDetach()
+{
+	if (m_scene)
+	{
+		m_scene->OnRuntimeStop();
+	}
+	m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
+	m_script_module.Unload();
+}
+
 void EditorSceneLayer::OnUpdate(float dt)
 {
 	static glm::mat4 model = glm::mat4(1.0f);
@@ -221,6 +231,11 @@ void EditorSceneLayer::OnUpdate(float dt)
 		}
 	}
 
+	if (m_scene)
+	{
+		m_scene->OnRuntimeUpdate(dt);
+	}
+
 	SceneRenderer scene_renderer(m_renderer);
 	if (!m_scene)
 	{
@@ -265,6 +280,13 @@ void EditorSceneLayer::ReloadProject()
 		properties_panel->SetSelectedEntity(nullptr);
 		properties_panel->SetCurrentMesh(nullptr, nullptr);
 	}
+
+	if (m_scene)
+	{
+		m_scene->OnRuntimeStop();
+	}
+	m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
+	m_script_module.Unload();
 	
 	// Clear previous project's scene and assets
 	m_scene = nullptr;
@@ -274,6 +296,10 @@ void EditorSceneLayer::ReloadProject()
 	AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
 	SceneSerializer scene_serializer;
 	m_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
+
+	m_script_module.Load(Project::ResolveActiveScriptModulePath());
+	m_script_module.RegisterAll(ignis::ScriptRegistry::Get());
+	m_scene->OnRuntimeStart();
 	
 	// Refresh asset browser with new project files
 	if (auto* asset_browser = m_editor_app->GetAssetBrowserPanel())
@@ -292,6 +318,13 @@ void EditorSceneLayer::ReloadProject()
 
 void EditorSceneLayer::ClearProject()
 {
+	if (m_scene)
+	{
+		m_scene->OnRuntimeStop();
+	}
+	m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
+	m_script_module.Unload();
+
 	m_scene = nullptr;
 	m_mesh = nullptr;
 	

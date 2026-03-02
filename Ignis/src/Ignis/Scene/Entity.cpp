@@ -329,7 +329,7 @@ namespace ignis
 
 	glm::mat4 Entity::GetWorldTransform() const
 	{
-		glm::mat4 transform(1.0f);
+		glm::mat4 transform = GetLocalTransform();
 		Entity entity = *this;
 
 		while (auto parent = entity.GetParent())
@@ -339,4 +339,24 @@ namespace ignis
 
 		return transform;
 	}
+
+	// Explicit template instantiations for shared library linking
+	#define INSTANTIATE_COMPONENT_TEMPLATES(ComponentType) \
+		template ComponentType& Entity::GetComponent<ComponentType>() const; \
+		template ComponentType& Entity::AddComponent<ComponentType>(); \
+		template bool Entity::HasComponent<ComponentType>() const; \
+		template void Entity::RemoveComponent<ComponentType>();
+
+	INSTANTIATE_COMPONENT_TEMPLATES(TransformComponent)
+	INSTANTIATE_COMPONENT_TEMPLATES(IDComponent)
+	INSTANTIATE_COMPONENT_TEMPLATES(TagComponent)
+	INSTANTIATE_COMPONENT_TEMPLATES(RelationshipComponent)
+	INSTANTIATE_COMPONENT_TEMPLATES(MeshComponent)
+	INSTANTIATE_COMPONENT_TEMPLATES(DirectionalLightComponent)
+	INSTANTIATE_COMPONENT_TEMPLATES(PointLightComponent)
+	INSTANTIATE_COMPONENT_TEMPLATES(SpotLightComponent)
+	INSTANTIATE_COMPONENT_TEMPLATES(SkyLightComponent)
+	INSTANTIATE_COMPONENT_TEMPLATES(ScriptComponent)
+
+	#undef INSTANTIATE_COMPONENT_TEMPLATES
 }

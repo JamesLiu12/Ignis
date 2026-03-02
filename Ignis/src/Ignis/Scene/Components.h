@@ -120,4 +120,10 @@ namespace ignis
 		AssetHandle Mesh;
 		MaterialData MeterialData;
 	};
+
+	struct ScriptComponent : Component
+	{
+		std::string ClassName;
+		bool Enabled = true;
+	};
 }

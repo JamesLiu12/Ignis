@@ -17,14 +17,20 @@ target_link_libraries(Editor
 	PRIVATE Ignis::Ignis
 )
 
-set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
-set(DEST_DIR   "${CMAKE_CURRENT_BINARY_DIR}/resources")
+set(SOURCE_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/resources")
+set(DEST_DIR    "${CMAKE_CURRENT_BINARY_DIR}/resources")
+set(STAMP_FILE  "${CMAKE_CURRENT_BINARY_DIR}/copy_resources.stamp")
+
+file(GLOB_RECURSE RESOURCE_FILES CONFIGURE_DEPENDS "${SOURCE_DIR}/*")
 
 add_custom_command(
-    OUTPUT "${DEST_DIR}"
+    OUTPUT  "${STAMP_FILE}"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${SOURCE_DIR}" "${DEST_DIR}"
-    DEPENDS "${SOURCE_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E touch "${STAMP_FILE}"
+    DEPENDS ${RESOURCE_FILES}
     COMMENT "Copying resources directory"
 )
 
-add_custom_target(copy_resources ALL DEPENDS "${DEST_DIR}")
+add_custom_target(copy_resources ALL DEPENDS "${STAMP_FILE}")
+
+target_precompile_headers(Editor REUSE_FROM Ignis)
