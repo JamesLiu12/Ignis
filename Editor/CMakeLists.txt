@@ -28,3 +28,5 @@ add_custom_command(
 )
 
 add_custom_target(copy_resources ALL DEPENDS "${DEST_DIR}")
+
+target_precompile_headers(Editor REUSE_FROM Ignis)

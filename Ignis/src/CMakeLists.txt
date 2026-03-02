@@ -10,20 +10,22 @@ if(MSVC)
     target_compile_options(Ignis PRIVATE /utf-8)
 endif()
 
-target_link_libraries(Ignis 
+target_link_libraries(Ignis
     PUBLIC
-        spdlog
-        imgui
-        glfw
-        glad
         glm
+        spdlog
+        glfw
+        stduuid
+        imgui
+        entt
+        
+    PRIVATE
+        glad
         BulletDynamics 
         BulletCollision 
         LinearMath
         stb
-        entt
         assimp
-        stduuid
         nlohmannjson
 )
 
@@ -62,6 +64,6 @@ target_include_directories(Ignis PUBLIC
 )
 
 target_precompile_headers(Ignis
-    PUBLIC
+    PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/pch.h>
 )
