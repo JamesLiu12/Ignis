@@ -24,16 +24,13 @@ namespace ignis {
 			if (m_scene)
 			{
 				// Iterate through all entities in the scene
-				auto view = m_scene->GetAllEntitiesWith<TagComponent>();
-				for (auto entityHandle : view)
+				auto view = m_scene->GetAllEntitiesWith<TagComponent, RelationshipComponent>();
+				for (auto entity_handle : view)
 				{
-					Entity entity = m_scene->GetEntityByHandle(entityHandle);
+					Entity entity = m_scene->GetEntityByHandle(entity_handle);
 					
-					// Only show entities with light components
-					if (entity.HasComponent<DirectionalLightComponent>() ||
-					    entity.HasComponent<PointLightComponent>() ||
-					    entity.HasComponent<SpotLightComponent>() ||
-					    entity.HasComponent<SkyLightComponent>())
+					// Only show root entities (entities with no parent)
+					if (entity.GetParentID() == UUID::Invalid)
 					{
 						DrawEntityNode(entity);
 					}
