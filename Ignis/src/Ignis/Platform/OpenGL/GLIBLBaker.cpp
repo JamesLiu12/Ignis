@@ -135,7 +135,7 @@ namespace ignis
 			m_renderer.RenderCube();
 		}
 
-		// Create environment mip£¬for prefilter to sample
+		// Create environment mip, for prefilter to sample
 		glBindTexture(GL_TEXTURE_CUBE_MAP, env_cube_id);
 		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
