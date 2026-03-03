@@ -1,5 +1,7 @@
 #pragma once
 
+#include <filesystem>
+
 namespace ignis
 {
 	enum class ImageFormat

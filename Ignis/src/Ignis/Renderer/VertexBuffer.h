@@ -2,6 +2,8 @@
 
 #include "Shader.h"
 
+#include <cstdint>
+
 namespace ignis
 {
 	class VertexBuffer

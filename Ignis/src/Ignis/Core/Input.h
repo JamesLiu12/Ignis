@@ -2,6 +2,8 @@
 
 #include "KeyCodes.h"
 
+#include <utility>
+
 namespace ignis
 {
 	class Input

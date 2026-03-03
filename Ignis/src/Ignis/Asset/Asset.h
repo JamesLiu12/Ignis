@@ -2,6 +2,8 @@
 
 #include "Ignis/Core/UUID.h"
 
+#include <filesystem>
+
 namespace ignis
 {
 	using AssetHandle = UUID;

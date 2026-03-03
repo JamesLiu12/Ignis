@@ -1,8 +1,11 @@
 #pragma once
 
 #include "Ignis.h"
+
 #include "Editor/Panels/EditorCamera.h"
-#include "Ignis/Script/ScriptModule.h";
+
+#include "Ignis/Script/ScriptModule.h"
+#include "Ignis/Asset/AssetSerializer.h"
 
 namespace ignis {
 	class Renderer;

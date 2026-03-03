@@ -1,13 +1,12 @@
 #include "Ignis/Core/Application.h"
 #include "Ignis/Core/Input.h"
-#include "Ignis/Core/KeyCodes.h"
 #include "Ignis/Core/Log.h"
 #include "Ignis/Core/UUID.h"
+#include "Ignis/Core/Layer.h"
 #include "Ignis/Core/File/FileSystem.h"
 #include "Ignis/Core/File/FileDialog.h"
 #include "Ignis/Core/File/File.h"
 #include "Ignis/Core/File/VFS.h"
-#include "Ignis/Core/Layer.h"
 
 #include "Ignis/Renderer/VertexBuffer.h"
 #include "Ignis/Renderer/Shader.h"
@@ -23,20 +22,10 @@
 #include "Ignis/Renderer/Mesh.h"
 #include "Ignis/Renderer/SceneRenderer.h"
 
-#include "Ignis/Asset/AssetManager.h"
-#include "Ignis/Asset/Asset.h"
-#include "Ignis/Asset/AssetSerializer.h"
-
 #include "Ignis/Scene/Scene.h"
 #include "Ignis/Scene/Entity.h"
 #include "Ignis/Scene/Components.h"
 #include "Ignis/Scene/SceneSerializer.h"
 
-#include "Ignis/Asset/MeshImporter.h"
-#include "Ignis/Asset/TextureImporter.h"
-
-#include "Ignis/Physics/PhysicsWorld.h"
-#include "Ignis/Physics/PhysicsTypes.h"
-
-#include "Ignis/Project/Project.h"
-#include "Ignis/Project/ProjectSerializer.h"
+#include "Ignis/Script/ScriptBehaviour.h"
+#include "Ignis/Script/ScriptAutoRegistry.h"

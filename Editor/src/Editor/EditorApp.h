@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Ignis.h"
+#include "Ignis/Physics/PhysicsWorld.h"
+#include "Ignis/Core/Application.h"
 
 namespace ignis {
 

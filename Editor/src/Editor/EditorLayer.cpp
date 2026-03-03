@@ -1,7 +1,10 @@
 #include "Editor/EditorLayer.h"
-#include <imgui.h>
-#include "Ignis/Core/File/FileDialog.h"
 #include "Editor/Core/ProjectManager.h"
+
+#include "Ignis/Core/File/FileDialog.h"
+#include "Ignis/Project/Project.h"
+
+#include <imgui.h>
 
 namespace ignis {
 
