@@ -79,8 +79,10 @@ namespace ignis
 
 		// Get Entity wrapper from handle (for editor)
 		Entity GetEntityByHandle(entt::entity handle);
-
 		Entity GetEntityByID(UUID id) const;
+
+		std::shared_ptr<Camera> GetPrimaryCamera();
+		void OnViewportResize(uint32_t width, uint32_t height);
 
 		const std::string& GetName() const { return m_name; }
 		void SetName(std::string_view name) { m_name = name; }

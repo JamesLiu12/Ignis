@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SceneCamera.h"
 #include "Ignis/Core/UUID.h"
 #include "Ignis/Renderer/Material.h"
 
@@ -69,6 +70,16 @@ namespace ignis
 		{
 			return glm::quat(Rotation);
 		}
+	};
+
+	struct CameraComponent : Component
+	{
+		std::shared_ptr<SceneCamera> Camera = std::make_shared<SceneCamera>();
+		bool Primary = true;
+		bool FixedAspectRatio = false;
+
+		CameraComponent() = default;
+		CameraComponent(const CameraComponent&) = default;
 	};
 
 	// Directional Light Component
