@@ -42,6 +42,9 @@ namespace ignis {
 		void RenderTextureSlot(std::shared_ptr<Mesh> mesh, uint32_t material_index, MaterialType type, const char* label);
 		void LoadNewModel(const std::string& filepath);
 		
+		// Add Component UI
+		void DrawAddComponentMenu(std::shared_ptr<Entity> entity);
+		
 	private:
 		// TODO: Replace weak_ptr with EntityHandle + Scene* for safer entity management
 		// Current approach uses weak_ptr to avoid dangling pointers, but handle-based

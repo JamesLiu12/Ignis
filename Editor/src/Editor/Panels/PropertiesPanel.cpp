@@ -75,6 +75,23 @@ namespace ignis {
 					auto& light = entity->GetComponent<SkyLightComponent>();
 					RenderSkyLightComponent(light);
 				}
+				
+				// Add Component button at bottom
+				ImGui::Separator();
+				ImGui::Spacing();
+				
+				float button_width = ImGui::GetContentRegionAvail().x;
+				if (ImGui::Button("Add Component", ImVec2(button_width, 0)))
+				{
+					ImGui::OpenPopup("AddComponentPopup");
+				}
+				
+				// Add Component popup menu
+				if (ImGui::BeginPopup("AddComponentPopup"))
+				{
+					DrawAddComponentMenu(entity);
+					ImGui::EndPopup();
+				}
 			}
 			else if (!m_current_mesh_ptr || !(*m_current_mesh_ptr))
 			{
@@ -541,6 +558,49 @@ namespace ignis {
 		}
 		
 		Log::Info("Successfully loaded model: {}", filepath);
+	}
+
+	// Template helper function for drawing add component menu items
+	template<typename T>
+	static void DrawAddComponentMenuItemImpl(std::shared_ptr<Entity> entity, const char* name)
+	{
+		// Don't show if entity already has this component
+		if (entity->HasComponent<T>())
+			return;
+		
+		if (ImGui::MenuItem(name))
+		{
+			entity->AddComponent<T>();
+			Log::CoreInfo("PropertiesPanel: Added {} to entity '{}'", 
+						  name, 
+						  entity->GetComponent<TagComponent>().Tag);
+			ImGui::CloseCurrentPopup();
+		}
+	}
+
+	void PropertiesPanel::DrawAddComponentMenu(std::shared_ptr<Entity> entity)
+	{
+		ImGui::TextDisabled("Select Component to Add:");
+		ImGui::Separator();
+		
+		// Light Components
+		ImGui::Text("Lights:");
+		DrawAddComponentMenuItemImpl<DirectionalLightComponent>(entity, "  Directional Light");
+		DrawAddComponentMenuItemImpl<PointLightComponent>(entity, "  Point Light");
+		DrawAddComponentMenuItemImpl<SpotLightComponent>(entity, "  Spot Light");
+		DrawAddComponentMenuItemImpl<SkyLightComponent>(entity, "  Sky Light");
+		
+		ImGui::Separator();
+		
+		// Rendering Components
+		ImGui::Text("Rendering:");
+		DrawAddComponentMenuItemImpl<MeshComponent>(entity, "  Mesh");
+		
+		ImGui::Separator();
+		
+		// Script Component
+		ImGui::Text("Scripting:");
+		DrawAddComponentMenuItemImpl<ScriptComponent>(entity, "  Script");
 	}
 
 } // namespace ignis
