@@ -1,6 +1,7 @@
 #include "Editor/Panels/PropertiesPanel.h"
 
 #include "Ignis/Asset/AssetManager.h"
+#include "Ignis/Project/Project.h"
 
 #include <imgui.h>
 
@@ -74,6 +75,37 @@ namespace ignis {
 				{
 					auto& light = entity->GetComponent<SkyLightComponent>();
 					RenderSkyLightComponent(light);
+				}
+				
+				// Render Mesh Component
+				if (entity->HasComponent<MeshComponent>())
+				{
+					auto& mesh = entity->GetComponent<MeshComponent>();
+					RenderMeshComponent(mesh);
+				}
+				
+				// Render Script Component
+				if (entity->HasComponent<ScriptComponent>())
+				{
+					auto& script = entity->GetComponent<ScriptComponent>();
+					RenderScriptComponent(script);
+				}
+				
+				// Add Component button at bottom
+				ImGui::Separator();
+				ImGui::Spacing();
+				
+				float button_width = ImGui::GetContentRegionAvail().x;
+				if (ImGui::Button("Add Component", ImVec2(button_width, 0)))
+				{
+					ImGui::OpenPopup("AddComponentPopup");
+				}
+				
+				// Add Component popup menu
+				if (ImGui::BeginPopup("AddComponentPopup"))
+				{
+					DrawAddComponentMenu(entity);
+					ImGui::EndPopup();
 				}
 			}
 			else if (!m_current_mesh_ptr || !(*m_current_mesh_ptr))
@@ -391,6 +423,62 @@ namespace ignis {
 		
 		if (open)
 		{
+			// Environment Asset section
+			ImGui::Text("Environment:");
+			ImGui::Indent();
+			
+			// Display current environment info
+			if (light.SceneEnvironment.IsValid())
+			{
+				if (auto* metadata = AssetManager::GetMetadata(light.SceneEnvironment))
+				{
+					ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), "Loaded");
+					ImGui::SameLine();
+					ImGui::TextWrapped("%s", metadata->FilePath.string().c_str());
+				}
+				else
+				{
+					ImGui::TextColored(ImVec4(0.8f, 0.4f, 0.4f, 1.0f), "Invalid Handle");
+					ImGui::SameLine();
+					ImGui::Text("%llu", (uint64_t)light.SceneEnvironment);
+				}
+			}
+			else
+			{
+				ImGui::TextDisabled("No environment loaded");
+			}
+			
+			// Browse button
+			if (ImGui::Button("Browse Environment...", ImVec2(-1, 0)))
+			{
+				std::string filepath = FileDialog::OpenFile("HDR Environment", {"hdr"});
+				if (!filepath.empty())
+				{
+					// Import environment asset
+					AssetHandle env_handle = AssetManager::ImportAsset(filepath);
+					if (env_handle.IsValid())
+					{
+						light.SceneEnvironment = env_handle;
+						
+						// Save asset registry
+						AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
+						
+						Log::CoreInfo("PropertiesPanel: Loaded environment '{}'", 
+						              std::filesystem::path(filepath).filename().string());
+					}
+					else
+					{
+						Log::Error("Failed to import environment: {}", filepath);
+					}
+				}
+			}
+			
+			ImGui::Unindent();
+			ImGui::Spacing();
+			ImGui::Separator();
+			ImGui::Spacing();
+			
+			// Environment settings
 			ImGui::SliderFloat("Intensity", &light.Intensity, 0.0f, 10.0f);
 			ImGui::ColorEdit3("Tint", &light.Tint.x);
 			ImGui::SliderFloat("Rotation", &light.Rotation, 0.0f, 360.0f);
@@ -541,6 +629,333 @@ namespace ignis {
 		}
 		
 		Log::Info("Successfully loaded model: {}", filepath);
+	}
+
+	void PropertiesPanel::RenderMeshComponent(MeshComponent& mesh_component)
+	{
+		ImGui::PushID("MeshComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Mesh Component", flags);
+		
+		// Remove button
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<MeshComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			// Display mesh info
+			if (mesh_component.Mesh.IsValid())
+			{
+				ImGui::Text("Mesh Handle: %llu", mesh_component.Mesh);
+				
+				// Show mesh file path if available
+				if (auto* metadata = AssetManager::GetMetadata(mesh_component.Mesh))
+				{
+					ImGui::TextWrapped("File: %s", metadata->FilePath.filename().string().c_str());
+				}
+			}
+			else
+			{
+				ImGui::TextDisabled("No mesh loaded");
+			}
+			
+			// Browse Model button
+			if (ImGui::Button("Browse Model...", ImVec2(-1, 0)))
+			{
+				std::string filepath = FileDialog::OpenFile("3D Models", {"obj", "fbx", "gltf", "glb"});
+				if (!filepath.empty())
+				{
+					LoadMeshFromFile(filepath, mesh_component);
+				}
+			}
+			
+			ImGui::Separator();
+			ImGui::Spacing();
+			
+			// Material/Texture section
+			if (ImGui::TreeNodeEx("Material Textures", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				RenderTextureMapSlot("Albedo Map", mesh_component.MeterialData.AlbedoMap, mesh_component, MaterialType::Albedo);
+				RenderTextureMapSlot("Normal Map", mesh_component.MeterialData.NormalMap, mesh_component, MaterialType::Normal);
+				RenderTextureMapSlot("Metalness Map", mesh_component.MeterialData.MetalnessMap, mesh_component, MaterialType::Metal);
+				RenderTextureMapSlot("Roughness Map", mesh_component.MeterialData.RoughnessMap, mesh_component, MaterialType::Roughness);
+				RenderTextureMapSlot("Emissive Map", mesh_component.MeterialData.EmissiveMap, mesh_component, MaterialType::Emissive);
+				RenderTextureMapSlot("AO Map", mesh_component.MeterialData.AOMap, mesh_component, MaterialType::AO);
+				
+				ImGui::TreePop();
+			}
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
+	}
+
+	void PropertiesPanel::RenderScriptComponent(ScriptComponent& script_component)
+	{
+		ImGui::PushID("ScriptComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Script Component", flags);
+		
+		// Remove button
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<ScriptComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			// Script class name input
+			char buffer[256];
+			strncpy(buffer, script_component.ClassName.c_str(), sizeof(buffer) - 1);
+			buffer[sizeof(buffer) - 1] = '\0';
+			
+			if (ImGui::InputText("Class Name", buffer, sizeof(buffer)))
+			{
+				script_component.ClassName = buffer;
+			}
+			
+			// Enabled checkbox
+			ImGui::Checkbox("Enabled", &script_component.Enabled);
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
+	}
+
+	void PropertiesPanel::RenderTextureMapSlot(const char* label, AssetHandle& texture_handle, MeshComponent& mesh_component, MaterialType type)
+	{
+		ImGui::PushID(label);
+		
+		// Label
+		ImGui::Text("%s:", label);
+		ImGui::Indent();
+		
+		// Display texture info
+		if (texture_handle.IsValid())
+		{
+			if (auto* metadata = AssetManager::GetMetadata(texture_handle))
+			{
+				ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), "Loaded");
+				ImGui::SameLine();
+				ImGui::TextWrapped("%s", metadata->FilePath.filename().string().c_str());
+			}
+			else
+			{
+				ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.4f, 1.0f), "Handle: %llu", texture_handle);
+			}
+		}
+		else
+		{
+			ImGui::TextDisabled("Not loaded");
+		}
+		
+		// Browse button
+		if (ImGui::Button("Browse...", ImVec2(-1, 0)))
+		{
+			std::string filepath = FileDialog::OpenFile("Texture Files", {"png", "jpg", "jpeg", "tga", "bmp"});
+			if (!filepath.empty())
+			{
+				// Import texture
+				AssetHandle new_texture_handle = AssetManager::ImportAsset(filepath);
+				if (new_texture_handle.IsValid())
+				{
+					// Update the texture handle
+					texture_handle = new_texture_handle;
+					
+					// Update mesh material data if mesh is loaded
+					if (mesh_component.Mesh.IsValid())
+					{
+						auto mesh = AssetManager::GetAsset<Mesh>(mesh_component.Mesh);
+						if (mesh && !mesh->GetMaterialsData().empty())
+						{
+							mesh->SetMaterialDataTexture(0, type, new_texture_handle);
+						}
+					}
+					
+					// Save asset registry to persist the imported texture
+					AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
+					
+					Log::CoreInfo("PropertiesPanel: Loaded texture '{}' for {}", 
+					              std::filesystem::path(filepath).filename().string(), 
+					              label);
+				}
+				else
+				{
+					Log::Error("Failed to import texture: {}", filepath);
+				}
+			}
+		}
+		
+		ImGui::Unindent();
+		ImGui::Spacing();
+		ImGui::PopID();
+	}
+
+	void PropertiesPanel::LoadMeshFromFile(const std::string& filepath, MeshComponent& mesh_component)
+	{
+		// Validate file extension
+		std::filesystem::path path(filepath);
+		std::string extension = path.extension().string();
+		
+		// Convert to lowercase for comparison
+		std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+		
+		if (extension != ".obj" && extension != ".fbx" && extension != ".gltf" && extension != ".glb")
+		{
+			Log::Error("Invalid model file format: {}. Supported formats: .obj, .fbx, .gltf, .glb", extension);
+			return;
+		}
+		
+		// Import mesh asset
+		AssetHandle mesh_handle = AssetManager::ImportAsset(filepath);
+		if (!mesh_handle.IsValid())
+		{
+			Log::Error("Failed to import model: {}", filepath);
+			return;
+		}
+		
+		// Save asset registry to persist the imported mesh
+		AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
+		
+		// Load mesh to verify it's valid
+		auto new_mesh = AssetManager::GetAsset<Mesh>(mesh_handle);
+		if (!new_mesh)
+		{
+			Log::Error("Failed to load mesh asset: {}", filepath);
+			return;
+		}
+		
+		// Validate mesh has vertices
+		if (new_mesh->GetVertices().empty())
+		{
+			Log::Error("Loaded mesh has no vertices: {}", filepath);
+			return;
+		}
+		
+		// Assign mesh handle to component
+		mesh_component.Mesh = mesh_handle;
+		
+		// Initialize materials with default textures for missing slots
+		const auto& materials = new_mesh->GetMaterialsData();
+		Log::CoreInfo("Loaded model with {} materials: {}", materials.size(), filepath);
+		
+		for (uint32_t i = 0; i < materials.size(); ++i)
+		{
+			const MaterialData& mat = materials[i];
+			
+			// Set default textures for missing material slots
+			if (!mat.AlbedoMap.IsValid())
+			{
+				new_mesh->SetMaterialDataTexture(i, MaterialType::Albedo, 
+				                                      Renderer::GetWhiteTextureHandle());
+			}
+			
+			if (!mat.NormalMap.IsValid())
+			{
+				new_mesh->SetMaterialDataTexture(i, MaterialType::Normal, 
+				                                      Renderer::GetDefaultNormalTextureHandle());
+			}
+			
+			if (!mat.MetalnessMap.IsValid())
+			{
+				new_mesh->SetMaterialDataTexture(i, MaterialType::Metal, 
+				                                      Renderer::GetBlackTextureHandle());
+			}
+			
+			if (!mat.RoughnessMap.IsValid())
+			{
+				new_mesh->SetMaterialDataTexture(i, MaterialType::Roughness, 
+				                                      Renderer::GetDefaultRoughnessTextureHandle());
+			}
+			
+			if (!mat.EmissiveMap.IsValid())
+			{
+				new_mesh->SetMaterialDataTexture(i, MaterialType::Emissive, 
+				                                      Renderer::GetBlackTextureHandle());
+			}
+			
+			if (!mat.AOMap.IsValid())
+			{
+				new_mesh->SetMaterialDataTexture(i, MaterialType::AO, 
+				                                      Renderer::GetWhiteTextureHandle());
+			}
+		}
+		
+		// Copy material data back to component (only if materials exist)
+		if (!new_mesh->GetMaterialsData().empty())
+		{
+			mesh_component.MeterialData = new_mesh->GetMaterialsData()[0];
+		}
+		else
+		{
+			// Initialize with default material data
+			mesh_component.MeterialData = MaterialData{};
+			Log::CoreWarn("Mesh has no materials, using default material data");
+		}
+		
+		if (auto entity = m_selected_entity.lock())
+		{
+			Log::CoreInfo("PropertiesPanel: Loaded mesh '{}' into entity '{}'", 
+			              path.filename().string(),
+			              entity->GetComponent<TagComponent>().Tag);
+		}
+	}
+
+	// Template helper function for drawing add component menu items
+	template<typename T>
+	static void DrawAddComponentMenuItemImpl(std::shared_ptr<Entity> entity, const char* name)
+	{
+		// Don't show if entity already has this component
+		if (entity->HasComponent<T>())
+			return;
+		
+		if (ImGui::MenuItem(name))
+		{
+			entity->AddComponent<T>();
+			Log::CoreInfo("PropertiesPanel: Added {} to entity '{}'", 
+						  name, 
+						  entity->GetComponent<TagComponent>().Tag);
+			ImGui::CloseCurrentPopup();
+		}
+	}
+
+	void PropertiesPanel::DrawAddComponentMenu(std::shared_ptr<Entity> entity)
+	{
+		ImGui::TextDisabled("Select Component to Add:");
+		ImGui::Separator();
+		
+		// Light Components
+		ImGui::Text("Lights:");
+		DrawAddComponentMenuItemImpl<DirectionalLightComponent>(entity, "  Directional Light");
+		DrawAddComponentMenuItemImpl<PointLightComponent>(entity, "  Point Light");
+		DrawAddComponentMenuItemImpl<SpotLightComponent>(entity, "  Spot Light");
+		DrawAddComponentMenuItemImpl<SkyLightComponent>(entity, "  Sky Light");
+		
+		ImGui::Separator();
+		
+		// Rendering Components
+		ImGui::Text("Rendering:");
+		DrawAddComponentMenuItemImpl<MeshComponent>(entity, "  Mesh");
+		
+		ImGui::Separator();
+		
+		// Script Component
+		ImGui::Text("Scripting:");
+		DrawAddComponentMenuItemImpl<ScriptComponent>(entity, "  Script");
 	}
 
 } // namespace ignis

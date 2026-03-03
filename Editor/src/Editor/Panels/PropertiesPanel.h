@@ -35,12 +35,19 @@ namespace ignis {
 		void RenderPointLightComponent(PointLightComponent& light);
 		void RenderSpotLightComponent(SpotLightComponent& light);
 		void RenderSkyLightComponent(SkyLightComponent& light);
+		void RenderMeshComponent(MeshComponent& mesh);
+		void RenderScriptComponent(ScriptComponent& script);
 		
 		// Mesh editing UI
 		void RenderMeshEditor();
 		void RenderMaterialsUI(std::shared_ptr<Mesh> mesh);
 		void RenderTextureSlot(std::shared_ptr<Mesh> mesh, uint32_t material_index, MaterialType type, const char* label);
 		void LoadNewModel(const std::string& filepath);
+		void LoadMeshFromFile(const std::string& filepath, MeshComponent& mesh_component);
+		void RenderTextureMapSlot(const char* label, AssetHandle& texture_handle, MeshComponent& mesh_component, MaterialType type);
+		
+		// Add Component UI
+		void DrawAddComponentMenu(std::shared_ptr<Entity> entity);
 		
 	private:
 		// TODO: Replace weak_ptr with EntityHandle + Scene* for safer entity management

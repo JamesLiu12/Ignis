@@ -59,5 +59,7 @@ namespace ignis
 	private:
 		entt::entity m_handle = entt::null;
 		Scene* m_scene = nullptr;
+
+		friend class Scene;
 	};
 }

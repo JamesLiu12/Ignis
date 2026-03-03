@@ -305,6 +305,8 @@ void EditorSceneLayer::ReloadProject()
 	if (auto* asset_browser = m_editor_app->GetAssetBrowserPanel())
 	{
 		asset_browser->Refresh();
+		// Save asset registry after scanning to persist all imported assets
+		AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
 	}
 	
 	// Update hierarchy panel with all entities from the scene

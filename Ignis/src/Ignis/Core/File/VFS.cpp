@@ -254,4 +254,60 @@ namespace ignis {
         }
     }
 
+    std::string VFS::ToVFSPath(const std::filesystem::path& absolute_path)
+    {
+        if (!s_initialized)
+        {
+            Log::CoreWarn("VFS: Cannot convert to VFS path - VFS not initialized!");
+            return absolute_path.string();
+        }
+
+        // Convert to string for comparison
+        std::string path_str = absolute_path.string();
+        
+        // Check if already a VFS path
+        if (path_str.find("://") != std::string::npos)
+        {
+            Log::CoreTrace("VFS: Path already in VFS format: {}", path_str);
+            return path_str;
+        }
+
+        // Normalize the input path (removes trailing slashes, resolves . and ..)
+        std::filesystem::path normalized_path = std::filesystem::absolute(absolute_path).lexically_normal();
+        
+        // Try to match against mount points (sorted by priority)
+        std::vector<MountPoint> sorted_mounts;
+        for (const auto& [protocol, mount] : s_mount_points)
+        {
+            sorted_mounts.push_back(mount);
+        }
+        std::sort(sorted_mounts.begin(), sorted_mounts.end());
+
+        for (const auto& mount : sorted_mounts)
+        {
+            // Normalize mount point path
+            std::filesystem::path normalized_mount = std::filesystem::absolute(mount.physical_path).lexically_normal();
+            
+            // Try to get relative path
+            std::error_code ec;
+            std::filesystem::path relative = normalized_path.lexically_relative(normalized_mount);
+            
+            // Check if path is actually relative (not starting with ..)
+            if (!relative.empty() && relative.string().substr(0, 2) != "..")
+            {
+                // Convert to Unix-style path separators
+                std::string relative_str = relative.string();
+                std::replace(relative_str.begin(), relative_str.end(), '\\', '/');
+                
+                std::string vfs_path = mount.protocol + "://" + relative_str;
+                Log::CoreTrace("VFS: Converted '{}' -> '{}'", absolute_path.string(), vfs_path);
+                return vfs_path;
+            }
+        }
+
+        // Path is not within any mount point - return as absolute path
+        Log::CoreTrace("VFS: Path not within any mount point: {}", absolute_path.string());
+        return FileSystem::ToUnixPath(absolute_path);
+    }
+
 }

@@ -22,6 +22,9 @@ namespace ignis {
         static bool Exists(const std::string& virtual_path);
         static std::string ParentPath(const std::string& virtual_path);
         static std::string ConcatPath(const std::string& path1, const std::string& path2);
+        
+        // Path conversion
+        static std::string ToVFSPath(const std::filesystem::path& absolute_path);
 
         // File operations through VFS
         static File Open(const std::string& virtual_path);
