@@ -310,6 +310,9 @@ void EditorSceneLayer::ReloadProject()
 	m_script_module.RegisterAll(ignis::ScriptRegistry::Get());
 	auto camera_entity = m_scene->CreateEntity("Camera");
 	m_scene->OnRuntimeStart();
+
+	auto& window = m_editor_app->GetWindow();
+	m_scene->OnViewportResize(window.GetFramebufferWidth(), window.GetFramebufferHeight());
 	
 	// Refresh asset browser with new project files
 	if (auto* asset_browser = m_editor_app->GetAssetBrowserPanel())
