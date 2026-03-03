@@ -98,6 +98,38 @@ namespace ignis
 		Log::CoreInfo("Scene: Destroyed entity {}", entity_id.ToString());
 	}
 
+	std::shared_ptr<Camera> Scene::GetPrimaryCamera()
+	{
+		std::shared_ptr<Camera> result;
+
+		auto view = m_registry.view<CameraComponent, TransformComponent>();
+		view.each([&](auto entity_handle, CameraComponent& camera_component, TransformComponent&)
+			{
+				if (result) return;
+
+				if (!camera_component.Primary) return;
+
+				Entity entity(entity_handle, this);
+				camera_component.Camera->SetViewFromWorldTransform(entity.GetWorldTransform());
+				result = camera_component.Camera;
+			});
+
+		return result;
+	}
+
+	void Scene::OnViewportResize(uint32_t width, uint32_t height)
+	{
+		if (width == 0 || height == 0) return;
+
+		float aspect = static_cast<float>(width) / static_cast<float>(height);
+		auto view = m_registry.view<CameraComponent>();
+		view.each([aspect](CameraComponent& camera_component)
+			{
+				if (!camera_component.FixedAspectRatio)
+					camera_component.Camera->SetAspectRatio(aspect);
+			});
+	}
+
 	static inline void ComputeAttenuationFromRange(float range, float& out_linear, float& out_quadratic, float edge = 0.01f)
 	{
 		range = std::max(range, 1e-4f);
@@ -291,6 +323,13 @@ namespace ignis
 					return;
 
 				it->second.GetBehaviour().OnUpdate(dt);
+			});
+
+		auto cameras = m_registry.view<CameraComponent, TransformComponent>();
+		cameras.each([&](entt::entity entity_handle, CameraComponent& camera_component, TransformComponent&)
+			{
+				Entity entity(entity_handle, this);
+				camera_component.Camera->SetViewFromWorldTransform(entity.GetWorldTransform());
 			});
 	}
 

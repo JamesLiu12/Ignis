@@ -74,9 +74,8 @@ namespace ignis
 
 	struct CameraComponent : Component
 	{
-		SceneCamera Camera;
+		std::shared_ptr<SceneCamera> Camera = std::make_shared<SceneCamera>();
 		bool Primary = true;
-		bool Enabled = true;
 		bool FixedAspectRatio = false;
 
 		CameraComponent() = default;
