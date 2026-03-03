@@ -45,6 +45,14 @@ namespace ignis {
 						m_properties_panel->SetSelectedEntity(nullptr);
 					}
 				}
+
+				// Right-click on blank space to create root entity
+				if (ImGui::BeginPopupContextWindow("SceneHierarchyContextMenu", 
+					ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+				{
+					DrawEntityCreateMenu();  // No parent = root entity
+					ImGui::EndPopup();
+				}
 			}
 			else
 			{
@@ -94,6 +102,29 @@ namespace ignis {
 			}
 		}
 
+		// Right-click context menu for entity
+		if (ImGui::BeginPopupContextItem())
+		{
+			// Create child entity option
+			if (ImGui::MenuItem("Create Child Entity"))
+			{
+				Entity new_child = m_scene->CreateEntity(entity, "Entity");
+				
+				// Select the newly created child
+				m_selected_entity = std::make_shared<Entity>(new_child);
+				if (m_properties_panel)
+				{
+					m_properties_panel->SetSelectedEntity(m_selected_entity);
+				}
+				
+				Log::CoreInfo("SceneHierarchy: Created child entity '{}' under '{}'", 
+							  new_child.GetComponent<TagComponent>().Tag,
+							  name);
+			}
+			
+			ImGui::EndPopup();
+		}
+
 		// Recursively render children if tree node is open
 		if (opened && !children.empty())
 		{
@@ -102,6 +133,32 @@ namespace ignis {
 				DrawEntityNode(child);
 			}
 			ImGui::TreePop();
+		}
+	}
+
+	void SceneHierarchyPanel::DrawEntityCreateMenu(Entity parent)
+	{
+		if (ImGui::MenuItem("Create Empty Entity"))
+		{
+			Entity new_entity;
+			if (parent.IsValid())
+			{
+				new_entity = m_scene->CreateEntity(parent, "Entity");
+			}
+			else
+			{
+				new_entity = m_scene->CreateEntity("Entity");
+			}
+			
+			// Select the newly created entity
+			m_selected_entity = std::make_shared<Entity>(new_entity);
+			if (m_properties_panel)
+			{
+				m_properties_panel->SetSelectedEntity(m_selected_entity);
+			}
+			
+			Log::CoreInfo("SceneHierarchy: Created entity '{}'", 
+						  new_entity.GetComponent<TagComponent>().Tag);
 		}
 	}
 

@@ -23,6 +23,7 @@ namespace ignis {
 
 	private:
 		void DrawEntityNode(Entity entity);
+		void DrawEntityCreateMenu(Entity parent = Entity());
 
 	private:
 		std::shared_ptr<Scene> m_scene;
