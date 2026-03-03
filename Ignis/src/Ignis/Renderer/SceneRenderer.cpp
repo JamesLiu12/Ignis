@@ -41,8 +41,19 @@ namespace ignis
 
 	void SceneRenderer::SubmitMesh(const Mesh& mesh, const glm::mat4& transform) const
 	{
-		m_renderer.RenderMesh(mesh, transform, *m_context.Scene->m_scene_environment, 
-			m_context.Scene->m_environment_settings, m_context.Scene->m_light_environment);
+		// Use scene environment if available, otherwise create a default empty one
+		if (m_context.Scene->m_scene_environment)
+		{
+			m_renderer.RenderMesh(mesh, transform, *m_context.Scene->m_scene_environment, 
+				m_context.Scene->m_environment_settings, m_context.Scene->m_light_environment);
+		}
+		else
+		{
+			// Create temporary empty environment for rendering without skybox
+			Environment empty_env;
+			m_renderer.RenderMesh(mesh, transform, empty_env, 
+				m_context.Scene->m_environment_settings, m_context.Scene->m_light_environment);
+		}
 	}
 
 	void SceneRenderer::SubmitSkybox() const

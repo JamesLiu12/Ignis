@@ -423,6 +423,62 @@ namespace ignis {
 		
 		if (open)
 		{
+			// Environment Asset section
+			ImGui::Text("Environment:");
+			ImGui::Indent();
+			
+			// Display current environment info
+			if (light.SceneEnvironment.IsValid())
+			{
+				if (auto* metadata = AssetManager::GetMetadata(light.SceneEnvironment))
+				{
+					ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), "Loaded");
+					ImGui::SameLine();
+					ImGui::TextWrapped("%s", metadata->FilePath.string().c_str());
+				}
+				else
+				{
+					ImGui::TextColored(ImVec4(0.8f, 0.4f, 0.4f, 1.0f), "Invalid Handle");
+					ImGui::SameLine();
+					ImGui::Text("%llu", (uint64_t)light.SceneEnvironment);
+				}
+			}
+			else
+			{
+				ImGui::TextDisabled("No environment loaded");
+			}
+			
+			// Browse button
+			if (ImGui::Button("Browse Environment...", ImVec2(-1, 0)))
+			{
+				std::string filepath = FileDialog::OpenFile("HDR Environment", {"hdr"});
+				if (!filepath.empty())
+				{
+					// Import environment asset
+					AssetHandle env_handle = AssetManager::ImportAsset(filepath);
+					if (env_handle.IsValid())
+					{
+						light.SceneEnvironment = env_handle;
+						
+						// Save asset registry
+						AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
+						
+						Log::CoreInfo("PropertiesPanel: Loaded environment '{}'", 
+						              std::filesystem::path(filepath).filename().string());
+					}
+					else
+					{
+						Log::Error("Failed to import environment: {}", filepath);
+					}
+				}
+			}
+			
+			ImGui::Unindent();
+			ImGui::Spacing();
+			ImGui::Separator();
+			ImGui::Spacing();
+			
+			// Environment settings
 			ImGui::SliderFloat("Intensity", &light.Intensity, 0.0f, 10.0f);
 			ImGui::ColorEdit3("Tint", &light.Tint.x);
 			ImGui::SliderFloat("Rotation", &light.Rotation, 0.0f, 360.0f);
