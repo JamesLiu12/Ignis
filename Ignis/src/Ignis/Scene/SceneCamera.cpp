@@ -1,8 +1,5 @@
 #include "SceneCamera.h"
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/constants.hpp>
-
 namespace ignis
 {
 	SceneCamera::SceneCamera()
@@ -16,114 +13,107 @@ namespace ignis
 		RecalculateProjection();
 	}
 
-	SceneCamera::ProjectionType SceneCamera::GetProjectionType() const
+	void SceneCamera::SetAspectRatio(float aspect_ratio)
 	{
-		return m_projection_type;
+		m_aspect_ratio = aspect_ratio;
+		RecalculateProjection();
 	}
 
-	void SceneCamera::SetPerspectiveVerticalFOV(float fov_deg)
+	void SceneCamera::SetPerspective(float fov_deg, float near_clip, float far_clip)
 	{
-		m_perspective_fov_deg = fov_deg;
+		m_projection_type = ProjectionType::Perspective;
+		m_perspective_fov = fov_deg;
+		m_perspective_near = near_clip;
+		m_perspective_far = far_clip;
 		RecalculateProjection();
+	}
+
+	void SceneCamera::SetPerspectiveFOV(float fov_deg)
+	{
+		m_perspective_fov = fov_deg;
+		if (m_projection_type == ProjectionType::Perspective)
+			RecalculateProjection();
 	}
 
 	void SceneCamera::SetPerspectiveNearClip(float near_clip)
 	{
 		m_perspective_near = near_clip;
-		RecalculateProjection();
+		if (m_projection_type == ProjectionType::Perspective)
+			RecalculateProjection();
 	}
 
 	void SceneCamera::SetPerspectiveFarClip(float far_clip)
 	{
 		m_perspective_far = far_clip;
+		if (m_projection_type == ProjectionType::Perspective)
+			RecalculateProjection();
+	}
+
+	void SceneCamera::SetOrthographic(float size, float near_clip, float far_clip)
+	{
+		m_projection_type = ProjectionType::Orthographic;
+		m_orthographic_size = size;
+		m_orthographic_near = near_clip;
+		m_orthographic_far = far_clip;
 		RecalculateProjection();
-	}
-
-	float SceneCamera::GetPerspectiveVerticalFOV() const
-	{
-		return m_perspective_fov_deg;
-	}
-
-	float SceneCamera::GetPerspectiveNearClip() const
-	{
-		return m_perspective_near;
-	}
-
-	float SceneCamera::GetPerspectiveFarClip() const
-	{
-		return m_perspective_far;
 	}
 
 	void SceneCamera::SetOrthographicSize(float size)
 	{
 		m_orthographic_size = size;
-		RecalculateProjection();
+		if (m_projection_type == ProjectionType::Orthographic)
+			RecalculateProjection();
 	}
 
 	void SceneCamera::SetOrthographicNearClip(float near_clip)
 	{
 		m_orthographic_near = near_clip;
-		RecalculateProjection();
+		if (m_projection_type == ProjectionType::Orthographic)
+			RecalculateProjection();
 	}
 
 	void SceneCamera::SetOrthographicFarClip(float far_clip)
 	{
 		m_orthographic_far = far_clip;
-		RecalculateProjection();
+		if (m_projection_type == ProjectionType::Orthographic)
+			RecalculateProjection();
 	}
 
-	float SceneCamera::GetOrthographicSize() const
+	void SceneCamera::SetViewFromWorldTransform(const glm::mat4& world_transform)
 	{
-		return m_orthographic_size;
-	}
+		m_position = glm::vec3(world_transform[3]);
 
-	float SceneCamera::GetOrthographicNearClip() const
-	{
-		return m_orthographic_near;
-	}
+		glm::vec3 col0 = glm::normalize(glm::vec3(world_transform[0]));
+		glm::vec3 col1 = glm::normalize(glm::vec3(world_transform[1]));
+		glm::vec3 col2 = glm::normalize(glm::vec3(world_transform[2]));
+		m_orientation = glm::quat_cast(glm::mat3(col0, col1, col2));
 
-	float SceneCamera::GetOrthographicFarClip() const
-	{
-		return m_orthographic_far;
-	}
-
-	void SceneCamera::SetViewportSize(uint32_t width, uint32_t height)
-	{
-		if (width == 0 || height == 0)
-			return;
-
-		m_aspect_ratio = static_cast<float>(width) / static_cast<float>(height);
-		RecalculateProjection();
-	}
-
-	void SceneCamera::SetAspectRatio(float aspect_ratio)
-	{
-		if (aspect_ratio <= 0.0f)
-			return;
-
-		m_aspect_ratio = aspect_ratio;
-		RecalculateProjection();
-	}
-
-	float SceneCamera::GetAspectRatio() const
-	{
-		return m_aspect_ratio;
+		glm::mat4 transform = glm::translate(glm::mat4(1.0f), m_position)
+			* glm::mat4_cast(m_orientation);
+		m_view = glm::inverse(transform);
 	}
 
 	void SceneCamera::RecalculateProjection()
 	{
 		if (m_projection_type == ProjectionType::Perspective)
 		{
-			const glm::mat4 proj = glm::perspective(glm::radians(m_perspective_fov_deg), m_aspect_ratio, m_perspective_near, m_perspective_far);
-			SetProjection(proj);
+			m_projection = glm::perspective(
+				glm::radians(m_perspective_fov),
+				m_aspect_ratio,
+				m_perspective_near,
+				m_perspective_far
+			);
 		}
 		else
 		{
-			const float half_h = m_orthographic_size * 0.5f;
-			const float half_w = half_h * m_aspect_ratio;
-
-			const glm::mat4 proj = glm::ortho(-half_w, half_w, -half_h, half_h, m_orthographic_near, m_orthographic_far);
-			SetProjection(proj);
+			float half_h = m_orthographic_size * 0.5f;
+			float half_w = half_h * m_aspect_ratio;
+			m_projection = glm::ortho(
+				-half_w, half_w,
+				-half_h, half_h,
+				m_orthographic_near,
+				m_orthographic_far
+			);
 		}
 	}
 }
