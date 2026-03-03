@@ -222,7 +222,7 @@ namespace ignis
 		if (entity_data.contains("Transform"))
 		{
 			const auto& transform_data = entity_data["Transform"];
-			auto& transform = entity.AddComponent<TransformComponent>();
+			auto& transform = entity.GetComponent<TransformComponent>();
 			transform.Translation = DeserializeVec3(transform_data["Translation"]);
 			transform.Rotation = DeserializeVec3(transform_data["Rotation"]);
 			transform.Scale = DeserializeVec3(transform_data["Scale"]);
