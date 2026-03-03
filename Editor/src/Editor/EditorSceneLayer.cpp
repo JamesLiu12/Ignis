@@ -308,7 +308,6 @@ void EditorSceneLayer::ReloadProject()
 
 	m_script_module.Load(Project::ResolveActiveScriptModulePath());
 	m_script_module.RegisterAll(ignis::ScriptRegistry::Get());
-	auto camera_entity = m_scene->CreateEntity("Camera");
 	m_scene->OnRuntimeStart();
 
 	auto& window = m_editor_app->GetWindow();
