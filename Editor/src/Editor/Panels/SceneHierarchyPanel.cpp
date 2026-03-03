@@ -86,7 +86,44 @@ namespace ignis {
 			flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
 		}
 
-		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, "%s", name.c_str());
+		// Check if this entity is being renamed
+		bool is_renaming = m_renaming_entity && *m_renaming_entity == entity;
+		
+		bool opened = false;
+		if (is_renaming)
+		{
+			// Show tree node with input field for renaming
+			opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, "");
+			ImGui::SameLine();
+			
+			ImGui::SetNextItemWidth(-1);
+			if (ImGui::InputText("##rename", m_rename_buffer, sizeof(m_rename_buffer), 
+				ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
+			{
+				// Apply rename on Enter
+				if (strlen(m_rename_buffer) > 0)
+				{
+					entity.GetComponent<TagComponent>().Tag = m_rename_buffer;
+				}
+				m_renaming_entity = nullptr;
+			}
+			
+			// Exit rename mode on Escape or focus loss
+			if (ImGui::IsKeyPressed(ImGuiKey_Escape) || (!ImGui::IsItemActive() && !ImGui::IsItemFocused()))
+			{
+				m_renaming_entity = nullptr;
+			}
+			
+			// Auto-focus the input field
+			if (ImGui::IsItemVisible())
+			{
+				ImGui::SetKeyboardFocusHere(-1);
+			}
+		}
+		else
+		{
+			opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, "%s", name.c_str());
+		}
 
 		// Handle selection
 		if (ImGui::IsItemClicked())
@@ -105,6 +142,16 @@ namespace ignis {
 		// Right-click context menu for entity
 		if (ImGui::BeginPopupContextItem())
 		{
+			// Rename entity option
+			if (ImGui::MenuItem("Rename Entity"))
+			{
+				m_renaming_entity = std::make_shared<Entity>(entity);
+				strncpy(m_rename_buffer, name.c_str(), sizeof(m_rename_buffer) - 1);
+				m_rename_buffer[sizeof(m_rename_buffer) - 1] = '\0';
+			}
+			
+			ImGui::Separator();
+			
 			// Create child entity option
 			if (ImGui::MenuItem("Create Child Entity"))
 			{

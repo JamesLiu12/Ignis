@@ -29,6 +29,8 @@ namespace ignis {
 		std::shared_ptr<Scene> m_scene;
 		PropertiesPanel* m_properties_panel = nullptr;
 		std::shared_ptr<Entity> m_selected_entity;
+		std::shared_ptr<Entity> m_renaming_entity;
+		char m_rename_buffer[256] = "";
 	};
 
 } // namespace ignis
