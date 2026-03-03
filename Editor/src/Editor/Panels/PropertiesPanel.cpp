@@ -895,8 +895,17 @@ namespace ignis {
 			}
 		}
 		
-		// Copy material data back to component
-		mesh_component.MeterialData = new_mesh->GetMaterialsData()[0];
+		// Copy material data back to component (only if materials exist)
+		if (!new_mesh->GetMaterialsData().empty())
+		{
+			mesh_component.MeterialData = new_mesh->GetMaterialsData()[0];
+		}
+		else
+		{
+			// Initialize with default material data
+			mesh_component.MeterialData = MaterialData{};
+			Log::CoreWarn("Mesh has no materials, using default material data");
+		}
 		
 		if (auto entity = m_selected_entity.lock())
 		{

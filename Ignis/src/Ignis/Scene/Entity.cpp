@@ -43,6 +43,29 @@ namespace ignis
 
 		if (!new_parent) return;
 
+		// Prevent circular parent references
+		Entity ancestor = new_parent;
+		int depth = 0;
+		constexpr int MAX_DEPTH = 1000;
+		
+		while (ancestor)
+		{
+			if (ancestor == *this)
+			{
+				Log::CoreError("Cannot set parent: would create circular reference for entity {}",
+				              GetID().ToString());
+				return;
+			}
+			
+			if (++depth > MAX_DEPTH)
+			{
+				Log::CoreError("Parent chain too deep (>{}) for entity {}, possible corruption",
+				              MAX_DEPTH, GetID().ToString());
+				return;
+			}
+			
+			ancestor = ancestor.GetParent();
+		}
 
 		UUID new_parent_id = new_parent.GetID();
 		UUID my_id = GetID();
@@ -332,9 +355,22 @@ namespace ignis
 		glm::mat4 transform = GetLocalTransform();
 		Entity entity = *this;
 
+		// Prevent infinite loops from circular parent references
+		constexpr int MAX_HIERARCHY_DEPTH = 1000;
+		int depth = 0;
+
 		while (auto parent = entity.GetParent())
 		{
-			transform *= parent.GetLocalTransform();
+			if (++depth > MAX_HIERARCHY_DEPTH)
+			{
+				Log::CoreError("Entity hierarchy depth exceeded {} - possible circular reference detected for entity {}",
+				              MAX_HIERARCHY_DEPTH, GetID().ToString());
+				break;
+			}
+
+			// Correct transform order: parent * child (not child * parent)
+			transform = parent.GetLocalTransform() * transform;
+			entity = parent;
 		}
 
 		return transform;
