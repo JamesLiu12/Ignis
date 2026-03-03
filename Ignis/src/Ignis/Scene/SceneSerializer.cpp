@@ -88,6 +88,26 @@ namespace ignis
 			entity_data["Transform"] = transform_data;
 		}
 
+		if (entity.HasComponent<CameraComponent>())
+		{
+			const auto& cam_comp = entity.GetComponent<CameraComponent>();
+			const auto& cam = *cam_comp.Camera;
+			ordered_json cam_data;
+
+			cam_data["Primary"] = cam_comp.Primary;
+			cam_data["FixedAspectRatio"] = cam_comp.FixedAspectRatio;
+			cam_data["ProjectionType"] = static_cast<int>(cam.GetProjectionType());
+			cam_data["AspectRatio"] = cam.GetAspectRatio();
+			cam_data["PerspectiveFOV"] = cam.GetPerspectiveFOV();
+			cam_data["PerspectiveNear"] = cam.GetPerspectiveNearClip();
+			cam_data["PerspectiveFar"] = cam.GetPerspectiveFarClip();
+			cam_data["OrthographicSize"] = cam.GetOrthographicSize();
+			cam_data["OrthographicNear"] = cam.GetOrthographicNearClip();
+			cam_data["OrthographicFar"] = cam.GetOrthographicFarClip();
+
+			entity_data["Camera"] = cam_data;
+		}
+
 		if (entity.HasComponent<DirectionalLightComponent>())
 		{
 			const auto& light = entity.GetComponent<DirectionalLightComponent>();
@@ -226,6 +246,38 @@ namespace ignis
 			transform.Translation = DeserializeVec3(transform_data["Translation"]);
 			transform.Rotation = DeserializeVec3(transform_data["Rotation"]);
 			transform.Scale = DeserializeVec3(transform_data["Scale"]);
+		}
+
+		if (entity_data.contains("Camera"))
+		{
+			const auto& cam_data = entity_data["Camera"];
+			auto& cam_comp = entity.AddComponent<CameraComponent>();
+
+			cam_comp.Primary = cam_data.value("Primary", true);
+			cam_comp.FixedAspectRatio = cam_data.value("FixedAspectRatio", false);
+
+			cam_comp.Camera->SetAspectRatio(cam_data.value("AspectRatio", 16.0f / 9.0f));
+
+			auto type = static_cast<SceneCamera::ProjectionType>(
+				cam_data.value("ProjectionType", 0)
+				);
+
+			if (type == SceneCamera::ProjectionType::Perspective)
+			{
+				cam_comp.Camera->SetPerspective(
+					cam_data.value("PerspectiveFOV", 45.0f),
+					cam_data.value("PerspectiveNear", 0.01f),
+					cam_data.value("PerspectiveFar", 1000.0f)
+				);
+			}
+			else
+			{
+				cam_comp.Camera->SetOrthographic(
+					cam_data.value("OrthographicSize", 10.0f),
+					cam_data.value("OrthographicNear", -1.0f),
+					cam_data.value("OrthographicFar", 1.0f)
+				);
+			}
 		}
 
 		if (entity_data.contains("DirectionalLight"))
