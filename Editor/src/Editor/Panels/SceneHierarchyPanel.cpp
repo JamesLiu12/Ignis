@@ -71,8 +71,12 @@ namespace ignis {
 			flags |= ImGuiTreeNodeFlags_Selected;
 		}
 
-		// Use leaf flag since we don't have hierarchy yet
-		flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+		// Check if entity has children
+		std::vector<Entity> children = entity.GetChildren();
+		if (children.empty())
+		{
+			flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+		}
 
 		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, "%s", name.c_str());
 
@@ -88,6 +92,16 @@ namespace ignis {
 				m_properties_panel->SetSelectedEntity(m_selected_entity);
 				Log::CoreInfo("SceneHierarchy: Selected entity '{}'", name);
 			}
+		}
+
+		// Recursively render children if tree node is open
+		if (opened && !children.empty())
+		{
+			for (Entity child : children)
+			{
+				DrawEntityNode(child);
+			}
+			ImGui::TreePop();
 		}
 	}
 
