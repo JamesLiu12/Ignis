@@ -36,10 +36,11 @@ namespace ignis {
 					}
 				}
 
-				// Click on blank space to deselect
+				// Click on blank space to deselect and exit rename mode
 				if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 				{
 					m_selected_entity = nullptr;
+					m_renaming_entity = nullptr;
 					if (m_properties_panel)
 					{
 						m_properties_panel->SetSelectedEntity(nullptr);
@@ -97,6 +98,10 @@ namespace ignis {
 			ImGui::SameLine();
 			
 			ImGui::SetNextItemWidth(-1);
+			
+			// Set focus before InputText
+			ImGui::SetKeyboardFocusHere();
+			
 			if (ImGui::InputText("##rename", m_rename_buffer, sizeof(m_rename_buffer), 
 				ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
 			{
@@ -108,16 +113,10 @@ namespace ignis {
 				m_renaming_entity = nullptr;
 			}
 			
-			// Exit rename mode on Escape or focus loss
-			if (ImGui::IsKeyPressed(ImGuiKey_Escape) || (!ImGui::IsItemActive() && !ImGui::IsItemFocused()))
+			// Exit rename mode on Escape or when input is deactivated (clicked outside)
+			if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsItemDeactivated())
 			{
 				m_renaming_entity = nullptr;
-			}
-			
-			// Auto-focus the input field
-			if (ImGui::IsItemVisible())
-			{
-				ImGui::SetKeyboardFocusHere(-1);
 			}
 		}
 		else
