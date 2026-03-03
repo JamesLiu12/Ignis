@@ -1,4 +1,7 @@
 #include "Editor/Panels/PropertiesPanel.h"
+
+#include "Ignis/Asset/AssetManager.h"
+
 #include <imgui.h>
 
 namespace ignis {
