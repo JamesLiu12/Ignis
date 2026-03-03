@@ -47,7 +47,9 @@ namespace ignis
 
 	void SceneRenderer::SubmitSkybox() const
 	{
-		if (m_context.Scene->m_scene_environment->GetSkyboxMap())
+		// Check if scene environment exists before accessing
+		if (m_context.Scene->m_scene_environment && 
+		    m_context.Scene->m_scene_environment->GetSkyboxMap())
 		{
 			m_renderer.RenderSkybox(*m_context.Scene->m_scene_environment);
 		}

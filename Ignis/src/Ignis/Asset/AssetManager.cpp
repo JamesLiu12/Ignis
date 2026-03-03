@@ -47,7 +47,10 @@ namespace ignis
 
 	AssetHandle AssetManager::ImportAsset(const std::filesystem::path& path, AssetType asset_type)
 	{
-		const AssetMetadata* metadata = GetMetadata(path);
+		// Convert absolute path to VFS path if within project
+		std::string vfs_path = VFS::ToVFSPath(path);
+		
+		const AssetMetadata* metadata = GetMetadata(vfs_path);
 
 		if (metadata)
 		{
@@ -56,7 +59,7 @@ namespace ignis
 		
 		AssetHandle handle = AssetHandle();
 		AssetMetadata new_metadata;
-		new_metadata.FilePath = path;
+		new_metadata.FilePath = vfs_path;
 		if (asset_type == AssetType::Unknown) new_metadata.Type = DetermineTypeFromExtension(path);
 		else new_metadata.Type = asset_type;
 		new_metadata.Handle = handle;

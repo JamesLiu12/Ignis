@@ -204,7 +204,15 @@ namespace ignis
 
 			sky_lights.each([&](auto entity, SkyLightComponent& sky_light)
 				{
-					m_scene_environment = AssetManager::GetAsset<Environment>(sky_light.SceneEnvironment),
+					m_scene_environment = AssetManager::GetAsset<Environment>(sky_light.SceneEnvironment);
+					
+					// Warn if environment asset is missing
+					if (!m_scene_environment)
+					{
+						Log::CoreWarn("SkyLight references missing Environment asset: {}", 
+						              sky_light.SceneEnvironment.ToString());
+					}
+					
 					m_environment_settings.Intensity = sky_light.Intensity;
 					m_environment_settings.Rotation = sky_light.Rotation;
 					m_environment_settings.Tint = sky_light.Tint;
