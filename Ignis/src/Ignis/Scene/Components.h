@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SceneCamera.h"
 #include "Ignis/Core/UUID.h"
 #include "Ignis/Renderer/Material.h"
 
@@ -69,6 +70,17 @@ namespace ignis
 		{
 			return glm::quat(Rotation);
 		}
+	};
+
+	struct CameraComponent : Component
+	{
+		SceneCamera Camera;
+		bool Primary = true;
+		bool Enabled = true;
+		bool FixedAspectRatio = false;
+
+		CameraComponent() = default;
+		CameraComponent(const CameraComponent&) = default;
 	};
 
 	// Directional Light Component
