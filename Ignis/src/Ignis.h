@@ -26,3 +26,6 @@
 #include "Ignis/Scene/Entity.h"
 #include "Ignis/Scene/Components.h"
 #include "Ignis/Scene/SceneSerializer.h"
+
+#include "Ignis/Script/ScriptBehaviour.h"
+#include "Ignis/Script/ScriptAutoRegistry.h"

@@ -2,6 +2,8 @@
 
 #include "File.h"
 
+#include <unordered_map>
+
 namespace ignis {
 
     class VFS

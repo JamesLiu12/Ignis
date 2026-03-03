@@ -1,5 +1,19 @@
 #pragma once
 
+#include <string>
+#include <memory>
+#include <functional>
+#include <cstdint>
+#include <typeindex>
+#include <type_traits>
+#include <utility>
+#include <algorithm>
+#include <vector>
+#include <unordered_map>
+#include <queue>
+#include <mutex>
+#include <atomic>
+
 namespace ignis 
 {
 	class EventBase
@@ -115,12 +129,6 @@ namespace ignis
 				func(event);
 			}
 
-		}
-
-		template<typename... Args>
-		void Dispatch(EventBase& event, Args&&... args)
-		{
-			Dispatch(event, std::forward<Args>(args)...);
 		}
 
 		void QueueEvent(EventPtr event)

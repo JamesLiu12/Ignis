@@ -1,5 +1,9 @@
 #pragma once
 
+#include <filesystem>
+#include <string>
+#include <cstdint>
+
 namespace ignis {
 
     class File

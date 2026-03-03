@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace ignis
 {
 	enum class KeyCode : uint16_t
