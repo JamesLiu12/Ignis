@@ -67,6 +67,8 @@ namespace ignis
 		Entity CreateEntityWithID(UUID uuid, const std::string& name = "");
 		Entity CreateEntityWithID(UUID uuid, Entity parent, const std::string& name = "");
 
+		void DestroyEntity(Entity entity);
+
 		void OnRender(const SceneRenderer& scene_renderer);
 	
 		template<typename... Components>

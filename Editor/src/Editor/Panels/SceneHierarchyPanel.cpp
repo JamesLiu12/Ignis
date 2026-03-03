@@ -121,6 +121,32 @@ namespace ignis {
 							  new_child.GetComponent<TagComponent>().Tag,
 							  name);
 			}
+
+			ImGui::Separator();
+			
+			// Delete entity option
+			if (ImGui::MenuItem("Delete Entity"))
+			{
+				// Clear selection if deleting selected entity
+				if (m_selected_entity && *m_selected_entity == entity)
+				{
+					m_selected_entity = nullptr;
+					if (m_properties_panel)
+					{
+						m_properties_panel->SetSelectedEntity(nullptr);
+					}
+				}
+				
+				// Delete the entity (and its children)
+				m_scene->DestroyEntity(entity);
+				
+				Log::CoreInfo("SceneHierarchy: Deleted entity '{}'", name);
+				
+				// Close popup and skip rendering children
+				ImGui::CloseCurrentPopup();
+				ImGui::EndPopup();
+				return;
+			}
 			
 			ImGui::EndPopup();
 		}

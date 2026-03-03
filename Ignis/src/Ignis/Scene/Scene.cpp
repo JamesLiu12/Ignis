@@ -69,6 +69,35 @@ namespace ignis
 		return {};
 	}
 
+	void Scene::DestroyEntity(Entity entity)
+	{
+		if (!entity.IsValid())
+			return;
+		
+		UUID entity_id = entity.GetID();
+		
+		// Recursively delete all children first
+		std::vector<Entity> children = entity.GetChildren();
+		for (Entity child : children)
+		{
+			DestroyEntity(child);
+		}
+		
+		// Unparent from parent (updates parent's child list)
+		if (entity.GetParent())
+		{
+			entity.Unparent();
+		}
+		
+		// Remove from ID-entity map
+		m_id_entity_map.erase(entity_id);
+		
+		// Destroy the entity in the registry
+		m_registry.destroy(entity.m_handle);
+		
+		Log::CoreInfo("Scene: Destroyed entity {}", entity_id.ToString());
+	}
+
 	static inline void ComputeAttenuationFromRange(float range, float& out_linear, float& out_quadratic, float edge = 0.01f)
 	{
 		range = std::max(range, 1e-4f);
