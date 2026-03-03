@@ -250,7 +250,7 @@ void EditorSceneLayer::OnUpdate(float dt)
 	}
 	else
 	{
-		scene_renderer.BeginScene({ m_scene, m_camera, m_pipeline });
+		scene_renderer.BeginScene({ m_scene, m_scene->GetPrimaryCamera(), m_pipeline});
 		m_scene->OnRender(scene_renderer);
 		scene_renderer.EndScene();
 	}
@@ -262,6 +262,15 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 {
 	// window resize handling removed, and viewport panel now manages framebuffer size
 	// and camera aspect ratio is updated in OnUpdate() based on viewport panel size
+
+	if (auto* resize_event = dynamic_cast<WindowResizeEvent*>(&event))
+	{
+		if (m_scene)
+		{
+			m_scene->OnViewportResize(resize_event->GetWidth(), resize_event->GetHeight());
+		}
+		
+	}
 }
 
 void EditorSceneLayer::ReloadProject()
@@ -299,6 +308,7 @@ void EditorSceneLayer::ReloadProject()
 
 	m_script_module.Load(Project::ResolveActiveScriptModulePath());
 	m_script_module.RegisterAll(ignis::ScriptRegistry::Get());
+	auto camera_entity = m_scene->CreateEntity("Camera");
 	m_scene->OnRuntimeStart();
 	
 	// Refresh asset browser with new project files
