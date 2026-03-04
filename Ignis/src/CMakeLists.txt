@@ -3,8 +3,14 @@ file(GLOB_RECURSE IGNIS_SOURCES CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
 )
 
-add_library(Ignis STATIC ${IGNIS_SOURCES})
+set_source_files_properties(
+    ${CMAKE_CURRENT_SOURCE_DIR}/Ignis/Core/EntryPoint.cpp
+    PROPERTIES HEADER_FILE_ONLY TRUE
+)
+
+add_library(Ignis SHARED ${IGNIS_SOURCES})
 add_library(Ignis::Ignis ALIAS Ignis)
+target_compile_definitions(Ignis PRIVATE IGNIS_BUILD_DLL)
 
 if(MSVC)
     target_compile_options(Ignis PRIVATE /utf-8)

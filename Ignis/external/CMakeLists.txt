@@ -2,14 +2,14 @@
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-
+set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
 add_subdirectory(glfw)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(spdlog)
 
-# ImGui configuration - create static library
-add_library(imgui STATIC
+# ImGui configuration - create shared library
+add_library(imgui SHARED
     # Core ImGui files
     imgui/imgui.cpp
     imgui/imgui_demo.cpp
@@ -25,6 +25,13 @@ target_include_directories(imgui PUBLIC
     imgui/
     imgui/backends/
 )
+
+if(WIN32)
+    target_compile_definitions(imgui
+        PRIVATE   "IMGUI_API=__declspec(dllexport)"
+        INTERFACE "IMGUI_API=__declspec(dllimport)"
+    )
+endif()
 
 # ImGui needs GLFW for window management
 target_link_libraries(imgui PRIVATE glfw)

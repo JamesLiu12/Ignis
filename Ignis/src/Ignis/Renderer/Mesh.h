@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "VertexArray.h"
@@ -36,7 +37,7 @@ namespace ignis
 		uint32_t MaterialIndex = 0;
 	};
 
-	class Mesh : public Asset
+	class IGNIS_API Mesh : public Asset
 	{
 	public:
 		Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);

@@ -1,10 +1,11 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
 #include "Ignis/Scene/Entity.h"
 
 namespace ignis
 {
-	class ScriptBehaviour
+	class IGNIS_API ScriptBehaviour
 	{
 	public:
 		virtual ~ScriptBehaviour() = default;

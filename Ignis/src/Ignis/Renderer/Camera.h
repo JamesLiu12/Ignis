@@ -1,12 +1,14 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
 namespace ignis
 {
-	class Camera
+	class IGNIS_API Camera
 	{
 	public:
 		Camera() = default;

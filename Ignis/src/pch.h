@@ -43,3 +43,5 @@
 
 #include "Ignis/Core/File/FileSystem.h"
 #include "Ignis/Core/File/VFS.h"
+
+#pragma once

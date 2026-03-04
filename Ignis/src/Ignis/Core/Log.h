@@ -1,11 +1,19 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
+
+#ifdef IGNIS_BUILD_DLL
+    #pragma message("Log.h: EXPORTING")
+#else
+    #pragma message("Log.h: IMPORTING")
+#endif
+
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
 
 namespace ignis {
 
-	class Log
+	class IGNIS_API Log
 	{
 	public:
 		enum class Type : uint8_t

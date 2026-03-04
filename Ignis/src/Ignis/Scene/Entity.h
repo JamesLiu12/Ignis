@@ -1,14 +1,15 @@
 #pragma once
 
-#include <entt.hpp>
-
+#include "Ignis/Core/API.h"
 #include "Components.h"
+
+#include <entt.hpp>
 
 namespace ignis
 {
 	class Scene;
 
-	class Entity
+	class IGNIS_API Entity
 	{
 	public:
 		Entity() = default;

@@ -1,8 +1,10 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
+
 namespace ignis
 {
-	class Project
+	class IGNIS_API Project
 	{
 	public:
 		Project() = default;

@@ -3,7 +3,10 @@ file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS
   ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 )
 
-add_executable(Editor ${EDITOR_SOURCES})
+add_executable(Editor 
+    ${EDITOR_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Ignis/src/Ignis/Core/EntryPoint.cpp
+)
 
 if(MSVC)
     target_compile_options(Editor PRIVATE /utf-8)
@@ -18,7 +21,7 @@ target_link_libraries(Editor
 )
 
 set(SOURCE_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/resources")
-set(DEST_DIR    "${CMAKE_CURRENT_BINARY_DIR}/resources")
+set(DEST_DIR    "$<TARGET_FILE_DIR:Editor>/resources")
 set(STAMP_FILE  "${CMAKE_CURRENT_BINARY_DIR}/copy_resources.stamp")
 
 file(GLOB_RECURSE RESOURCE_FILES CONFIGURE_DEPENDS "${SOURCE_DIR}/*")
@@ -33,4 +36,6 @@ add_custom_command(
 
 add_custom_target(copy_resources ALL DEPENDS "${STAMP_FILE}")
 
-target_precompile_headers(Editor REUSE_FROM Ignis)
+target_precompile_headers(Editor PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
+)

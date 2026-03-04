@@ -1,10 +1,11 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
 #include "Project.h"
 
 namespace ignis
 {
-	class ProjectSerializer
+	class IGNIS_API ProjectSerializer
 	{
 	public:
 		ProjectSerializer() = default;

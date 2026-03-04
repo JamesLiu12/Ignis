@@ -1,4 +1,7 @@
 #pragma once
+
+#include "Ignis/Core/API.h"
+
 // Need to include the below two headers although in pch.h
 // Because macOSFileDialog.mm is using this file and it is a non-pch file
 #include <string>
@@ -12,7 +15,7 @@ namespace ignis {
  * Provides native file dialogs for opening/saving files.
  * Platform-specific implementations in Platform/ directory.
  */
-class FileDialog
+class IGNIS_API FileDialog
 {
 public:
     /**

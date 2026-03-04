@@ -1,4 +1,6 @@
 #pragma once
+
+#include "Ignis/Core/API.h"
 #include "Ignis/Renderer/Texture.h"
 #include "Ignis/Renderer/Image.h"
 
@@ -23,7 +25,7 @@ namespace ignis
 
 	class Renderer;
 
-	class IBLBaker
+	class IGNIS_API IBLBaker
 	{
 	public:
 		virtual IBLBakeResult BakeFromEquirectangular(

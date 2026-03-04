@@ -1,10 +1,12 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
+
 #include <uuid.h>
 
 namespace ignis
 {
-	class UUID {
+	class IGNIS_API UUID {
 	public:
 		UUID();
 		UUID(const uuids::uuid& uuid);

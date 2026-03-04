@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
 #include "Ignis/Renderer/Texture.h"
 #include <imgui.h>
 
@@ -7,7 +8,7 @@ namespace ignis
 {
 	// Platform-agnostic ImGui texture rendering helper
 	// Encapsulates platform-specific texture ID conversion and UV coordinate handling
-	class ImGuiTextureHelper
+	class IGNIS_API ImGuiTextureHelper
 	{
 	public:
 		virtual ~ImGuiTextureHelper() = default;

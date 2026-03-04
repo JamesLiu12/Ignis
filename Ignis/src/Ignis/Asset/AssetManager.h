@@ -1,11 +1,12 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
 #include "Asset.h"
 #include "AssetImporter.h"
 
 namespace ignis
 {
-	class AssetManager
+	class IGNIS_API AssetManager
 	{
 	public:
 		template<std::derived_from<Asset> T>

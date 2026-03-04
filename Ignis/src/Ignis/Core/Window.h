@@ -1,12 +1,13 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
-
+#include "Ignis/Core/API.h"
 #include "Ignis/Core/Events/Event.h"
+
+#include <GLFW/glfw3.h>
 
 namespace ignis
 {
-	class Window
+	class IGNIS_API Window
 	{
 
 	public:

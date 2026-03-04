@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
 #include "Texture.h"
 
 namespace ignis
@@ -21,7 +22,7 @@ namespace ignis
 		std::vector<FramebufferAttachmentSpecs> Attachments;
 	};
 
-	class Framebuffer
+	class IGNIS_API Framebuffer
 	{
 	public:
 		virtual std::shared_ptr<Texture2D> GetColorAttachment(uint32_t index = 0) const = 0;
