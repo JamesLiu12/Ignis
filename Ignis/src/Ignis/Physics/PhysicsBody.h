@@ -1,6 +1,8 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
 #include "PhysicsTypes.h"
+
 #include <memory>
 
 class btRigidBody;
@@ -12,7 +14,7 @@ namespace ignis {
 	/**
 	 * @brief Wrapper for Bullet Physics rigid body
 	 */
-	class PhysicsBody
+	class IGNIS_API PhysicsBody
 	{
 	public:
 		PhysicsBody(const RigidBodyDesc& desc, btDiscreteDynamicsWorld* world);

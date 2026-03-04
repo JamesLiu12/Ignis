@@ -1,5 +1,8 @@
-#include "pch.h"
 #include "Log.h"
+
+#include <string>
+#include <memory>
+#include <filesystem>
 
 namespace ignis {
 

@@ -1,12 +1,13 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
 #include "File.h"
 
 #include <unordered_map>
 
 namespace ignis {
 
-    class VFS
+    class IGNIS_API VFS
     {
     public:
         static void Init();

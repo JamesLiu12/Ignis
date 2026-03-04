@@ -1,5 +1,6 @@
 #pragma once
 
+#include "API.h"
 #include "Ignis/Core/Events/Event.h"
 #include "Window.h"
 #include "LayerStack.h"
@@ -8,7 +9,7 @@
 
 namespace ignis {
 
-	class Application
+	class IGNIS_API Application
 	{
 	public:
 		virtual ~Application();

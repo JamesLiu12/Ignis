@@ -1,12 +1,13 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
 #include "KeyCodes.h"
 
 #include <utility>
 
 namespace ignis
 {
-	class Input
+	class IGNIS_API Input
 	{
 	public:
 		static bool IsKeyPressed(KeyCode key);

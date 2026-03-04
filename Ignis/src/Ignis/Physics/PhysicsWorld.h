@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
 #include "PhysicsTypes.h"
 #include "PhysicsBody.h"
 #include <memory>
@@ -16,7 +17,7 @@ namespace ignis {
 	/**
 	 * @brief Main physics world that manages the Bullet Physics simulation
 	 */
-	class PhysicsWorld
+	class IGNIS_API PhysicsWorld
 	{
 	public:
 		PhysicsWorld();

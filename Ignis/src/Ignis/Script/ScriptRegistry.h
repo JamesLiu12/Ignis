@@ -1,9 +1,11 @@
 #pragma once
+
+#include "Ignis/Core/API.h"
 #include "ScriptBehaviour.h"
 
 namespace ignis
 {
-	class ScriptRegistry
+	class IGNIS_API ScriptRegistry
 	{
 	public:
 		using FactoryFn = std::function<std::unique_ptr<ScriptBehaviour>()>;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
 #include "Renderer.h"
 #include "Environment.h"
 #include "Ignis/Scene/Scene.h"
@@ -19,7 +20,7 @@ namespace ignis
 		bool ClearTarget = true;
 	};
 
-	class SceneRenderer
+	class IGNIS_API SceneRenderer
 	{
 	public:
 		SceneRenderer(Renderer& renderer);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include "Ignis/Core/API.h"
 #include "VertexArray.h"
 #include "Camera.h"
 #include "Mesh.h"
@@ -8,9 +8,11 @@
 #include "Framebuffer.h"
 #include "ShaderLibrary.h"
 
+#include <glm/glm.hpp>
+
 namespace ignis
 {	
-	class Renderer
+	class IGNIS_API Renderer
 	{
 	public:
 		virtual ~Renderer() = default;

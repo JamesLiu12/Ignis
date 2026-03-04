@@ -1,10 +1,13 @@
 #pragma once
+
+#include "Ignis/Core/API.h"
 #include "ScriptRegistry.h"
+
 #include <filesystem>
 
 namespace ignis
 {
-	class ScriptModule
+	class IGNIS_API ScriptModule
 	{
 	public:
 		using RegisterFn = void(*)(ScriptRegistry& registry);

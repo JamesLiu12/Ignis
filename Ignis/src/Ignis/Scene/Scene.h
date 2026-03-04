@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
 #include "Entity.h"
 #include "Ignis/Renderer/Environment.h"
 #include "Ignis/Script/Script.h"
@@ -49,7 +50,7 @@ namespace ignis
 
 	class SceneRenderer;
 
-	class Scene
+	class IGNIS_API Scene
 	{
 	public:
 		Scene(std::string_view name = "UntitledScene")

@@ -1,12 +1,14 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
+
 #include <filesystem>
 
 namespace ignis
 {
 	class Scene;
 
-	class SceneSerializer
+	class IGNIS_API SceneSerializer
 	{
 	public:
 		SceneSerializer() = default;

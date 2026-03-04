@@ -1,11 +1,12 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
 #include "Pipeline.h"
 #include "ShaderLibrary.h"
 
 namespace ignis
 {
-	class PBRPipeline : public Pipeline
+	class IGNIS_API PBRPipeline : public Pipeline
 	{
 	public:
 		PBRPipeline(ShaderLibrary& shader_library);
