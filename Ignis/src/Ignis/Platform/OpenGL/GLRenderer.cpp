@@ -133,7 +133,6 @@ namespace ignis
 			// TODO a performance bottleneck?
 			auto material = m_pipeline->CreateMaterial(material_data);
 			m_pipeline->ApplyEnvironment(*material, scene_environment, environment_settings, light_environment);
-			material->GetShader()->Bind();
 
 			material->Set("view", m_camera->GetView());
 			material->Set("projection", m_camera->GetProjection());
@@ -142,6 +141,7 @@ namespace ignis
 			material->Set("model", model);
 			material->Set("viewPos", m_camera->GetPosition());
 
+			material->Bind();
 			glDrawElements(
 				GL_TRIANGLES,
 				sm.IndexCount,
@@ -164,6 +164,7 @@ namespace ignis
 		material->Set("view", view);
 		material->Set("projection", m_camera->GetProjection());
 
+		material->Bind();
 		RenderCube();
 
 		glDepthFunc(GL_LESS);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Material.h"
+#include "MaterialData.h"
 
 namespace ignis
 {

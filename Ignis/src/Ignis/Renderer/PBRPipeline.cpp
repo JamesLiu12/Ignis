@@ -16,50 +16,32 @@ namespace ignis
 	std::shared_ptr<Material> PBRPipeline::CreateMaterial(const MaterialData& data)
 	{
 		auto material = Material::Create(m_shader_library.Get("IgnisPBR"));
-		
-		material->GetShader()->Bind();
 
-		material->Set("material.albedoMap", 0);
-		material->Set("material.normalMap", 1);
-		material->Set("material.metallicMap", 2);
-		material->Set("material.roughnessMap", 3);
-		material->Set("material.emissiveMap", 4);
-		material->Set("material.aoMap", 5);
+		auto albedo = AssetManager::GetAsset<Texture2D>(data.AlbedoMap);
+		material->Set("material.albedoMap", albedo ? albedo : Renderer::GetWhiteTexture());
 
-		if (auto texture = AssetManager::GetAsset<Texture2D>(data.AlbedoMap))
-			texture->Bind(0);
-		else
-			Renderer::GetWhiteTexture()->Bind(0);
+		auto normal = AssetManager::GetAsset<Texture2D>(data.NormalMap);
+		material->Set("material.normalMap", normal ? normal : Renderer::GetDefaultNormalTexture());
 
-		if (auto texture = AssetManager::GetAsset<Texture2D>(data.NormalMap))
-			texture->Bind(1);
-		else
-			Renderer::GetDefaultNormalTexture()->Bind(1);
+		auto metalness = AssetManager::GetAsset<Texture2D>(data.MetalnessMap);
+		material->Set("material.metallicMap", metalness ? metalness : Renderer::GetBlackTexture());
 
-		if (auto texture = AssetManager::GetAsset<Texture2D>(data.MetalnessMap))
-			texture->Bind(2);
-		else
-			Renderer::GetBlackTexture()->Bind(2);
+		auto roughness = AssetManager::GetAsset<Texture2D>(data.RoughnessMap);
+		material->Set("material.roughnessMap", roughness ? roughness : Renderer::GetDefaultRoughnessTexture());
 
-		if (auto texture = AssetManager::GetAsset<Texture2D>(data.RoughnessMap))
-			texture->Bind(3);
-		else
-			Renderer::GetDefaultRoughnessTexture()->Bind(3);
+		auto emissive = AssetManager::GetAsset<Texture2D>(data.EmissiveMap);
+		material->Set("material.emissiveMap", emissive ? emissive : Renderer::GetBlackTexture());
 
-		if (auto texture = AssetManager::GetAsset<Texture2D>(data.EmissiveMap))
-			texture->Bind(4);
-		else
-			Renderer::GetBlackTexture()->Bind(4);
-
-		if (auto texture = AssetManager::GetAsset<Texture2D>(data.AOMap))
-			texture->Bind(5);
-		else
-			Renderer::GetWhiteTexture()->Bind(5);
+		auto ao = AssetManager::GetAsset<Texture2D>(data.AOMap);
+		material->Set("material.aoMap", ao ? ao : Renderer::GetWhiteTexture());
 
 		return material;
 	}
 
-	void PBRPipeline::ApplyEnvironment(Material& material, const Environment& scene_environment, const EnvironmentSettings& environment_settings, const LightEnvironment& light_environment)
+	void PBRPipeline::ApplyEnvironment(Material& material,
+		const Environment& scene_environment,
+		const EnvironmentSettings& environment_settings,
+		const LightEnvironment& light_environment)
 	{
 		material.Set("numDirectionalLights", (int)light_environment.DirectionalLights.size());
 		for (size_t i = 0; i < light_environment.DirectionalLights.size(); i++)
@@ -97,17 +79,17 @@ namespace ignis
 		const auto& ibl_maps = scene_environment.GetIBLMaps();
 		if (ibl_maps)
 		{
-			material.Set("irradianceMap", 6);
-			if (auto texture = ibl_maps->IrradianceMap)
-				texture->Bind(6);
-			material.Set("prefilterMap", 7);
-			if (auto texture = ibl_maps->PrefilteredMap)
-				texture->Bind(7);
-			material.Set("brdfLUT", 8);
-			if (auto texture = ibl_maps->BrdfLUT)
-				texture->Bind(8);
+			if (ibl_maps->IrradianceMap)
+				material.Set("irradianceMap", ibl_maps->IrradianceMap);
 
-			float max_lod = (ibl_maps->PrefilterMipLevels > 0) ? float(ibl_maps->PrefilterMipLevels - 1) : 0.0f;
+			if (ibl_maps->PrefilteredMap)
+				material.Set("prefilterMap", ibl_maps->PrefilteredMap);
+
+			material.Set("brdfLUT", ibl_maps->BrdfLUT ? ibl_maps->BrdfLUT : m_brdf_lut_texture);
+
+			float max_lod = (ibl_maps->PrefilterMipLevels > 0)
+				? float(ibl_maps->PrefilterMipLevels - 1)
+				: 0.0f;
 			material.Set("prefilterMaxLod", max_lod);
 		}
 		else
@@ -124,16 +106,9 @@ namespace ignis
 	{
 		auto material = Material::Create(m_shader_library.Get("Skybox"));
 
-
-		material->GetShader()->Bind();
-
-		material->Set("environmentMap", 0);
 		const auto& skybox_map = scene_environment.GetSkyboxMap();
 		if (skybox_map)
-		{
-			if (auto texture = skybox_map)
-				texture->Bind(0);
-		}
+			material->Set("environmentMap", skybox_map);
 
 		return material;
 	}

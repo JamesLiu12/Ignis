@@ -5,7 +5,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Texture.h"
-#include "Material.h"
+#include "MaterialData.h"
 #include "Ignis/Asset/Asset.h"
 
 #include <glm/glm.hpp>

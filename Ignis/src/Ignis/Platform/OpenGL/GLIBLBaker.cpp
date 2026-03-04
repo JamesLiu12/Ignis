@@ -62,8 +62,8 @@ namespace ignis
 		hdr_specs.WrapT = TextureWrap::ClampToEdge;
 		hdr_specs.GenMipmaps = false;
 
-		auto hdrTex = Texture2D::Create(hdr_specs, hdr_image.GetFormat(), hdr_image.GetPixels());
-		if (!hdrTex)
+		auto hdr_tex = Texture2D::Create(hdr_specs, hdr_image.GetFormat(), hdr_image.GetPixels());
+		if (!hdr_tex)
 		{
 			if (cull_was_enabled) glEnable(GL_CULL_FACE);
 			glViewport(prev_viewport[0], prev_viewport[1], prev_viewport[2], prev_viewport[3]);
@@ -102,11 +102,10 @@ namespace ignis
 		const GLuint env_cube_id = static_cast<GLTextureCube*>(out.EnvironmentCube.get())->m_id;
 
 		auto eq_to_cube = Material::Create(m_renderer.GetShaderLibrary().Get("EquirectToCube"));
-		eq_to_cube->GetShader()->Bind();
-		eq_to_cube->Set("equirectangularMap", 0);
+		eq_to_cube->Set("equirectangularMap", hdr_tex);
 		eq_to_cube->Set("projection", CaptureProjection());
 
-		hdrTex->Bind(0);
+		hdr_tex->Bind(0);
 
 		auto views = CaptureViews();
 		glViewport(0, 0, settings.EnvironmentResolution, settings.EnvironmentResolution);
@@ -132,6 +131,7 @@ namespace ignis
 			}
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			eq_to_cube->Bind();
 			m_renderer.RenderCube();
 		}
 
@@ -140,14 +140,14 @@ namespace ignis
 		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
 		// 4) Create Irradiance Cube
-		TextureSpecs irrSpecs = env_specs;
-		irrSpecs.Width = settings.IrradianceResolution;
-		irrSpecs.Height = settings.IrradianceResolution;
-		irrSpecs.Format = TextureFormat::RGBA16F;
-		irrSpecs.MinFilter = TextureFilter::Linear;
-		irrSpecs.MagFilter = TextureFilter::Linear;
-		irrSpecs.GenMipmaps = false;
-		out.IrradianceCube = TextureCube::Create(irrSpecs);
+		TextureSpecs irr_specs = env_specs;
+		irr_specs.Width = settings.IrradianceResolution;
+		irr_specs.Height = settings.IrradianceResolution;
+		irr_specs.Format = TextureFormat::RGBA16F;
+		irr_specs.MinFilter = TextureFilter::Linear;
+		irr_specs.MagFilter = TextureFilter::Linear;
+		irr_specs.GenMipmaps = false;
+		out.IrradianceCube = TextureCube::Create(irr_specs);
 
 		if (!out.IrradianceCube)
 		{
@@ -161,11 +161,9 @@ namespace ignis
 
 		const GLuint irr_cube_id = static_cast<GLTextureCube*>(out.IrradianceCube.get())->m_id;
 
-		auto irradiance_shader = Material::Create(m_renderer.GetShaderLibrary().Get("IrradianceConvolution"));
-		irradiance_shader->GetShader()->Bind();
-		irradiance_shader->Set("environmentMap", 0);
-		irradiance_shader->Set("projection", CaptureProjection());
-		out.EnvironmentCube->Bind(0);
+		auto irradiance_mat = Material::Create(m_renderer.GetShaderLibrary().Get("IrradianceConvolution"));
+		irradiance_mat->Set("environmentMap", out.EnvironmentCube);
+		irradiance_mat->Set("projection", CaptureProjection());
 
 		glBindRenderbuffer(GL_RENDERBUFFER, capture_rbo);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, settings.IrradianceResolution, settings.IrradianceResolution);
@@ -173,7 +171,7 @@ namespace ignis
 
 		for (uint32_t face = 0; face < 6; ++face)
 		{
-			irradiance_shader->Set("view", views[face]);
+			irradiance_mat->Set("view", views[face]);
 			glFramebufferTexture2D(
 				GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 				GL_TEXTURE_CUBE_MAP_POSITIVE_X + face,
@@ -191,6 +189,7 @@ namespace ignis
 			}
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			irradiance_mat->Bind();
 			m_renderer.RenderCube();
 		}
 
@@ -221,11 +220,9 @@ namespace ignis
 		glBindTexture(GL_TEXTURE_CUBE_MAP, prefilter_cube_id);
 		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
-		auto prefilter_shader = Material::Create(m_renderer.GetShaderLibrary().Get("PrefilterGGX"));
-		prefilter_shader->GetShader()->Bind();
-		prefilter_shader->Set("environmentMap", 0);
-		prefilter_shader->Set("projection", CaptureProjection());
-		out.EnvironmentCube->Bind(0);
+		auto prefilter_mat = Material::Create(m_renderer.GetShaderLibrary().Get("PrefilterGGX"));
+		prefilter_mat->Set("environmentMap", out.EnvironmentCube);
+		prefilter_mat->Set("projection", CaptureProjection());
 
 		for (uint32_t mip = 0; mip < out.PrefilterMipLevels; ++mip)
 		{
@@ -239,11 +236,11 @@ namespace ignis
 			float roughness = (out.PrefilterMipLevels <= 1)
 				? 0.0f
 				: (float)mip / (float)(out.PrefilterMipLevels - 1);
-			prefilter_shader->Set("roughness", roughness);
+			prefilter_mat->Set("roughness", roughness);
 
 			for (uint32_t face = 0; face < 6; ++face)
 			{
-				prefilter_shader->Set("view", views[face]);
+				prefilter_mat->Set("view", views[face]);
 				glFramebufferTexture2D(
 					GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 					GL_TEXTURE_CUBE_MAP_POSITIVE_X + face,
@@ -261,6 +258,7 @@ namespace ignis
 				}
 
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				prefilter_mat->Bind();
 				m_renderer.RenderCube();
 			}
 		}
@@ -289,8 +287,7 @@ namespace ignis
 
 		const GLuint brdflut_id = static_cast<GLTexture2D*>(out.BrdfLUT.get())->m_id;
 
-		auto brdfShader = Material::Create(m_renderer.GetShaderLibrary().Get("BRDFIntegration"));
-		brdfShader->GetShader()->Bind();
+		auto brdf_mat = Material::Create(m_renderer.GetShaderLibrary().Get("BRDFIntegration"));
 
 		glBindRenderbuffer(GL_RENDERBUFFER, capture_rbo);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, settings.BrdfLUTResolution, settings.BrdfLUTResolution);
@@ -309,6 +306,7 @@ namespace ignis
 		}
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		brdf_mat->Bind();
 		m_renderer.RenderQuad();
 
 		// Clear and restore states
