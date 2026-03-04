@@ -151,6 +151,44 @@ namespace ignis
 		return file.ReadText();
 	}
 
+	static ShaderUniformType GLTypeToUniformType(GLenum type)
+	{
+		switch (type)
+		{
+		case GL_BOOL:              return ShaderUniformType::Bool;
+		case GL_FLOAT:             return ShaderUniformType::Float;
+		case GL_FLOAT_VEC2:        return ShaderUniformType::Vec2;
+		case GL_FLOAT_VEC3:        return ShaderUniformType::Vec3;
+		case GL_FLOAT_VEC4:        return ShaderUniformType::Vec4;
+		case GL_INT:               return ShaderUniformType::Int;
+		case GL_INT_VEC2:          return ShaderUniformType::IVec2;
+		case GL_INT_VEC3:          return ShaderUniformType::IVec3;
+		case GL_INT_VEC4:          return ShaderUniformType::IVec4;
+		case GL_UNSIGNED_INT:      return ShaderUniformType::UInt;
+		case GL_UNSIGNED_INT_VEC2: return ShaderUniformType::UVec2;
+		case GL_UNSIGNED_INT_VEC3: return ShaderUniformType::UVec3;
+		case GL_UNSIGNED_INT_VEC4: return ShaderUniformType::UVec4;
+		case GL_FLOAT_MAT3:        return ShaderUniformType::Mat3;
+		case GL_FLOAT_MAT4:        return ShaderUniformType::Mat4;
+		default:                   return ShaderUniformType::None;
+		}
+	}
+
+	static bool GLTypeIsSampler(GLenum type)
+	{
+		switch (type)
+		{
+		case GL_SAMPLER_2D:
+		case GL_SAMPLER_3D:
+		case GL_SAMPLER_CUBE:
+		case GL_SAMPLER_2D_ARRAY:
+		case GL_SAMPLER_2D_SHADOW:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	GLShader::GLShader(const std::string& name, const std::string& vertex_source, const std::string& fragment_source)
 		: m_id(0), m_name(name)
 	{
@@ -168,6 +206,9 @@ namespace ignis
 		}
 
 		m_id = LinkProgram(vertex_shader, fragment_shader);
+
+		if (m_id != 0)
+			Reflect();
 	}
 
 	GLShader::GLShader(const std::string& filepath)
@@ -196,6 +237,9 @@ namespace ignis
 		}
 
 		m_id = LinkProgram(vertex_shader, fragment_shader);
+
+		if (m_id != 0)
+			Reflect();
 	}
 
 	GLShader::~GLShader()
@@ -213,8 +257,62 @@ namespace ignis
 		glUseProgram(0);
 	}
 
-	const std::string& GLShader::GetName() const
+	void GLShader::Reflect()
 	{
-		return m_name;
+		if (m_id == 0) return;
+
+		GLint uniformCount = 0;
+		glGetProgramiv(m_id, GL_ACTIVE_UNIFORMS, &uniformCount);
+
+		m_uniformBufferSize = 0;
+		uint32_t samplerSlot = 0;
+
+		for (GLint i = 0; i < uniformCount; ++i)
+		{
+			GLchar  nameBuffer[256];
+			GLsizei nameLength = 0;
+			GLint   arraySize = 0;
+			GLenum  glType = 0;
+
+			glGetActiveUniform(m_id, static_cast<GLuint>(i),
+				sizeof(nameBuffer), &nameLength,
+				&arraySize, &glType, nameBuffer);
+
+			std::string name(nameBuffer, static_cast<size_t>(nameLength));
+
+			if (name.size() > 3 && name.compare(name.size() - 3, 3, "[0]") == 0)
+				name.resize(name.size() - 3);
+
+			if (GLTypeIsSampler(glType))
+			{
+				m_samplers[name] = { name, samplerSlot++ };
+			}
+			else
+			{
+				ShaderUniformType type = GLTypeToUniformType(glType);
+				if (type == ShaderUniformType::None)
+					continue;
+
+				ShaderUniform u;
+				u.name = name;
+				u.type = type;
+				u.size = ShaderUniform::TypeSize(type);
+				u.offset = m_uniformBufferSize;
+				m_uniformBufferSize += u.size;
+
+				m_uniforms[name] = u;
+			}
+		}
+	}
+
+	int32_t GLShader::GetUniformLocation(const std::string& name) const
+	{
+		auto it = m_locationCache.find(name);
+		if (it != m_locationCache.end())
+			return it->second;
+
+		int32_t loc = glGetUniformLocation(m_id, name.c_str());
+		m_locationCache[name] = loc;
+		return loc;
 	}
 }

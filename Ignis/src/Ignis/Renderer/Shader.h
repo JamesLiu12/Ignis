@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ShaderUniform.h"
+
 #include <glm/glm.hpp>
 #include <string>
 #include <memory>
@@ -80,6 +82,10 @@ namespace ignis
 		virtual void UnBind() = 0;
 
 		virtual const std::string& GetName() const = 0;
+
+		virtual const std::unordered_map<std::string, ShaderUniform>& GetUniforms() const = 0;
+		virtual const std::unordered_map<std::string, ShaderSampler>& GetSamplers() const = 0;
+		virtual uint32_t GetUniformBufferSize() const = 0;
 
 		static std::shared_ptr<Shader> Create(const std::string& name, const std::string& vertex_source, const std::string& fragment_source);
 		static std::shared_ptr<Shader> CreateFromFile(const std::string& filepath);
