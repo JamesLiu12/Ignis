@@ -59,9 +59,9 @@ namespace ignis
 		std::shared_ptr<GLShader> m_shader;
 		std::string m_name;
 
-		std::vector<uint8_t>      m_uniformBuffer;
+		std::vector<uint8_t>      m_uniform_buffer;
 
 		std::unordered_map<std::string, std::shared_ptr<Texture2D>> m_textures;
-		std::unordered_map<std::string, std::shared_ptr<TextureCube>> m_cubemapTextures;
+		std::unordered_map<std::string, std::shared_ptr<TextureCube>> m_cubemap_textures;
 	};
 }

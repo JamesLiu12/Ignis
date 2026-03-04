@@ -62,8 +62,8 @@ namespace ignis
 		hdr_specs.WrapT = TextureWrap::ClampToEdge;
 		hdr_specs.GenMipmaps = false;
 
-		auto hdrTex = Texture2D::Create(hdr_specs, hdr_image.GetFormat(), hdr_image.GetPixels());
-		if (!hdrTex)
+		auto hdr_tex = Texture2D::Create(hdr_specs, hdr_image.GetFormat(), hdr_image.GetPixels());
+		if (!hdr_tex)
 		{
 			if (cull_was_enabled) glEnable(GL_CULL_FACE);
 			glViewport(prev_viewport[0], prev_viewport[1], prev_viewport[2], prev_viewport[3]);
@@ -102,10 +102,10 @@ namespace ignis
 		const GLuint env_cube_id = static_cast<GLTextureCube*>(out.EnvironmentCube.get())->m_id;
 
 		auto eq_to_cube = Material::Create(m_renderer.GetShaderLibrary().Get("EquirectToCube"));
-		eq_to_cube->Set("equirectangularMap", hdrTex);
+		eq_to_cube->Set("equirectangularMap", hdr_tex);
 		eq_to_cube->Set("projection", CaptureProjection());
 
-		hdrTex->Bind(0);
+		hdr_tex->Bind(0);
 
 		auto views = CaptureViews();
 		glViewport(0, 0, settings.EnvironmentResolution, settings.EnvironmentResolution);
@@ -140,14 +140,14 @@ namespace ignis
 		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
 		// 4) Create Irradiance Cube
-		TextureSpecs irrSpecs = env_specs;
-		irrSpecs.Width = settings.IrradianceResolution;
-		irrSpecs.Height = settings.IrradianceResolution;
-		irrSpecs.Format = TextureFormat::RGBA16F;
-		irrSpecs.MinFilter = TextureFilter::Linear;
-		irrSpecs.MagFilter = TextureFilter::Linear;
-		irrSpecs.GenMipmaps = false;
-		out.IrradianceCube = TextureCube::Create(irrSpecs);
+		TextureSpecs irr_specs = env_specs;
+		irr_specs.Width = settings.IrradianceResolution;
+		irr_specs.Height = settings.IrradianceResolution;
+		irr_specs.Format = TextureFormat::RGBA16F;
+		irr_specs.MinFilter = TextureFilter::Linear;
+		irr_specs.MagFilter = TextureFilter::Linear;
+		irr_specs.GenMipmaps = false;
+		out.IrradianceCube = TextureCube::Create(irr_specs);
 
 		if (!out.IrradianceCube)
 		{

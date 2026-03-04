@@ -7,18 +7,18 @@ namespace ignis
 		: m_shader(std::dynamic_pointer_cast<GLShader>(std::move(shader)))
 		, m_name(name)
 	{
-		m_uniformBuffer.resize(m_shader->GetUniformBufferSize(), 0);
+		m_uniform_buffer.resize(m_shader->GetUniformBufferSize(), 0);
 	}
 
 	GLMaterial::GLMaterial(const std::shared_ptr<Material>& other, const std::string& name)
 		: m_shader(std::dynamic_pointer_cast<GLShader>(other->GetShader()))
 		, m_name(name)
 	{
-		m_uniformBuffer.resize(m_shader->GetUniformBufferSize(), 0);
+		m_uniform_buffer.resize(m_shader->GetUniformBufferSize(), 0);
 
 		if (auto* src = dynamic_cast<const GLMaterial*>(other.get()))
 		{
-			m_uniformBuffer = src->m_uniformBuffer;
+			m_uniform_buffer = src->m_uniform_buffer;
 			m_textures = src->m_textures;
 		}
 	}
@@ -34,14 +34,14 @@ namespace ignis
 		}
 		const ShaderUniform& u = it->second;
 		assert(u.size == size && "The data size of the Set does not match the uniform type");
-		std::memcpy(m_uniformBuffer.data() + u.offset, data, size);
+		std::memcpy(m_uniform_buffer.data() + u.offset, data, size);
 	}
 
 	void* GLMaterial::GetBytes(const std::string& name)
 	{
 		auto it = m_shader->GetUniforms().find(name);
 		assert(it != m_shader->GetUniforms().end() && "Uniform does not exist");
-		return m_uniformBuffer.data() + it->second.offset;
+		return m_uniform_buffer.data() + it->second.offset;
 	}
 
 	void GLMaterial::Set(const std::string& name, bool value)
@@ -91,7 +91,7 @@ namespace ignis
 			int32_t loc = m_shader->GetUniformLocation(name);
 			if (loc == -1) continue;
 
-			const void* data = m_uniformBuffer.data() + u.offset;
+			const void* data = m_uniform_buffer.data() + u.offset;
 
 			switch (u.type)
 			{
@@ -124,7 +124,7 @@ namespace ignis
 			Log::Warn("GLMaterial::Set: sampler '{}' does not exist in '{}'", name, m_shader->GetName());
 			return;
 		}
-		m_cubemapTextures[name] = texture;
+		m_cubemap_textures[name] = texture;
 	}
 
 	void GLMaterial::Bind()
@@ -146,8 +146,8 @@ namespace ignis
 				continue;
 			}
 
-			auto itCube = m_cubemapTextures.find(name);
-			if (itCube != m_cubemapTextures.end() && itCube->second)
+			auto itCube = m_cubemap_textures.find(name);
+			if (itCube != m_cubemap_textures.end() && itCube->second)
 				itCube->second->Bind(sampler.slot);
 		}
 	}

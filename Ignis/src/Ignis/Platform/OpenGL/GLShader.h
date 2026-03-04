@@ -33,7 +33,7 @@ namespace ignis
 		std::unordered_map<std::string, ShaderSampler> m_samplers;
 		uint32_t m_uniformBufferSize = 0;
 
-		mutable std::unordered_map<std::string, int32_t> m_locationCache;
+		mutable std::unordered_map<std::string, int32_t> m_location_cache;
 
 		friend class GLMaterial;
 	};

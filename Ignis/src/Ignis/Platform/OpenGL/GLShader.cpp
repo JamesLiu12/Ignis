@@ -307,12 +307,12 @@ namespace ignis
 
 	int32_t GLShader::GetUniformLocation(const std::string& name) const
 	{
-		auto it = m_locationCache.find(name);
-		if (it != m_locationCache.end())
+		auto it = m_location_cache.find(name);
+		if (it != m_location_cache.end())
 			return it->second;
 
 		int32_t loc = glGetUniformLocation(m_id, name.c_str());
-		m_locationCache[name] = loc;
+		m_location_cache[name] = loc;
 		return loc;
 	}
 }
