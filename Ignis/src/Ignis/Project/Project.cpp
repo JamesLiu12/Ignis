@@ -39,11 +39,11 @@ namespace ignis
 
 	static std::string GetConfigTokenByMacro()
 	{
-#if defined(NDEBUG)
-		return "Release";
-#else
-		return "Debug";
-#endif
+	#if defined(NDEBUG)
+			return "Release";
+	#else
+			return "Debug";
+	#endif
 	}
 
 	std::filesystem::path Project::ResolveScriptModulePath() const
