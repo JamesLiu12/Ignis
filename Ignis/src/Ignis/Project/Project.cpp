@@ -39,10 +39,10 @@ namespace ignis
 
 	static std::string GetConfigTokenByMacro()
 	{
-	#if defined(NDEBUG)
-			return "Release";
-	#else
+	#if defined(_DEBUG)
 			return "Debug";
+	#else
+			return "Release";
 	#endif
 	}
 

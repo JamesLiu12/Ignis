@@ -10,7 +10,9 @@ set_source_files_properties(
 
 add_library(Ignis SHARED ${IGNIS_SOURCES})
 add_library(Ignis::Ignis ALIAS Ignis)
-target_compile_definitions(Ignis PRIVATE IGNIS_BUILD_DLL)
+target_compile_definitions(Ignis PRIVATE IGNIS_BUILD_DLL
+    $<$<CONFIG:Debug>:_DEBUG>
+)
 
 if(MSVC)
     target_compile_options(Ignis PRIVATE /utf-8)
