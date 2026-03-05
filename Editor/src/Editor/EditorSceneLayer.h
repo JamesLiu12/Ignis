@@ -41,6 +41,7 @@ public:
 
 	// Scene access
 	std::shared_ptr<Scene> GetScene() const { return m_current_scene; }
+	std::shared_ptr<Scene> GetEditorScene() const { return m_editor_scene; }
 
 	// Mesh access for PropertiesPanel
 	std::shared_ptr<Mesh> GetCurrentMesh() const { return m_mesh; }

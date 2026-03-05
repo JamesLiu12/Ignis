@@ -308,6 +308,21 @@ namespace ignis {
 		LoadCurrentDirectory();
 	}
 	
+	void AssetBrowserPanel::Clear()
+	{
+		// Clear all state
+		m_current_items.clear();
+		m_current_directory = nullptr;
+		m_base_directory = nullptr;
+		m_backward_history.clear();
+		m_forward_history.clear();
+		m_breadcrumb_data.clear();
+		m_selected_item = nullptr;
+		m_update_breadcrumbs = false;
+		
+		Log::Info("Asset Browser cleared");
+	}
+	
 	void AssetBrowserPanel::Refresh()
 	{
 		if (!Project::GetActive())

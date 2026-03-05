@@ -27,6 +27,7 @@ namespace ignis {
 		
 		// Project integration (public for external refresh)
 		void Refresh();
+		void Clear();
 		
 		// Selection management (public for item callbacks)
 		bool IsItemSelected(AssetBrowserItem* item) const;
