@@ -117,11 +117,15 @@ namespace ignis
 
 	void GLRenderer::SetViewport(int x, int y, int width, int height)
 	{
+		m_viewport_width = width;
+		m_viewport_height = height;
 		glViewport(x, y, width, height);
 	}
 
 	void GLRenderer::SetViewport(const glm::ivec4& viewport)
 	{
+		m_viewport_width = viewport[2];
+		m_viewport_height = viewport[3];
 		glViewport(viewport.x, viewport.y, viewport.z, viewport.w);
 	}
 
@@ -247,8 +251,7 @@ namespace ignis
 			static_cast<uint32_t>(indices.size() * sizeof(uint32_t)));
 		m_text_vao->SetIndexBuffer(ibo);
 
-		// TODO: Get Screen Size
-		const glm::vec2 screen_size = { 1920.0f, 1080.0f };
+		const glm::vec2 screen_size = { m_viewport_width, m_viewport_width };
 
 		auto mat = Material::Create(m_shader_library->Get("Text"));
 		mat->Set("u_Model", transform);

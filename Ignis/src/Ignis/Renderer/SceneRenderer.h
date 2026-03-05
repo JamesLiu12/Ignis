@@ -7,8 +7,6 @@
 
 namespace ignis
 {
-	class Scene;
-
 	struct SceneRenderContext
 	{
 		std::shared_ptr<Scene> Scene;
