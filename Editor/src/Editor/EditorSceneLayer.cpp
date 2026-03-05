@@ -24,9 +24,9 @@ void EditorSceneLayer::OnAttach()
 
 	auto& window = m_editor_app->GetWindow();
 	float aspect_ratio = static_cast<float>(window.GetFramebufferWidth()) / static_cast<float>(window.GetFramebufferHeight());
-	m_camera = std::make_shared<EditorCamera>(45.0f, aspect_ratio, 0.1f, 1000.0f);
-	m_camera->SetPosition({ 1.5f, 0.0f, 10.0f });
-	m_camera->RecalculateViewMatrix();
+	m_editor_camera = std::make_shared<EditorCamera>(45.0f, aspect_ratio, 0.1f, 1000.0f);
+	m_editor_camera->SetPosition({ 1.5f, 0.0f, 10.0f });
+	m_editor_camera->RecalculateViewMatrix();
 
 	// Create pipeline and framebuffer (always needed)
 	m_pipeline = std::make_shared<PBRPipeline>(m_renderer.GetShaderLibrary());
@@ -157,7 +157,7 @@ void EditorSceneLayer::OnUpdate(float dt)
 	// Only update camera if allowed
 	if (allow_camera_control)
 	{
-		m_camera->OnUpdate(dt);
+		m_editor_camera->OnUpdate(dt);
 	}
 
 	// Update camera aspect ratio based on viewport panel size
@@ -167,7 +167,7 @@ void EditorSceneLayer::OnUpdate(float dt)
 		if (viewport_size.x > 0 && viewport_size.y > 0)
 		{
 			float aspect = viewport_size.x / viewport_size.y;
-			m_camera->SetPerspective(45.0f, aspect, 0.1f, 1000.0f);
+			m_editor_camera->SetPerspective(45.0f, aspect, 0.1f, 1000.0f);
 		}
 	}
 
@@ -190,7 +190,12 @@ void EditorSceneLayer::OnUpdate(float dt)
 	}
 	else
 	{
-		scene_renderer.BeginScene({ m_current_scene, m_current_scene->GetPrimaryCamera(), m_pipeline});
+		// In Edit mode, use EditorCamera; in Play mode (Phase 4), use scene camera
+		std::shared_ptr<Camera> render_camera = (m_scene_state == SceneState::Edit) 
+			? m_editor_camera 
+			: m_current_scene->GetPrimaryCamera();
+		
+		scene_renderer.BeginScene({ m_current_scene, render_camera, m_pipeline});
 		m_current_scene->OnRender(scene_renderer);
 		scene_renderer.EndScene();
 	}
@@ -247,9 +252,8 @@ void EditorSceneLayer::ReloadProject()
 	SceneSerializer scene_serializer;
 	m_editor_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
 
-	m_script_module.Load(Project::ResolveActiveScriptModulePath());
-	m_script_module.RegisterAll(ignis::ScriptRegistry::Get());
-	m_editor_scene->OnRuntimeStart();
+	// Script module will be loaded in OnScenePlay()
+	// Do not call OnRuntimeStart() in edit mode, as scripts should only run in Play mode
 
 	auto& window = m_editor_app->GetWindow();
 	m_editor_scene->OnViewportResize(window.GetFramebufferWidth(), window.GetFramebufferHeight());

@@ -51,7 +51,7 @@ private:
 	EditorApp* m_editor_app;
 	ViewportPanel* m_viewport_panel = nullptr;
 	
-	std::shared_ptr<EditorCamera> m_camera;
+	std::shared_ptr<EditorCamera> m_editor_camera;
 
 	std::shared_ptr<Scene> m_editor_scene;   // Persistent scene for editing
 	std::shared_ptr<Scene> m_runtime_scene;  // Temporary scene for play mode
