@@ -92,6 +92,9 @@ namespace ignis
 		void OnRuntimeUpdate(float dt);
 		void OnRuntimeStop();
 
+		// Scene copying (for Edit/Play mode)
+		void CopyTo(std::shared_ptr<Scene>& target);
+
 	private:
 		entt::registry m_registry;
 		LightEnvironment m_light_environment;
