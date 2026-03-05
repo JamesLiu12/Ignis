@@ -56,34 +56,29 @@ namespace ignis
 		{
 			const stbtt_packedchar& p = packed[i];
 			GlyphMetrics g;
-			g.AtlasMin = { p.x0 * inv_w, 1.0f - p.y1 * inv_h };
-			g.AtlasMax = { p.x1 * inv_w, 1.0f - p.y0 * inv_h };
+			g.AtlasMin = { p.x0 * inv_w, p.y0 * inv_h };
+			g.AtlasMax = { p.x1 * inv_w, p.y1 * inv_h };
 			g.QuadMin = { p.xoff,  p.yoff };
 			g.QuadMax = { p.xoff2, p.yoff2 };
 			g.Advance = p.xadvance;
 			font->m_glyphs[static_cast<uint32_t>(kFirst + i)] = g;
 		}
 
-		std::vector<std::byte> rgba(opts.AtlasWidth * opts.AtlasHeight * 4);
-		for (size_t i = 0; i < bitmap.size(); ++i)
-		{
-			rgba[i * 4 + 0] = (std::byte)bitmap[i];
-			rgba[i * 4 + 1] = (std::byte)0;
-			rgba[i * 4 + 2] = (std::byte)0;
-			rgba[i * 4 + 3] = (std::byte)0;
-		}
-
 		TextureSpecs specs;
 		specs.Width = opts.AtlasWidth;
 		specs.Height = opts.AtlasHeight;
-		specs.Format = TextureFormat::RGBA8;
+		specs.Format = TextureFormat::R8;
 		specs.WrapS = TextureWrap::ClampToEdge;
 		specs.WrapT = TextureWrap::ClampToEdge;
 		specs.MinFilter = TextureFilter::Linear;
 		specs.MagFilter = TextureFilter::Linear;
 		specs.GenMipmaps = false;
 
-		font->m_atlas = Texture2D::Create(specs, ImageFormat::RGBA8, rgba);
+		std::vector<std::byte> r8(bitmap.size());
+		for (size_t i = 0; i < bitmap.size(); ++i)
+			r8[i] = (std::byte)bitmap[i];
+
+		font->m_atlas = Texture2D::Create(specs, ImageFormat::R8, r8);
 		if (!font->m_atlas)
 		{
 			Log::CoreError("FontImporter: GPU upload failed for '{}'", path);
