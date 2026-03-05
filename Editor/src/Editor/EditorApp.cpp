@@ -81,8 +81,8 @@ EditorApp::EditorApp()
 	m_scene_layer = scene_layer.get();
 	PushLayer(std::move(scene_layer));
 	
-	// Add Viewport panel (center area) - needs renderer to be initialized
-	m_viewport_panel = panel_manager.AddPanel<ViewportPanel>("Viewport", "Viewport", true, &GetRenderer());
+	// Add Viewport panel (center area) - needs renderer and scene layer for Play/Stop toolbar
+	m_viewport_panel = panel_manager.AddPanel<ViewportPanel>("Viewport", "Viewport", true, &GetRenderer(), m_scene_layer);
 	
 	// Add some test messages to the console
 	console_panel->AddMessage(ConsoleMessageLevel::Info, "Ignis Editor initialized");

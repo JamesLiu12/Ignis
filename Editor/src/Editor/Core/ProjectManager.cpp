@@ -5,6 +5,7 @@
 #include "Ignis/Core/Log.h"
 #include "Editor/EditorApp.h"
 #include "Editor/EditorSceneLayer.h"
+#include "Editor/Panels/AssetBrowserPanel.h"
 
 namespace ignis {
 
@@ -66,12 +67,19 @@ void ProjectManager::SaveProject(const std::filesystem::path& filepath)
 		{
 			Log::CoreInfo("Project saved: {}", filepath.string());
 			
-			// Save active scene
+			// Save editor scene (not runtime scene, even if in Play mode)
 			if (auto* app = dynamic_cast<EditorApp*>(&Application::Get()))
 			{
 				if (auto* scene_layer = app->GetSceneLayer())
 				{
-					if (auto scene = scene_layer->GetScene())
+					// Warn if saving during Play mode
+					if (scene_layer->GetSceneState() == EditorSceneLayer::SceneState::Play)
+					{
+						Log::CoreWarn("Saving during Play mode - runtime changes will NOT be saved");
+					}
+					
+					// Always save editor scene, not runtime scene
+					if (auto scene = scene_layer->GetEditorScene())
 					{
 						SceneSerializer scene_serializer;
 						if (scene_serializer.Serialize(*scene, Project::GetActiveStartScene()))
@@ -166,6 +174,12 @@ void ProjectManager::CloseProject()
 		if (auto* scene_layer = app->GetSceneLayer())
 		{
 			scene_layer->ClearProject();
+		}
+		
+		// Clear asset browser
+		if (auto* asset_browser = app->GetAssetBrowserPanel())
+		{
+			asset_browser->Clear();
 		}
 	}
 

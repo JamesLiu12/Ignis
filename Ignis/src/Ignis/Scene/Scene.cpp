@@ -7,6 +7,19 @@
 
 namespace ignis
 {
+	// Helper template for copying components from source to destination registry
+	template<typename T>
+	static void CopyComponent(entt::registry& dst_registry, entt::registry& src_registry, 
+	                          const std::unordered_map<UUID, entt::entity>& entt_map)
+	{
+		auto src_entities = src_registry.view<T>();
+		for (auto src_entity : src_entities)
+		{
+			entt::entity dest_entity = entt_map.at(src_registry.get<IDComponent>(src_entity).ID);
+			auto& src_component = src_registry.get<T>(src_entity);
+			dst_registry.emplace_or_replace<T>(dest_entity, src_component);
+		}
+	}
 	Entity Scene::CreateEntity(const std::string name)
 	{
 		return CreateEntity({}, name);
@@ -350,5 +363,65 @@ namespace ignis
 			});
 
 		m_runtime_scripts.clear();
+	}
+
+	void Scene::CopyTo(std::shared_ptr<Scene>& target)
+	{
+		// Copy scene name
+		target->m_name = m_name;
+		
+		// Copy environment settings
+		target->m_scene_environment = m_scene_environment;
+		target->m_environment_settings = m_environment_settings;
+		
+		// Step 1: Create all entities with preserved UUIDs in consistent order
+		std::unordered_map<UUID, entt::entity> entt_map;
+		auto id_components = m_registry.view<IDComponent>();
+		
+		// Sort entities by their entt::entity handle to ensure consistent creation order
+		std::vector<entt::entity> sorted_entities;
+		sorted_entities.reserve(id_components.size());
+		for (auto entity : id_components)
+		{
+			sorted_entities.push_back(entity);
+		}
+		std::sort(sorted_entities.begin(), sorted_entities.end());
+		
+		// Create entities in sorted order
+		for (auto entity : sorted_entities)
+		{
+			auto uuid = m_registry.get<IDComponent>(entity).ID;
+			auto name = m_registry.get<TagComponent>(entity).Tag;
+			Entity e = target->CreateEntityWithID(uuid, name);
+			entt_map[uuid] = e.m_handle;
+		}
+		
+		// Step 2: Copy all component types
+		CopyComponent<IDComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<TagComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<TransformComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<RelationshipComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<CameraComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<DirectionalLightComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<PointLightComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<SpotLightComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<SkyLightComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<MeshComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<ScriptComponent>(target->m_registry, m_registry, entt_map);
+		
+		// Step 3: Deep copy camera instances (avoid shared camera between scenes)
+		auto cameras = m_registry.view<CameraComponent>();
+		for (auto src_entity : cameras)
+		{
+			entt::entity dest_entity = entt_map.at(m_registry.get<IDComponent>(src_entity).ID);
+			auto& src_camera = m_registry.get<CameraComponent>(src_entity);
+			auto& dest_camera = target->m_registry.get<CameraComponent>(dest_entity);
+			
+			// Create new camera instance with same settings
+			dest_camera.Camera = std::make_shared<SceneCamera>(*src_camera.Camera);
+		}
+		
+		Log::CoreInfo("Scene::CopyTo() - Copied scene '{}' with {} entities", 
+		              m_name, entt_map.size());
 	}
 }

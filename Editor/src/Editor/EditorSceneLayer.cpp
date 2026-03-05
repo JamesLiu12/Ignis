@@ -14,6 +14,22 @@ EditorSceneLayer::EditorSceneLayer(Renderer& renderer, EditorApp* editor_app)
 {
 }
 
+EditorSceneLayer::~EditorSceneLayer()
+{
+	// Ensure we're in Edit mode before destruction
+	if (m_scene_state == SceneState::Play && m_runtime_scene)
+	{
+		// Stop runtime and clear scripts before scene destruction
+		// Note: Don't log here as logger already be destroyed during shutdown
+		m_runtime_scene->OnRuntimeStop();
+		m_script_module.UnregisterAll(ScriptRegistry::Get());
+		m_script_module.Unload();
+		m_runtime_scene = nullptr;
+		
+		m_scene_state = SceneState::Edit;
+	}
+}
+
 void EditorSceneLayer::OnAttach()
 {
 	m_renderer.Init();
@@ -24,9 +40,9 @@ void EditorSceneLayer::OnAttach()
 
 	auto& window = m_editor_app->GetWindow();
 	float aspect_ratio = static_cast<float>(window.GetFramebufferWidth()) / static_cast<float>(window.GetFramebufferHeight());
-	m_camera = std::make_shared<EditorCamera>(45.0f, aspect_ratio, 0.1f, 1000.0f);
-	m_camera->SetPosition({ 1.5f, 0.0f, 10.0f });
-	m_camera->RecalculateViewMatrix();
+	m_editor_camera = std::make_shared<EditorCamera>(45.0f, aspect_ratio, 0.1f, 1000.0f);
+	m_editor_camera->SetPosition({ 1.5f, 0.0f, 10.0f });
+	m_editor_camera->RecalculateViewMatrix();
 
 	// Create pipeline and framebuffer (always needed)
 	m_pipeline = std::make_shared<PBRPipeline>(m_renderer.GetShaderLibrary());
@@ -45,7 +61,8 @@ void EditorSceneLayer::OnAttach()
 	if (!Project::GetActive())
 	{
 		Log::CoreInfo("No active project - EditorSceneLayer starting in empty state");
-		m_scene = nullptr;
+		m_editor_scene = nullptr;
+		m_current_scene = nullptr;
 		m_mesh = nullptr;
 		return;
 	}
@@ -54,76 +71,15 @@ void EditorSceneLayer::OnAttach()
 	AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
 
 	SceneSerializer scene_serializer;
-	m_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
+	m_editor_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
 	
-	/* Create New Example Scene
-	AssetHandle mesh_handle = AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Cerberus_LP.FBX");
-	m_mesh = AssetManager::GetAsset<Mesh>(mesh_handle);
-	
-	auto albedo_map_handle = AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_A.tga");
-	m_mesh->SetMaterialDataTexture(0, MaterialType::Albedo, albedo_map_handle);
-	auto normal_map_handle = AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_N.tga");
-	m_mesh->SetMaterialDataTexture(0, MaterialType::Normal, normal_map_handle);
-	auto metallic_map_handle = AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_M.tga");
-	m_mesh->SetMaterialDataTexture(0, MaterialType::Metal, metallic_map_handle);
-	auto roughness_map_handle = AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_R.tga");
-	m_mesh->SetMaterialDataTexture(0, MaterialType::Roughness, roughness_map_handle);
-
-	AssetHandle environment_handle = AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k.hdr");
-
-	auto environment_entity = m_scene->CreateEntity("Environment");
-	auto& sky_light_component = environment_entity.AddComponent<SkyLightComponent>();
-	sky_light_component.SceneEnvironment = environment_handle;
-
-	// Create Directional Light entity
-	auto directional_light_entity = m_scene->CreateEntity("Directional Light");
-	m_light_entity = Entity(directional_light_entity);
-
-	auto& dir_light = m_light_entity.AddComponent<DirectionalLightComponent>();
-	dir_light.Color = glm::vec3(1.0f, 0.95f, 0.8f); // Warm white light
-	dir_light.Intensity = 1.5f;
-
-	auto& dir_transform = m_light_entity.GetComponent<TransformComponent>();
-	dir_transform.Translation = glm::vec3(0.0f, 5.0f, 5.0f);
-
-	// Create Point Light entity
-	auto point_light_entity = m_scene->CreateEntity("Point Light");
-	auto& point_light = point_light_entity.AddComponent<PointLightComponent>();
-	point_light.Color = glm::vec3(1.0f, 0.0f, 0.0f); // Red
-	point_light.Intensity = 5.0f;
-	point_light.Range = 10.0f;
-
-	auto& point_transform = point_light_entity.GetComponent<TransformComponent>();
-	point_transform.Translation = glm::vec3(2.0f, 2.0f, 0.0f);
-
-	// Create Spot Light entity
-	auto spot_light_entity = m_scene->CreateEntity("Spot Light");
-	auto& spot_light = spot_light_entity.AddComponent<SpotLightComponent>();
-	spot_light.Color = glm::vec3(0.0f, 1.0f, 0.0f); // Green
-	spot_light.Intensity = 10.0f;
-	spot_light.Range = 15.0f;
-	spot_light.InnerConeAngle = 12.5f;
-	spot_light.OuterConeAngle = 17.5f;
-
-	auto& spot_transform = spot_light_entity.GetComponent<TransformComponent>();
-	spot_transform.Translation = glm::vec3(-2.0f, 2.0f, 0.0f);
-
-	// Create gun entity
-	auto gun_entity = m_scene->CreateEntity("Gun");
-	auto& gun = gun_entity.AddComponent<MeshComponent>();
-	gun.Mesh = mesh_handle;
-	gun.MeterialData = {
-		albedo_map_handle,
-		normal_map_handle,
-		metallic_map_handle,
-		roughness_map_handle,
-	};
-	*/
+	// Set current scene to editor scene
+	m_current_scene = m_editor_scene;
 
 	// Set the scene in the hierarchy panel
 	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
 	{
-		hierarchy_panel->SetScene(m_scene);
+		hierarchy_panel->SetScene(m_editor_scene);
 		Log::CoreInfo("Scene set in hierarchy panel");
 	}
 	else
@@ -152,15 +108,15 @@ void EditorSceneLayer::OnAttach()
 		properties_panel->SetCurrentMesh(&m_mesh, &m_mesh_transform_component);
 	}
 
-	SceneSerializer().Serialize(*m_scene, Project::GetActiveStartScene().replace_filename("StartSceneSaved.igscene"));
+	SceneSerializer().Serialize(*m_editor_scene, Project::GetActiveStartScene().replace_filename("StartSceneSaved.igscene"));
 	AssetSerializer().Serialize(AssetManager::GetAssetRegistry(), Project::GetActiveAssetRegistry().replace_filename("TestARSaved.igar"));
 }
 
 void EditorSceneLayer::OnDetach()
 {
-	if (m_scene)
+	if (m_editor_scene)
 	{
-		m_scene->OnRuntimeStop();
+		m_editor_scene->OnRuntimeStop();
 	}
 	m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
 	m_script_module.Unload();
@@ -214,10 +170,11 @@ void EditorSceneLayer::OnUpdate(float dt)
 		                       m_started_camera_drag_in_viewport;
 	}
 	
-	// Only update camera if allowed
+	// Edit mode: Update EditorCamera with input gating
+	// (In Play mode, allow_camera_control is false, so EditorCamera doesn't update)
 	if (allow_camera_control)
 	{
-		m_camera->OnUpdate(dt);
+		m_editor_camera->OnUpdate(dt);
 	}
 
 	// Update camera aspect ratio based on viewport panel size
@@ -227,17 +184,18 @@ void EditorSceneLayer::OnUpdate(float dt)
 		if (viewport_size.x > 0 && viewport_size.y > 0)
 		{
 			float aspect = viewport_size.x / viewport_size.y;
-			m_camera->SetPerspective(45.0f, aspect, 0.1f, 1000.0f);
+			m_editor_camera->SetPerspective(45.0f, aspect, 0.1f, 1000.0f);
 		}
 	}
 
-	if (m_scene)
+	// Only update runtime (scripts) in Play mode
+	if (m_scene_state == SceneState::Play && m_current_scene)
 	{
-		m_scene->OnRuntimeUpdate(dt);
+		m_current_scene->OnRuntimeUpdate(dt);
 	}
 
 	SceneRenderer scene_renderer(m_renderer);
-	if (!m_scene)
+	if (!m_current_scene)
 	{
 		auto framebuffer = m_renderer.GetFramebuffer();
 		if (framebuffer)
@@ -250,8 +208,13 @@ void EditorSceneLayer::OnUpdate(float dt)
 	}
 	else
 	{
-		scene_renderer.BeginScene({ m_scene, m_scene->GetPrimaryCamera(), m_pipeline});
-		m_scene->OnRender(scene_renderer);
+		// In Edit mode, use EditorCamera; in Play mode (Phase 4), use scene camera
+		std::shared_ptr<Camera> render_camera = (m_scene_state == SceneState::Edit) 
+			? m_editor_camera 
+			: m_current_scene->GetPrimaryCamera();
+		
+		scene_renderer.BeginScene({ m_current_scene, render_camera, m_pipeline});
+		m_current_scene->OnRender(scene_renderer);
 		scene_renderer.EndScene();
 	}
 	
@@ -265,9 +228,9 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 
 	if (auto* resize_event = dynamic_cast<WindowResizeEvent*>(&event))
 	{
-		if (m_scene)
+		if (m_current_scene)
 		{
-			m_scene->OnViewportResize(resize_event->GetWidth(), resize_event->GetHeight());
+			m_current_scene->OnViewportResize(resize_event->GetWidth(), resize_event->GetHeight());
 		}
 		
 	}
@@ -283,6 +246,13 @@ void EditorSceneLayer::ReloadProject()
 	
 	Log::CoreInfo("Reloading project scene...");
 	
+	// Auto-stop Play mode if currently playing
+	if (m_scene_state == SceneState::Play)
+	{
+		Log::CoreWarn("Auto-stopping Play mode for project reload");
+		OnSceneStop();
+	}
+	
 	// Clear panels Before destroying old scene to prevent accessing stale entities
 	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
 	{
@@ -290,28 +260,28 @@ void EditorSceneLayer::ReloadProject()
 		properties_panel->SetCurrentMesh(nullptr, nullptr);
 	}
 
-	if (m_scene)
+	if (m_editor_scene)
 	{
-		m_scene->OnRuntimeStop();
+		m_editor_scene->OnRuntimeStop();
 	}
 	m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
 	m_script_module.Unload();
 	
 	// Clear previous project's scene and assets
-	m_scene = nullptr;
+	m_editor_scene = nullptr;
+	m_current_scene = nullptr;
 	m_mesh = nullptr;
 	
 	// Reload asset registry and scene
 	AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
 	SceneSerializer scene_serializer;
-	m_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
+	m_editor_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
 
-	m_script_module.Load(Project::ResolveActiveScriptModulePath());
-	m_script_module.RegisterAll(ignis::ScriptRegistry::Get());
-	m_scene->OnRuntimeStart();
+	// Script module will be loaded in OnScenePlay()
+	// Do not call OnRuntimeStart() in edit mode, as scripts should only run in Play mode
 
 	auto& window = m_editor_app->GetWindow();
-	m_scene->OnViewportResize(window.GetFramebufferWidth(), window.GetFramebufferHeight());
+	m_editor_scene->OnViewportResize(window.GetFramebufferWidth(), window.GetFramebufferHeight());
 	
 	// Refresh asset browser with new project files
 	if (auto* asset_browser = m_editor_app->GetAssetBrowserPanel())
@@ -321,25 +291,98 @@ void EditorSceneLayer::ReloadProject()
 		AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
 	}
 	
+	// Set current scene to editor scene
+	m_current_scene = m_editor_scene;
+
 	// Update hierarchy panel with all entities from the scene
 	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
 	{
-		hierarchy_panel->SetScene(m_scene);
+		hierarchy_panel->SetScene(m_editor_scene);
 	}
 	
 	Log::CoreInfo("Project scene reloaded");
 }
 
+void EditorSceneLayer::OnScenePlay()
+{
+	Log::CoreInfo("OnScenePlay() - Transitioning to Play mode");
+	
+	// Change state to Play
+	m_scene_state = SceneState::Play;
+	
+	// Create runtime scene and copy editor scene
+	m_runtime_scene = std::make_shared<Scene>();
+	m_editor_scene->CopyTo(m_runtime_scene);
+	
+	// Load and register script module
+	m_script_module.Load(Project::ResolveActiveScriptModulePath());
+	m_script_module.RegisterAll(ScriptRegistry::Get());
+	
+	// Start runtime (creates script instances, calls OnCreate)
+	m_runtime_scene->OnRuntimeStart();
+	
+	// Switch to runtime scene
+	m_current_scene = m_runtime_scene;
+	
+	// Update hierarchy panel to use runtime scene
+	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+	{
+		hierarchy_panel->SetScene(m_runtime_scene);
+	}
+	
+	Log::CoreInfo("OnScenePlay() - Play mode started");
+}
+
+void EditorSceneLayer::OnSceneStop()
+{
+	Log::CoreInfo("OnSceneStop() - Transitioning to Edit mode");
+	
+	// Clear selected entity in PropertiesPanel before destroying runtime scene
+	// This prevents accessing components on entities from destroyed registry
+	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
+	{
+		properties_panel->SetSelectedEntity(nullptr);
+	}
+	
+	// Stop runtime (calls OnDestroy, clears scripts)
+	if (m_runtime_scene)
+	{
+		m_runtime_scene->OnRuntimeStop();
+	}
+	
+	// Unload script module
+	m_script_module.UnregisterAll(ScriptRegistry::Get());
+	m_script_module.Unload();
+	
+	// Discard runtime scene
+	m_runtime_scene = nullptr;
+	
+	// Change state to Edit
+	m_scene_state = SceneState::Edit;
+	
+	// Switch back to editor scene
+	m_current_scene = m_editor_scene;
+	
+	// Update hierarchy panel to use editor scene
+	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+	{
+		hierarchy_panel->SetScene(m_editor_scene);
+	}
+	
+	Log::CoreInfo("OnSceneStop() - Edit mode restored");
+}
+
 void EditorSceneLayer::ClearProject()
 {
-	if (m_scene)
+	if (m_editor_scene)
 	{
-		m_scene->OnRuntimeStop();
+		m_editor_scene->OnRuntimeStop();
 	}
 	m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
 	m_script_module.Unload();
 
-	m_scene = nullptr;
+	m_editor_scene = nullptr;
+	m_current_scene = nullptr;
 	m_mesh = nullptr;
 	
 	// Clear panels

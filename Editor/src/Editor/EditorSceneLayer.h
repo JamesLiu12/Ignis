@@ -15,9 +15,15 @@ namespace ignis {
 class EditorSceneLayer : public Layer
 {
 public:
+	enum class SceneState
+	{
+		Edit = 0,
+		Play = 1
+	};
+
 	EditorSceneLayer(Renderer& renderer, EditorApp* editor_app);
 
-	~EditorSceneLayer() override = default;
+	~EditorSceneLayer() override;
 
 	void OnAttach() override;
 	void OnDetach() override;
@@ -28,8 +34,14 @@ public:
 	void ReloadProject();  // Called when project is loaded
 	void ClearProject();   // Called when project is closed
 
+	// Scene state transitions
+	void OnScenePlay();
+	void OnSceneStop();
+	SceneState GetSceneState() const { return m_scene_state; }
+
 	// Scene access
-	std::shared_ptr<Scene> GetScene() const { return m_scene; }
+	std::shared_ptr<Scene> GetScene() const { return m_current_scene; }
+	std::shared_ptr<Scene> GetEditorScene() const { return m_editor_scene; }
 
 	// Mesh access for PropertiesPanel
 	std::shared_ptr<Mesh> GetCurrentMesh() const { return m_mesh; }
@@ -40,9 +52,11 @@ private:
 	EditorApp* m_editor_app;
 	ViewportPanel* m_viewport_panel = nullptr;
 	
-	std::shared_ptr<EditorCamera> m_camera;
+	std::shared_ptr<EditorCamera> m_editor_camera;
 
-	std::shared_ptr<Scene> m_scene;
+	std::shared_ptr<Scene> m_editor_scene;   // Persistent scene for editing
+	std::shared_ptr<Scene> m_runtime_scene;  // Temporary scene for play mode
+	std::shared_ptr<Scene> m_current_scene;  // Points to active scene (editor or runtime)
 
 	std::shared_ptr<Mesh> m_mesh;
 	
@@ -57,6 +71,8 @@ private:
 	
 	// Camera input gate for tracking if drag started in viewport
 	bool m_started_camera_drag_in_viewport = false;
+
+	SceneState m_scene_state = SceneState::Edit;
 
 	ScriptModule m_script_module;
 };

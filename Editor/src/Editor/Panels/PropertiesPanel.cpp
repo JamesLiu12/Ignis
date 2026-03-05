@@ -31,14 +31,14 @@ namespace ignis {
 				ImGui::Separator();
 			}
 			
-			// Section 2: Show selected light entity controls below
+			// Section 2: Show selected entity controls below
 			if (auto entity = m_selected_entity.lock())
 			{
 				// Render entity name
 				if (entity->HasComponent<TagComponent>())
 				{
 					auto& tag = entity->GetComponent<TagComponent>();
-					ImGui::Text("Light Entity: %s", tag.Tag.c_str());
+					ImGui::Text("Entity: %s", tag.Tag.c_str());
 					ImGui::Separator();
 				}
 				

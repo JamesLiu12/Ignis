@@ -7,10 +7,12 @@
 
 namespace ignis {
 
+	class EditorSceneLayer;  // Forward declaration
+
 	class ViewportPanel : public EditorPanel
 	{
 	public:
-		ViewportPanel(Renderer* renderer);
+		ViewportPanel(Renderer* renderer, EditorSceneLayer* editor_scene_layer);
 		~ViewportPanel() override = default;
 
 		void OnImGuiRender() override;
@@ -25,7 +27,10 @@ namespace ignis {
 		bool IsFocused() const { return m_is_focused; }
 
 	private:
+		void RenderToolbar();  // Render Play/Stop toolbar overlay
+
 		Renderer* m_renderer;
+		EditorSceneLayer* m_editor_scene_layer = nullptr;  // For accessing scene state and calling Play/Stop
 		ImVec2 m_viewport_size;
 		ImVec2 m_viewport_min_bound;
 		ImVec2 m_viewport_max_bound;
