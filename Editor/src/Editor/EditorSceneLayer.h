@@ -23,7 +23,7 @@ public:
 
 	EditorSceneLayer(Renderer& renderer, EditorApp* editor_app);
 
-	~EditorSceneLayer() override = default;
+	~EditorSceneLayer() override;
 
 	void OnAttach() override;
 	void OnDetach() override;

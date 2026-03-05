@@ -14,6 +14,22 @@ EditorSceneLayer::EditorSceneLayer(Renderer& renderer, EditorApp* editor_app)
 {
 }
 
+EditorSceneLayer::~EditorSceneLayer()
+{
+	// Ensure we're in Edit mode before destruction
+	if (m_scene_state == SceneState::Play && m_runtime_scene)
+	{
+		// Stop runtime and clear scripts before scene destruction
+		// Note: Don't log here as logger already be destroyed during shutdown
+		m_runtime_scene->OnRuntimeStop();
+		m_script_module.UnregisterAll(ScriptRegistry::Get());
+		m_script_module.Unload();
+		m_runtime_scene = nullptr;
+		
+		m_scene_state = SceneState::Edit;
+	}
+}
+
 void EditorSceneLayer::OnAttach()
 {
 	m_renderer.Init();
@@ -154,7 +170,8 @@ void EditorSceneLayer::OnUpdate(float dt)
 		                       m_started_camera_drag_in_viewport;
 	}
 	
-	// Only update camera if allowed
+	// Edit mode: Update EditorCamera with input gating
+	// (In Play mode, allow_camera_control is false, so EditorCamera doesn't update)
 	if (allow_camera_control)
 	{
 		m_editor_camera->OnUpdate(dt);
@@ -171,7 +188,8 @@ void EditorSceneLayer::OnUpdate(float dt)
 		}
 	}
 
-	if (m_current_scene)
+	// Only update runtime (scripts) in Play mode
+	if (m_scene_state == SceneState::Play && m_current_scene)
 	{
 		m_current_scene->OnRuntimeUpdate(dt);
 	}
@@ -280,16 +298,71 @@ void EditorSceneLayer::ReloadProject()
 
 void EditorSceneLayer::OnScenePlay()
 {
-	// TODO: Implementation in Phase 4
-	// Will copy editor scene to runtime scene and start scripts
-	Log::CoreInfo("OnScenePlay() - Not yet implemented (Phase 4)");
+	Log::CoreInfo("OnScenePlay() - Transitioning to Play mode");
+	
+	// Change state to Play
+	m_scene_state = SceneState::Play;
+	
+	// Create runtime scene and copy editor scene
+	m_runtime_scene = std::make_shared<Scene>();
+	m_editor_scene->CopyTo(m_runtime_scene);
+	
+	// Load and register script module
+	m_script_module.Load(Project::ResolveActiveScriptModulePath());
+	m_script_module.RegisterAll(ScriptRegistry::Get());
+	
+	// Start runtime (creates script instances, calls OnCreate)
+	m_runtime_scene->OnRuntimeStart();
+	
+	// Switch to runtime scene
+	m_current_scene = m_runtime_scene;
+	
+	// Update hierarchy panel to use runtime scene
+	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+	{
+		hierarchy_panel->SetScene(m_runtime_scene);
+	}
+	
+	Log::CoreInfo("OnScenePlay() - Play mode started");
 }
 
 void EditorSceneLayer::OnSceneStop()
 {
-	// TODO: Implementation in Phase 4
-	// Will stop runtime scene and return to editor scene
-	Log::CoreInfo("OnSceneStop() - Not yet implemented (Phase 4)");
+	Log::CoreInfo("OnSceneStop() - Transitioning to Edit mode");
+	
+	// Clear selected entity in PropertiesPanel before destroying runtime scene
+	// This prevents accessing components on entities from destroyed registry
+	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
+	{
+		properties_panel->SetSelectedEntity(nullptr);
+	}
+	
+	// Stop runtime (calls OnDestroy, clears scripts)
+	if (m_runtime_scene)
+	{
+		m_runtime_scene->OnRuntimeStop();
+	}
+	
+	// Unload script module
+	m_script_module.UnregisterAll(ScriptRegistry::Get());
+	m_script_module.Unload();
+	
+	// Discard runtime scene
+	m_runtime_scene = nullptr;
+	
+	// Change state to Edit
+	m_scene_state = SceneState::Edit;
+	
+	// Switch back to editor scene
+	m_current_scene = m_editor_scene;
+	
+	// Update hierarchy panel to use editor scene
+	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+	{
+		hierarchy_panel->SetScene(m_editor_scene);
+	}
+	
+	Log::CoreInfo("OnSceneStop() - Edit mode restored");
 }
 
 void EditorSceneLayer::ClearProject()

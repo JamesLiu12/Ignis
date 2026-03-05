@@ -374,10 +374,21 @@ namespace ignis
 		target->m_scene_environment = m_scene_environment;
 		target->m_environment_settings = m_environment_settings;
 		
-		// Step 1: Create all entities with preserved UUIDs
+		// Step 1: Create all entities with preserved UUIDs in consistent order
 		std::unordered_map<UUID, entt::entity> entt_map;
 		auto id_components = m_registry.view<IDComponent>();
+		
+		// Sort entities by their entt::entity handle to ensure consistent creation order
+		std::vector<entt::entity> sorted_entities;
+		sorted_entities.reserve(id_components.size());
 		for (auto entity : id_components)
+		{
+			sorted_entities.push_back(entity);
+		}
+		std::sort(sorted_entities.begin(), sorted_entities.end());
+		
+		// Create entities in sorted order
+		for (auto entity : sorted_entities)
 		{
 			auto uuid = m_registry.get<IDComponent>(entity).ID;
 			auto name = m_registry.get<TagComponent>(entity).Tag;
