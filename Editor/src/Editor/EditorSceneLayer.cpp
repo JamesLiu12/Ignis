@@ -45,7 +45,8 @@ void EditorSceneLayer::OnAttach()
 	if (!Project::GetActive())
 	{
 		Log::CoreInfo("No active project - EditorSceneLayer starting in empty state");
-		m_scene = nullptr;
+		m_editor_scene = nullptr;
+		m_current_scene = nullptr;
 		m_mesh = nullptr;
 		return;
 	}
@@ -54,76 +55,15 @@ void EditorSceneLayer::OnAttach()
 	AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
 
 	SceneSerializer scene_serializer;
-	m_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
+	m_editor_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
 	
-	/* Create New Example Scene
-	AssetHandle mesh_handle = AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Cerberus_LP.FBX");
-	m_mesh = AssetManager::GetAsset<Mesh>(mesh_handle);
-	
-	auto albedo_map_handle = AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_A.tga");
-	m_mesh->SetMaterialDataTexture(0, MaterialType::Albedo, albedo_map_handle);
-	auto normal_map_handle = AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_N.tga");
-	m_mesh->SetMaterialDataTexture(0, MaterialType::Normal, normal_map_handle);
-	auto metallic_map_handle = AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_M.tga");
-	m_mesh->SetMaterialDataTexture(0, MaterialType::Metal, metallic_map_handle);
-	auto roughness_map_handle = AssetManager::ImportAsset("assets://models/Cerberus_by_Andrew_Maximov/Textures/Cerberus_R.tga");
-	m_mesh->SetMaterialDataTexture(0, MaterialType::Roughness, roughness_map_handle);
-
-	AssetHandle environment_handle = AssetManager::ImportAsset("assets://images/brown_photostudio_02_4k.hdr");
-
-	auto environment_entity = m_scene->CreateEntity("Environment");
-	auto& sky_light_component = environment_entity.AddComponent<SkyLightComponent>();
-	sky_light_component.SceneEnvironment = environment_handle;
-
-	// Create Directional Light entity
-	auto directional_light_entity = m_scene->CreateEntity("Directional Light");
-	m_light_entity = Entity(directional_light_entity);
-
-	auto& dir_light = m_light_entity.AddComponent<DirectionalLightComponent>();
-	dir_light.Color = glm::vec3(1.0f, 0.95f, 0.8f); // Warm white light
-	dir_light.Intensity = 1.5f;
-
-	auto& dir_transform = m_light_entity.GetComponent<TransformComponent>();
-	dir_transform.Translation = glm::vec3(0.0f, 5.0f, 5.0f);
-
-	// Create Point Light entity
-	auto point_light_entity = m_scene->CreateEntity("Point Light");
-	auto& point_light = point_light_entity.AddComponent<PointLightComponent>();
-	point_light.Color = glm::vec3(1.0f, 0.0f, 0.0f); // Red
-	point_light.Intensity = 5.0f;
-	point_light.Range = 10.0f;
-
-	auto& point_transform = point_light_entity.GetComponent<TransformComponent>();
-	point_transform.Translation = glm::vec3(2.0f, 2.0f, 0.0f);
-
-	// Create Spot Light entity
-	auto spot_light_entity = m_scene->CreateEntity("Spot Light");
-	auto& spot_light = spot_light_entity.AddComponent<SpotLightComponent>();
-	spot_light.Color = glm::vec3(0.0f, 1.0f, 0.0f); // Green
-	spot_light.Intensity = 10.0f;
-	spot_light.Range = 15.0f;
-	spot_light.InnerConeAngle = 12.5f;
-	spot_light.OuterConeAngle = 17.5f;
-
-	auto& spot_transform = spot_light_entity.GetComponent<TransformComponent>();
-	spot_transform.Translation = glm::vec3(-2.0f, 2.0f, 0.0f);
-
-	// Create gun entity
-	auto gun_entity = m_scene->CreateEntity("Gun");
-	auto& gun = gun_entity.AddComponent<MeshComponent>();
-	gun.Mesh = mesh_handle;
-	gun.MeterialData = {
-		albedo_map_handle,
-		normal_map_handle,
-		metallic_map_handle,
-		roughness_map_handle,
-	};
-	*/
+	// Set current scene to editor scene
+	m_current_scene = m_editor_scene;
 
 	// Set the scene in the hierarchy panel
 	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
 	{
-		hierarchy_panel->SetScene(m_scene);
+		hierarchy_panel->SetScene(m_editor_scene);
 		Log::CoreInfo("Scene set in hierarchy panel");
 	}
 	else
@@ -152,15 +92,15 @@ void EditorSceneLayer::OnAttach()
 		properties_panel->SetCurrentMesh(&m_mesh, &m_mesh_transform_component);
 	}
 
-	SceneSerializer().Serialize(*m_scene, Project::GetActiveStartScene().replace_filename("StartSceneSaved.igscene"));
+	SceneSerializer().Serialize(*m_editor_scene, Project::GetActiveStartScene().replace_filename("StartSceneSaved.igscene"));
 	AssetSerializer().Serialize(AssetManager::GetAssetRegistry(), Project::GetActiveAssetRegistry().replace_filename("TestARSaved.igar"));
 }
 
 void EditorSceneLayer::OnDetach()
 {
-	if (m_scene)
+	if (m_editor_scene)
 	{
-		m_scene->OnRuntimeStop();
+		m_editor_scene->OnRuntimeStop();
 	}
 	m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
 	m_script_module.Unload();
@@ -231,13 +171,13 @@ void EditorSceneLayer::OnUpdate(float dt)
 		}
 	}
 
-	if (m_scene)
+	if (m_current_scene)
 	{
-		m_scene->OnRuntimeUpdate(dt);
+		m_current_scene->OnRuntimeUpdate(dt);
 	}
 
 	SceneRenderer scene_renderer(m_renderer);
-	if (!m_scene)
+	if (!m_current_scene)
 	{
 		auto framebuffer = m_renderer.GetFramebuffer();
 		if (framebuffer)
@@ -250,8 +190,8 @@ void EditorSceneLayer::OnUpdate(float dt)
 	}
 	else
 	{
-		scene_renderer.BeginScene({ m_scene, m_scene->GetPrimaryCamera(), m_pipeline});
-		m_scene->OnRender(scene_renderer);
+		scene_renderer.BeginScene({ m_current_scene, m_current_scene->GetPrimaryCamera(), m_pipeline});
+		m_current_scene->OnRender(scene_renderer);
 		scene_renderer.EndScene();
 	}
 	
@@ -265,9 +205,9 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 
 	if (auto* resize_event = dynamic_cast<WindowResizeEvent*>(&event))
 	{
-		if (m_scene)
+		if (m_current_scene)
 		{
-			m_scene->OnViewportResize(resize_event->GetWidth(), resize_event->GetHeight());
+			m_current_scene->OnViewportResize(resize_event->GetWidth(), resize_event->GetHeight());
 		}
 		
 	}
@@ -290,28 +230,29 @@ void EditorSceneLayer::ReloadProject()
 		properties_panel->SetCurrentMesh(nullptr, nullptr);
 	}
 
-	if (m_scene)
+	if (m_editor_scene)
 	{
-		m_scene->OnRuntimeStop();
+		m_editor_scene->OnRuntimeStop();
 	}
 	m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
 	m_script_module.Unload();
 	
 	// Clear previous project's scene and assets
-	m_scene = nullptr;
+	m_editor_scene = nullptr;
+	m_current_scene = nullptr;
 	m_mesh = nullptr;
 	
 	// Reload asset registry and scene
 	AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
 	SceneSerializer scene_serializer;
-	m_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
+	m_editor_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
 
 	m_script_module.Load(Project::ResolveActiveScriptModulePath());
 	m_script_module.RegisterAll(ignis::ScriptRegistry::Get());
-	m_scene->OnRuntimeStart();
+	m_editor_scene->OnRuntimeStart();
 
 	auto& window = m_editor_app->GetWindow();
-	m_scene->OnViewportResize(window.GetFramebufferWidth(), window.GetFramebufferHeight());
+	m_editor_scene->OnViewportResize(window.GetFramebufferWidth(), window.GetFramebufferHeight());
 	
 	// Refresh asset browser with new project files
 	if (auto* asset_browser = m_editor_app->GetAssetBrowserPanel())
@@ -321,25 +262,43 @@ void EditorSceneLayer::ReloadProject()
 		AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
 	}
 	
+	// Set current scene to editor scene
+	m_current_scene = m_editor_scene;
+
 	// Update hierarchy panel with all entities from the scene
 	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
 	{
-		hierarchy_panel->SetScene(m_scene);
+		hierarchy_panel->SetScene(m_editor_scene);
 	}
 	
 	Log::CoreInfo("Project scene reloaded");
 }
 
+void EditorSceneLayer::OnScenePlay()
+{
+	// TODO: Implementation in Phase 4
+	// Will copy editor scene to runtime scene and start scripts
+	Log::CoreInfo("OnScenePlay() - Not yet implemented (Phase 4)");
+}
+
+void EditorSceneLayer::OnSceneStop()
+{
+	// TODO: Implementation in Phase 4
+	// Will stop runtime scene and return to editor scene
+	Log::CoreInfo("OnSceneStop() - Not yet implemented (Phase 4)");
+}
+
 void EditorSceneLayer::ClearProject()
 {
-	if (m_scene)
+	if (m_editor_scene)
 	{
-		m_scene->OnRuntimeStop();
+		m_editor_scene->OnRuntimeStop();
 	}
 	m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
 	m_script_module.Unload();
 
-	m_scene = nullptr;
+	m_editor_scene = nullptr;
+	m_current_scene = nullptr;
 	m_mesh = nullptr;
 	
 	// Clear panels
