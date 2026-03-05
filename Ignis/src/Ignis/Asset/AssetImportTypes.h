@@ -15,6 +15,13 @@ namespace ignis
 		TextureFilter MagFilter = TextureFilter::Linear;
 	};
 
+	struct FontImportOptions
+	{
+		float    FontSize = 48.0f;
+		uint32_t AtlasWidth = 512;
+		uint32_t AtlasHeight = 512;
+	};
+
 	struct AssetLoadContext
 	{
 		std::shared_ptr<IBLBaker> IBLBakerService = nullptr;
@@ -23,5 +30,6 @@ namespace ignis
 		TextureImportOptions TextureCubeOptions{};
 		TextureImportOptions EquirectOptions{};
 		IBLBakeSettings EquirectBakeSettings{};
+		FontImportOptions FontOptions{};
 	};
 }

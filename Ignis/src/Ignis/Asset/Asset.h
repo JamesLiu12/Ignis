@@ -15,6 +15,7 @@ namespace ignis
 		TextureCube,
 		Mesh,
 		EquirectIBLEnv,
+		Font,
 	};
 
 	struct AssetMetadata
