@@ -72,6 +72,12 @@ void ProjectManager::SaveProject(const std::filesystem::path& filepath)
 			{
 				if (auto* scene_layer = app->GetSceneLayer())
 				{
+					// Warn if saving during Play mode
+					if (scene_layer->GetSceneState() == EditorSceneLayer::SceneState::Play)
+					{
+						Log::CoreWarn("Saving during Play mode - runtime changes will NOT be saved");
+					}
+					
 					// Always save editor scene, not runtime scene
 					if (auto scene = scene_layer->GetEditorScene())
 					{

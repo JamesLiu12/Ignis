@@ -246,6 +246,13 @@ void EditorSceneLayer::ReloadProject()
 	
 	Log::CoreInfo("Reloading project scene...");
 	
+	// Auto-stop Play mode if currently playing
+	if (m_scene_state == SceneState::Play)
+	{
+		Log::CoreWarn("Auto-stopping Play mode for project reload");
+		OnSceneStop();
+	}
+	
 	// Clear panels Before destroying old scene to prevent accessing stale entities
 	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
 	{
