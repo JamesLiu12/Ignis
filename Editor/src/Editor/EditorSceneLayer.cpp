@@ -49,6 +49,8 @@ void EditorSceneLayer::OnAttach()
 	m_pipeline = std::make_shared<PBRPipeline>(m_renderer.GetShaderLibrary());
 	
 	FrameBufferSpecs specs;
+	specs.Width = 1;
+	specs.Height = 1;
 	specs.Attachments = { TextureFormat::RGBA8, TextureFormat::Depth24Stencil8 };
 	auto framebuffer = Framebuffer::Create(specs);
 	m_renderer.SetFramebuffer(framebuffer);
