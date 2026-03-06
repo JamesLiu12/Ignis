@@ -66,8 +66,6 @@ namespace ignis
 	void UISystem::OnRender(Scene& scene, UIRenderer& ui_renderer,
 		uint32_t screen_w, uint32_t screen_h)
 	{
-		ui_renderer.BeginUI(screen_w, screen_h);
-
 		// Collect canvases and sort by SortOrder
 		std::vector<std::pair<int, Entity>> canvases;
 		auto canvas_view = scene.GetAllEntitiesWith<CanvasComponent>();
@@ -87,8 +85,6 @@ namespace ignis
 			for (Entity child : canvas_entity.GetChildren())
 				RenderNode(scene, child, ui_renderer, sort_order, depth);
 		}
-
-		ui_renderer.EndUI();
 	}
 
 	void UISystem::RenderNode(Scene& scene, Entity node,
