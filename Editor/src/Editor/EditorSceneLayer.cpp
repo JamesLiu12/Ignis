@@ -41,8 +41,7 @@ void EditorSceneLayer::OnAttach()
 		});
 
 	auto& window = m_editor_app->GetWindow();
-	float aspect_ratio = static_cast<float>(window.GetFramebufferWidth()) / static_cast<float>(window.GetFramebufferHeight());
-	m_editor_camera = std::make_shared<EditorCamera>(45.0f, aspect_ratio, 0.1f, 1000.0f);
+	m_editor_camera = std::make_shared<EditorCamera>(45.0f, 1, 0.1f, 1000.0f);
 	m_editor_camera->SetPosition({ 1.5f, 0.0f, 10.0f });
 	m_editor_camera->RecalculateViewMatrix();
 
@@ -50,8 +49,6 @@ void EditorSceneLayer::OnAttach()
 	m_pipeline = std::make_shared<PBRPipeline>(m_renderer.GetShaderLibrary());
 	
 	FrameBufferSpecs specs;
-	specs.Width = window.GetFramebufferWidth();
-	specs.Height = window.GetFramebufferHeight();
 	specs.Attachments = { TextureFormat::RGBA8, TextureFormat::Depth24Stencil8 };
 	auto framebuffer = Framebuffer::Create(specs);
 	m_renderer.SetFramebuffer(framebuffer);
@@ -198,11 +195,11 @@ void EditorSceneLayer::OnUpdate(float dt)
 		m_current_scene->OnRuntimeUpdate(dt);
 	}
 	
+	auto framebuffer = m_renderer.GetFramebuffer();
 
 	SceneRenderer scene_renderer(m_renderer);
 	if (!m_current_scene)
 	{
-		auto framebuffer = m_renderer.GetFramebuffer();
 		if (framebuffer)
 		{
 			framebuffer->Bind();
@@ -218,7 +215,7 @@ void EditorSceneLayer::OnUpdate(float dt)
 			? m_editor_camera 
 			: m_current_scene->GetPrimaryCamera();
 		
-		m_ui_system.OnUpdate(*m_current_scene, window.GetFramebufferWidth(), window.GetFramebufferHeight());
+		m_ui_system.OnUpdate(*m_current_scene, framebuffer->GetWidth(), framebuffer->GetHeight());
 
 		m_renderer.BeginFrame();
 
@@ -226,8 +223,8 @@ void EditorSceneLayer::OnUpdate(float dt)
 		m_current_scene->OnRender(scene_renderer);
 		scene_renderer.EndScene();
 
-		m_ui_renderer.BeginUI(window.GetFramebufferWidth(), window.GetFramebufferHeight());
-		m_ui_system.OnRender(*m_current_scene, m_ui_renderer, window.GetFramebufferWidth(), window.GetFramebufferHeight());
+		m_ui_renderer.BeginUI(framebuffer->GetWidth(), framebuffer->GetHeight());
+		m_ui_system.OnRender(*m_current_scene, m_ui_renderer, framebuffer->GetWidth(), framebuffer->GetHeight());
 		m_ui_renderer.EndUI();
 
 		m_renderer.EndFrame();
@@ -324,8 +321,8 @@ void EditorSceneLayer::ReloadProject()
 	// Script module will be loaded in OnScenePlay()
 	// Do not call OnRuntimeStart() in edit mode, as scripts should only run in Play mode
 
-	auto& window = m_editor_app->GetWindow();
-	m_editor_scene->OnViewportResize(window.GetFramebufferWidth(), window.GetFramebufferHeight());
+	auto framebuffer = m_renderer.GetFramebuffer();
+	m_editor_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
 	
 	// Refresh asset browser with new project files
 	if (auto* asset_browser = m_editor_app->GetAssetBrowserPanel())
