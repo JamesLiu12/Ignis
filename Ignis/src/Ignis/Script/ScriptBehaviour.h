@@ -10,9 +10,17 @@ namespace ignis
 	public:
 		virtual ~ScriptBehaviour() = default;
 
+		// 3D lifecycle
 		virtual void OnCreate() {}
 		virtual void OnUpdate(float dt) {}
 		virtual void OnDestroy() {}
+
+		// UI events
+		virtual void OnPointerEnter() {}
+		virtual void OnPointerExit() {}
+		virtual void OnPointerDown(int btn) {}
+		virtual void OnPointerUp(int btn) {}
+		virtual void OnPointerClick(int btn) {}
 
 		void SetEntity(Entity e) { m_entity = e; }
 		Entity GetEntity() const { return m_entity; }

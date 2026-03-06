@@ -62,10 +62,4 @@ namespace ignis {
 		colors[ImGuiCol_SliderGrab] = ImVec4(0.51f, 0.51f, 0.51f, 0.7f);
 		colors[ImGuiCol_SliderGrabActive] = ImVec4(0.66f, 0.66f, 0.66f, 1.0f);
 	}
-
-	void ImGuiLayer::AllowInputEvents(bool allow_events)
-	{
-		m_block_events = !allow_events;
-	}
-
 }

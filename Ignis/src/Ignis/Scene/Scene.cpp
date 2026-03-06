@@ -4,6 +4,7 @@
 #include "Ignis/Renderer/SceneRenderer.h"
 #include "Ignis/Script/ScriptBehaviour.h"
 #include "Ignis/Script/ScriptRegistry.h"
+#include "Ignis/UI/UIComponents.h"
 
 namespace ignis
 {
@@ -431,6 +432,12 @@ namespace ignis
 		CopyComponent<MeshComponent>(target->m_registry, m_registry, entt_map);
 		CopyComponent<ScriptComponent>(target->m_registry, m_registry, entt_map);
 		CopyComponent<TextComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<RectTransformComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<CanvasComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<ImageComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<UITextComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<ButtonComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<ProgressBarComponent>(target->m_registry, m_registry, entt_map);
 		
 		// Step 3: Deep copy camera instances (avoid shared camera between scenes)
 		auto cameras = m_registry.view<CameraComponent>();
@@ -446,5 +453,12 @@ namespace ignis
 		
 		Log::CoreInfo("Scene::CopyTo() - Copied scene '{}' with {} entities", 
 		              m_name, entt_map.size());
+	}
+
+	ScriptBehaviour* Scene::GetRuntimeScript(UUID entity_id)
+	{
+		auto it = m_runtime_scripts.find(entity_id);
+		if (it == m_runtime_scripts.end()) return nullptr;
+		return &it->second.GetBehaviour();
 	}
 }
