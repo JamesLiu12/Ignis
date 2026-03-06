@@ -430,6 +430,7 @@ namespace ignis
 		CopyComponent<SkyLightComponent>(target->m_registry, m_registry, entt_map);
 		CopyComponent<MeshComponent>(target->m_registry, m_registry, entt_map);
 		CopyComponent<ScriptComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<TextComponent>(target->m_registry, m_registry, entt_map);
 		
 		// Step 3: Deep copy camera instances (avoid shared camera between scenes)
 		auto cameras = m_registry.view<CameraComponent>();
