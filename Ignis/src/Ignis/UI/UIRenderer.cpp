@@ -144,7 +144,7 @@ namespace ignis
 			// Screen position (y-down) -> convert to y-up for text_projection
 			float screen_x = item.RectMin.x + offset_x;
 			float screen_y = (static_cast<float>(m_screen_height)
-				- (item.RectMin.y + offset_y));  // flip y
+				- (item.RectMin.y + offset_y + text_h));
 
 			glm::mat4 model = glm::translate(glm::mat4(1.0f),
 				{ screen_x, screen_y, 0.0f });
