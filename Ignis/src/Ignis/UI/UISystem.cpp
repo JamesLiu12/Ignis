@@ -103,7 +103,6 @@ namespace ignis
 			auto& img = node.GetComponent<ImageComponent>();
 			if (img.Visible)
 			{
-				// ButtonComponent overrides the tint color
 				glm::vec4 color = img.Color;
 				if (node.HasComponent<ButtonComponent>())
 					color *= node.GetComponent<ButtonComponent>().CurrentColor;
@@ -112,7 +111,42 @@ namespace ignis
 				if (img.Texture)
 					tex = AssetManager::GetAsset<Texture2D>(img.Texture);
 
-				ui_renderer.SubmitRect(rect.ResolvedMin, rect.ResolvedMax,
+				glm::vec2 draw_min = rect.ResolvedMin;
+				glm::vec2 draw_max = rect.ResolvedMax;
+
+				if (tex && img.Scale != ImageComponent::ScaleMode::Stretch)
+				{
+					float img_w = static_cast<float>(tex->GetWidth());
+					float img_h = static_cast<float>(tex->GetHeight());
+					float rect_w = rect.ResolvedMax.x - rect.ResolvedMin.x;
+					float rect_h = rect.ResolvedMax.y - rect.ResolvedMin.y;
+					float img_asp = img_w / img_h;
+					float rect_asp = rect_w / rect_h;
+
+					if (img.Scale == ImageComponent::ScaleMode::FitInside ||
+						img.Scale == ImageComponent::ScaleMode::FitOutside)
+					{
+						bool fit_by_width = (img.Scale == ImageComponent::ScaleMode::FitInside)
+							? (img_asp > rect_asp)
+							: (img_asp < rect_asp);
+
+						float new_w, new_h;
+						if (fit_by_width) { new_w = rect_w; new_h = rect_w / img_asp; }
+						else { new_h = rect_h; new_w = rect_h * img_asp; }
+
+						float cx = rect.ResolvedMin.x + rect_w * 0.5f;
+						float cy = rect.ResolvedMin.y + rect_h * 0.5f;
+						draw_min = { cx - new_w * 0.5f, cy - new_h * 0.5f };
+						draw_max = { cx + new_w * 0.5f, cy + new_h * 0.5f };
+					}
+					else if (img.Scale == ImageComponent::ScaleMode::NativeSize)
+					{
+						draw_min = rect.ResolvedMin;
+						draw_max = { rect.ResolvedMin.x + img_w, rect.ResolvedMin.y + img_h };
+					}
+				}
+
+				ui_renderer.SubmitRect(draw_min, draw_max,
 					color, tex,
 					canvas_sort_order, my_depth);
 			}

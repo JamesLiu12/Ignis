@@ -36,10 +36,19 @@ namespace ignis
 
 	struct ImageComponent : Component
 	{
+		enum class ScaleMode
+		{
+			Stretch,
+			FitInside,
+			FitOutside,
+			NativeSize
+		};
+
 		AssetHandle Texture;                         // invalid = solid color
 		glm::vec4   Color = glm::vec4(1.0f);
 		bool        Visible = true;
 		bool        RaycastTarget = true;            // participates in hit-testing
+		ScaleMode Scale = ScaleMode::Stretch;
 	};
 
 	struct UITextComponent : Component
