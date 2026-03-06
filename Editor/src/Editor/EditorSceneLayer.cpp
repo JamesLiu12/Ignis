@@ -259,10 +259,14 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 		}
 		else if (m_viewport_panel->IsPointInViewport(mouse_x, mouse_y))
 		{
+			ImVec2 min_bound = m_viewport_panel->GetViewportMinBound();
+            float local_x = mouse_x - min_bound.x;
+            float local_y = mouse_y - min_bound.y;
+
 			if (auto* e = dynamic_cast<MouseMovedEvent*>(&event))
 			{
 				if (m_current_scene)
-					m_ui_system.OnMouseMoved(*m_current_scene, e->GetX(), e->GetY());
+					m_ui_system.OnMouseMoved(*m_current_scene, e->GetX() - min_bound.x, e->GetY() - min_bound.y);
 			}
 			else if (auto* e = dynamic_cast<MouseButtonPressedEvent*>(&event))
 			{
