@@ -1,6 +1,7 @@
 #include "AssetManager.h"
 #include "MeshImporter.h"
 #include "TextureImporter.h"
+#include "FontImporter.h"
 #include "AssetSerializer.h"
 
 namespace ignis
@@ -22,6 +23,7 @@ namespace ignis
 			{ ".hdr", AssetType::EquirectIBLEnv},
 			{ ".obj", AssetType::Mesh },
 			{ ".fbx", AssetType::Mesh },
+			{ ".ttf", AssetType::Font },
 		};
 
 		std::string extension = ToLowerASCII(path.extension().string());
@@ -149,6 +151,10 @@ namespace ignis
 		case AssetType::EquirectIBLEnv:
 		{
 			return EquirectEnvImporter::Get().Import(metadata.FilePath.string(), s_load_context);
+		}
+		case AssetType::Font:
+		{
+			return FontImporter::Get().Import(metadata.FilePath.string(), s_load_context);
 		}
 		case AssetType::Unknown:
 		{

@@ -28,6 +28,8 @@ namespace ignis
 		void RenderMesh(const Mesh& mesh, const glm::mat4& model,
 			const Environment& scene_environment, const EnvironmentSettings& environment_settings, const LightEnvironment& light_environment) override;
 		void RenderSkybox(const Environment& environment) override;
+		void RenderText(const Font& font, const std::string& text, const glm::mat4& transform, const glm::vec4& color, float scale) override;
+
 		void Clear() override;
 
 		void SetFramebuffer(std::shared_ptr<Framebuffer> framebuffer);
@@ -50,5 +52,9 @@ namespace ignis
 		std::shared_ptr<Camera> m_camera;
 		std::shared_ptr<Pipeline> m_pipeline;
 		std::unique_ptr<ShaderLibrary> m_shader_library;
+		std::shared_ptr<VertexArray> m_text_vao;
+		std::shared_ptr<VertexBuffer> m_text_vbo;
+		uint32_t m_viewport_width = 1920;
+		uint32_t m_viewport_height = 1080;
 	};
 }

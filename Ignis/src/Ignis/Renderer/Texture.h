@@ -27,6 +27,7 @@ namespace ignis
 		None = 0,
 
 		// Color LDR/HDR
+		R8,
 		RGBA8,
 		RGBA8_sRGB,
 		RGBA16F,

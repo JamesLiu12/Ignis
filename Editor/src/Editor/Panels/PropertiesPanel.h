@@ -31,12 +31,14 @@ namespace ignis {
 		
 	private:
 		void RenderTransformComponent(TransformComponent& transform);
+		void RenderCameraComponent(CameraComponent& camera);
 		void RenderDirectionalLightComponent(DirectionalLightComponent& light);
 		void RenderPointLightComponent(PointLightComponent& light);
 		void RenderSpotLightComponent(SpotLightComponent& light);
 		void RenderSkyLightComponent(SkyLightComponent& light);
 		void RenderMeshComponent(MeshComponent& mesh);
 		void RenderScriptComponent(ScriptComponent& script);
+		void RenderTextComponent(TextComponent& text);
 		
 		// Mesh editing UI
 		void RenderMeshEditor();

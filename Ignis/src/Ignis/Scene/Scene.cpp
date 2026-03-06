@@ -271,6 +271,8 @@ namespace ignis
 						m_environment_settings.SkyboxLod = sky_light.SkyboxLod;
 					});
 			}
+
+			scene_renderer.SubmitSkybox();
 		}
 
 		// -------------------------
@@ -290,7 +292,27 @@ namespace ignis
 				});
 		}
 
-		scene_renderer.SubmitSkybox();
+		// -------------------------
+		// Text
+		// -------------------------
+		{
+			auto texts = m_registry.group<TextComponent>(entt::get<TransformComponent>);
+
+			texts.each([&](auto entity_handle, TextComponent& text_component, TransformComponent& transform)
+				{
+					if (auto font = AssetManager::GetAsset<Font>(text_component.Font))
+					{
+						Entity entity(entity_handle, this);
+						scene_renderer.SubmitText(
+							*font,
+							text_component.Text,
+							entity.GetWorldTransform(),
+							glm::vec4(text_component.Color, text_component.Alpha),
+							text_component.Scale
+						);
+					}
+				});
+		}
 	}
 
 	void Scene::OnRuntimeStart()
@@ -408,6 +430,7 @@ namespace ignis
 		CopyComponent<SkyLightComponent>(target->m_registry, m_registry, entt_map);
 		CopyComponent<MeshComponent>(target->m_registry, m_registry, entt_map);
 		CopyComponent<ScriptComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<TextComponent>(target->m_registry, m_registry, entt_map);
 		
 		// Step 3: Deep copy camera instances (avoid shared camera between scenes)
 		auto cameras = m_registry.view<CameraComponent>();

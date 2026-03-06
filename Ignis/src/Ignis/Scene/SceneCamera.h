@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
 #include "Ignis/Renderer/Camera.h"
 
 #include <glm/glm.hpp>
@@ -8,7 +9,7 @@
 
 namespace ignis
 {
-	class SceneCamera : public Camera
+	class IGNIS_API SceneCamera : public Camera
 	{
 	public:
 		enum class ProjectionType { Perspective = 0, Orthographic = 1 };

@@ -7,8 +7,6 @@
 
 namespace ignis
 {
-	class Scene;
-
 	struct SceneRenderContext
 	{
 		std::shared_ptr<Scene> Scene;
@@ -31,6 +29,7 @@ namespace ignis
 
 		void SubmitMesh(const Mesh& mesh, const glm::mat4& transform = glm::mat4(1.0f)) const;
 		void SubmitSkybox() const;
+		void SubmitText(const Font& font, const std::string& text, const glm::mat4& transform, const glm::vec4& color, float scale) const;
 
 	private:
 		Renderer& m_renderer;

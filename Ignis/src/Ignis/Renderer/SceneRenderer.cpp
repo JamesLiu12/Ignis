@@ -65,4 +65,9 @@ namespace ignis
 			m_renderer.RenderSkybox(*m_context.Scene->m_scene_environment);
 		}
 	}
+
+	void SceneRenderer::SubmitText(const Font& font, const std::string& text, const glm::mat4& transform, const glm::vec4& color, float scale) const
+	{
+		m_renderer.RenderText(font, text, transform, color, scale);
+	}
 }

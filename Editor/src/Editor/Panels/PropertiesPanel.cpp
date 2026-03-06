@@ -49,6 +49,13 @@ namespace ignis {
 					RenderTransformComponent(transform);
 				}
 				
+				// Render Camera Component
+				if (entity->HasComponent<CameraComponent>())
+				{
+					auto& camera = entity->GetComponent<CameraComponent>();
+					RenderCameraComponent(camera);
+				}
+				
 				// Render Directional Light Component
 				if (entity->HasComponent<DirectionalLightComponent>())
 				{
@@ -89,6 +96,13 @@ namespace ignis {
 				{
 					auto& script = entity->GetComponent<ScriptComponent>();
 					RenderScriptComponent(script);
+				}
+				
+				// Render Text Component
+				if (entity->HasComponent<TextComponent>())
+				{
+					auto& text = entity->GetComponent<TextComponent>();
+					RenderTextComponent(text);
 				}
 				
 				// Add Component button at bottom
@@ -321,6 +335,91 @@ namespace ignis {
 			ImGui::DragFloat3("Scale", &transform.Scale.x, 0.1f);
 			ImGui::Spacing();
 		}
+	}
+	
+	void PropertiesPanel::RenderCameraComponent(CameraComponent& camera_component)
+	{
+		ImGui::PushID("CameraComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Camera Component", flags);
+		
+		// Remove button
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<CameraComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			// Primary checkbox
+			ImGui::Checkbox("Primary", &camera_component.Primary);
+			
+			// Fixed aspect ratio checkbox
+			ImGui::Checkbox("Fixed Aspect Ratio", &camera_component.FixedAspectRatio);
+			
+			// Projection type dropdown
+			const char* projection_types[] = { "Perspective", "Orthographic" };
+			int current_projection = (int)camera_component.Camera->GetProjectionType();
+			if (ImGui::Combo("Projection", &current_projection, projection_types, 2))
+			{
+				camera_component.Camera->SetProjectionType(
+					(SceneCamera::ProjectionType)current_projection);
+			}
+			
+			ImGui::Spacing();
+			
+			// Perspective settings
+			if (camera_component.Camera->GetProjectionType() == SceneCamera::ProjectionType::Perspective)
+			{
+				float fov = camera_component.Camera->GetPerspectiveFOV();
+				if (ImGui::SliderFloat("FOV", &fov, 1.0f, 120.0f))
+				{
+					camera_component.Camera->SetPerspectiveFOV(fov);
+				}
+				
+				float near_clip = camera_component.Camera->GetPerspectiveNearClip();
+				if (ImGui::DragFloat("Near Clip", &near_clip, 0.01f, 0.001f, 100.0f))
+				{
+					camera_component.Camera->SetPerspectiveNearClip(near_clip);
+				}
+				
+				float far_clip = camera_component.Camera->GetPerspectiveFarClip();
+				if (ImGui::DragFloat("Far Clip", &far_clip, 1.0f, 1.0f, 10000.0f))
+				{
+					camera_component.Camera->SetPerspectiveFarClip(far_clip);
+				}
+			}
+			// Orthographic settings
+			else
+			{
+				float size = camera_component.Camera->GetOrthographicSize();
+				if (ImGui::SliderFloat("Size", &size, 0.1f, 100.0f))
+				{
+					camera_component.Camera->SetOrthographicSize(size);
+				}
+				
+				float near_clip = camera_component.Camera->GetOrthographicNearClip();
+				if (ImGui::DragFloat("Near Clip", &near_clip, 0.1f, -100.0f, 100.0f))
+				{
+					camera_component.Camera->SetOrthographicNearClip(near_clip);
+				}
+				
+				float far_clip = camera_component.Camera->GetOrthographicFarClip();
+				if (ImGui::DragFloat("Far Clip", &far_clip, 0.1f, -100.0f, 100.0f))
+				{
+					camera_component.Camera->SetOrthographicFarClip(far_clip);
+				}
+			}
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
 	}
 	
 	void PropertiesPanel::RenderDirectionalLightComponent(DirectionalLightComponent& light)
@@ -736,6 +835,69 @@ namespace ignis {
 		ImGui::PopID();
 	}
 
+	void PropertiesPanel::RenderTextComponent(TextComponent& text_component)
+	{
+		ImGui::PushID("TextComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Text Component", flags);
+		
+		// Remove button
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<TextComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			// Text input (multiline)
+			char buffer[1024];
+			strncpy(buffer, text_component.Text.c_str(), sizeof(buffer) - 1);
+			buffer[sizeof(buffer) - 1] = '\0';
+			
+			if (ImGui::InputTextMultiline("Text", buffer, sizeof(buffer), ImVec2(-1, 100)))
+			{
+				text_component.Text = buffer;
+			}
+			
+			// Font asset selector
+			ImGui::Text("Font:");
+			ImGui::Indent();
+			if (text_component.Font.IsValid())
+			{
+				ImGui::Text("Asset: %s", text_component.Font.ToString().c_str());
+			}
+			else
+			{
+				ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "No font assigned");
+			}
+			
+			if (ImGui::Button("Select Font", ImVec2(-1, 0)))
+			{
+				// TODO: Open font asset picker when asset browser is ready
+				Log::CoreWarn("Font asset picker not yet implemented");
+			}
+			ImGui::Unindent();
+			
+			// Color picker
+			ImGui::ColorEdit3("Color", &text_component.Color[0]);
+			
+			// Alpha slider
+			ImGui::SliderFloat("Alpha", &text_component.Alpha, 0.0f, 1.0f);
+			
+			// Scale slider
+			ImGui::SliderFloat("Scale", &text_component.Scale, 0.1f, 10.0f);
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
+	}
+
 	void PropertiesPanel::RenderTextureMapSlot(const char* label, AssetHandle& texture_handle, MeshComponent& mesh_component, MaterialType type)
 	{
 		ImGui::PushID(label);
@@ -938,6 +1100,12 @@ namespace ignis {
 		ImGui::TextDisabled("Select Component to Add:");
 		ImGui::Separator();
 		
+		// Camera Component
+		ImGui::Text("Camera:");
+		DrawAddComponentMenuItemImpl<CameraComponent>(entity, "  Camera");
+		
+		ImGui::Separator();
+		
 		// Light Components
 		ImGui::Text("Lights:");
 		DrawAddComponentMenuItemImpl<DirectionalLightComponent>(entity, "  Directional Light");
@@ -950,6 +1118,7 @@ namespace ignis {
 		// Rendering Components
 		ImGui::Text("Rendering:");
 		DrawAddComponentMenuItemImpl<MeshComponent>(entity, "  Mesh");
+		DrawAddComponentMenuItemImpl<TextComponent>(entity, "  Text");
 		
 		ImGui::Separator();
 		

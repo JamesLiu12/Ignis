@@ -55,6 +55,10 @@ namespace ignis
 
 		switch (m_specs.Format)
 		{
+		case TextureFormat::R8:
+			format = GL_RED;
+			type = GL_UNSIGNED_BYTE;
+			break;
 		case TextureFormat::RGBA8:
 		case TextureFormat::RGBA8_sRGB:
 			format = GL_RGBA;

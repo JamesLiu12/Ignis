@@ -137,4 +137,16 @@ namespace ignis
 		std::string ClassName;
 		bool Enabled = true;
 	};
+
+	struct TextComponent : Component
+	{
+		std::string Text;
+		AssetHandle Font;
+		glm::vec3 Color = glm::vec3(1.0f);
+		float Alpha = 1.0f;
+		float Scale = 1.0f;
+
+		TextComponent() = default;
+		TextComponent(const std::string& text) : Text(text) {}
+	};
 }

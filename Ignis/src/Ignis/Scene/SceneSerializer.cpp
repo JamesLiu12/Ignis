@@ -169,6 +169,18 @@ namespace ignis
 			entity_data["Script"] = script_data;
 		}
 
+		if (entity.HasComponent<TextComponent>())
+		{
+			const auto& text_com = entity.GetComponent<TextComponent>();
+			ordered_json text_data;
+			text_data["Text"] = text_com.Text;
+			text_data["Font"] = text_com.Font.ToString();
+			text_data["Color"] = SerializeVec3(text_com.Color);
+			text_data["Alpha"] = text_com.Alpha;
+			text_data["Scale"] = text_com.Scale;
+			entity_data["Text"] = text_data;
+		}
+
 		return entity_data;
 	}
 
@@ -339,6 +351,17 @@ namespace ignis
 			auto& script = entity.AddComponent<ScriptComponent>();
 			script.ClassName = script_data.value("ClassName", "");
 			script.Enabled = script_data.value("Enabled", false);
+		}
+
+		if (entity_data.contains("Text"))
+		{
+			const auto& text_data = entity_data["Text"];
+			auto& text = entity.AddComponent<TextComponent>();
+			text.Text = text_data.value("Text", "");
+			text.Font = UUID(text_data.value("Font", ""));
+			text.Color = DeserializeVec3(text_data["Color"]);
+			text.Alpha = text_data.value("Alpha", 1.0f);
+			text.Scale = text_data.value("Scale", 1.0f);
 		}
 
 		return entity;
