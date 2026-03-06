@@ -65,22 +65,7 @@ namespace ignis {
 
 	void GLImGuiLayer::OnEvent(EventBase& e)
 	{
-		if (m_block_events)
-		{
-			ImGuiIO& io = ImGui::GetIO();
-			
-			// only block mouse and keyboard events, not window events
-			bool is_window_event = (dynamic_cast<WindowResizeEvent*>(&e) != nullptr) ||
-			                       (dynamic_cast<WindowCloseEvent*>(&e) != nullptr) ||
-			                       (dynamic_cast<WindowFocusEvent*>(&e) != nullptr) ||
-			                       (dynamic_cast<WindowLostFocusEvent*>(&e) != nullptr) ||
-			                       (dynamic_cast<WindowMovedEvent*>(&e) != nullptr);
-			
-			if (!is_window_event && (io.WantCaptureMouse || io.WantCaptureKeyboard))
-			{
-				e.Handled = true;
-			}
-		}
+
 	}
 
 }

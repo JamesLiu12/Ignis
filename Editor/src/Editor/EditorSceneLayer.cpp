@@ -243,27 +243,39 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 	if (auto* e = dynamic_cast<WindowResizeEvent*>(&event))
 	{
 		if (m_current_scene)
-			m_current_scene->OnViewportResize(e->GetWidth(), e->GetHeight());
+		{
+			auto framebuffer = m_renderer.GetFramebuffer();
+			m_current_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
+		}
 	}
-	else if (auto* e = dynamic_cast<MouseMovedEvent*>(&event))
+	else if (m_viewport_panel && m_viewport_panel->IsFocused())
 	{
-		if (m_current_scene)
-			m_ui_system.OnMouseMoved(*m_current_scene, e->GetX(), e->GetY());
-	}
-	else if (auto* e = dynamic_cast<MouseButtonPressedEvent*>(&event))
-	{
-		if (m_current_scene)
-			m_ui_system.OnMouseButtonPressed(*m_current_scene, e->GetMouseButton());
-	}
-	else if (auto* e = dynamic_cast<MouseButtonReleasedEvent*>(&event))
-	{
-		if (m_current_scene)
-			m_ui_system.OnMouseButtonReleased(*m_current_scene, e->GetMouseButton());
-	}
-	else if (auto* e = dynamic_cast<KeyTypedEvent*>(&event))
-	{
-		if (m_current_scene)
-			m_ui_system.OnKeyTyped(*m_current_scene, e->GetKeyCode());
+		int mouse_x = Input::GetMouseX();
+		int mouse_y = Input::GetMouseY();
+		
+		if (auto* e = dynamic_cast<KeyTypedEvent*>(&event))
+		{
+			if (m_current_scene)
+				m_ui_system.OnKeyTyped(*m_current_scene, e->GetKeyCode());
+		}
+		else if (m_viewport_panel->IsPointInViewport(mouse_x, mouse_y))
+		{
+			if (auto* e = dynamic_cast<MouseMovedEvent*>(&event))
+			{
+				if (m_current_scene)
+					m_ui_system.OnMouseMoved(*m_current_scene, e->GetX(), e->GetY());
+			}
+			else if (auto* e = dynamic_cast<MouseButtonPressedEvent*>(&event))
+			{
+				if (m_current_scene)
+					m_ui_system.OnMouseButtonPressed(*m_current_scene, e->GetMouseButton());
+			}
+			else if (auto* e = dynamic_cast<MouseButtonReleasedEvent*>(&event))
+			{
+				if (m_current_scene)
+					m_ui_system.OnMouseButtonReleased(*m_current_scene, e->GetMouseButton());
+			}
+		}
 	}
 }
 
