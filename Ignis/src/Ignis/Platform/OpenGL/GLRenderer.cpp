@@ -251,7 +251,7 @@ namespace ignis
 			static_cast<uint32_t>(indices.size() * sizeof(uint32_t)));
 		m_text_vao->SetIndexBuffer(ibo);
 
-		const glm::vec2 screen_size = { m_viewport_width, m_viewport_width };
+		const glm::vec2 screen_size = { m_viewport_width, m_viewport_height };
 
 		auto mat = Material::Create(m_shader_library->Get("Text"));
 		mat->Set("u_Model", transform);

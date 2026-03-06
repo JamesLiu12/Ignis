@@ -91,6 +91,13 @@ namespace ignis {
 					RenderScriptComponent(script);
 				}
 				
+				// Render Text Component
+				if (entity->HasComponent<TextComponent>())
+				{
+					auto& text = entity->GetComponent<TextComponent>();
+					RenderTextComponent(text);
+				}
+				
 				// Add Component button at bottom
 				ImGui::Separator();
 				ImGui::Spacing();
@@ -736,6 +743,69 @@ namespace ignis {
 		ImGui::PopID();
 	}
 
+	void PropertiesPanel::RenderTextComponent(TextComponent& text_component)
+	{
+		ImGui::PushID("TextComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Text Component", flags);
+		
+		// Remove button
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<TextComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			// Text input (multiline)
+			char buffer[1024];
+			strncpy(buffer, text_component.Text.c_str(), sizeof(buffer) - 1);
+			buffer[sizeof(buffer) - 1] = '\0';
+			
+			if (ImGui::InputTextMultiline("Text", buffer, sizeof(buffer), ImVec2(-1, 100)))
+			{
+				text_component.Text = buffer;
+			}
+			
+			// Font asset selector
+			ImGui::Text("Font:");
+			ImGui::Indent();
+			if (text_component.Font.IsValid())
+			{
+				ImGui::Text("Asset: %s", text_component.Font.ToString().c_str());
+			}
+			else
+			{
+				ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "No font assigned");
+			}
+			
+			if (ImGui::Button("Select Font", ImVec2(-1, 0)))
+			{
+				// TODO: Open font asset picker when asset browser is ready
+				Log::CoreWarn("Font asset picker not yet implemented");
+			}
+			ImGui::Unindent();
+			
+			// Color picker
+			ImGui::ColorEdit3("Color", &text_component.Color[0]);
+			
+			// Alpha slider
+			ImGui::SliderFloat("Alpha", &text_component.Alpha, 0.0f, 1.0f);
+			
+			// Scale slider
+			ImGui::SliderFloat("Scale", &text_component.Scale, 0.1f, 10.0f);
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
+	}
+
 	void PropertiesPanel::RenderTextureMapSlot(const char* label, AssetHandle& texture_handle, MeshComponent& mesh_component, MaterialType type)
 	{
 		ImGui::PushID(label);
@@ -950,6 +1020,7 @@ namespace ignis {
 		// Rendering Components
 		ImGui::Text("Rendering:");
 		DrawAddComponentMenuItemImpl<MeshComponent>(entity, "  Mesh");
+		DrawAddComponentMenuItemImpl<TextComponent>(entity, "  Text");
 		
 		ImGui::Separator();
 		

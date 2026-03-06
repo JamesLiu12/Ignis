@@ -37,6 +37,7 @@ namespace ignis {
 		void RenderSkyLightComponent(SkyLightComponent& light);
 		void RenderMeshComponent(MeshComponent& mesh);
 		void RenderScriptComponent(ScriptComponent& script);
+		void RenderTextComponent(TextComponent& text);
 		
 		// Mesh editing UI
 		void RenderMeshEditor();
