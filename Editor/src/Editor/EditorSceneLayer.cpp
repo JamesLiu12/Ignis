@@ -319,38 +319,6 @@ void EditorSceneLayer::ReloadProject()
 	SceneSerializer scene_serializer;
 	m_editor_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
 
-	Entity hud = m_editor_scene->CreateEntity("HUD");
-	hud.AddComponent<CanvasComponent>();
-	auto& canvas_rect = hud.AddComponent<RectTransformComponent>();
-
-	Entity smile_face = m_editor_scene->CreateEntity(hud, "MainMenu");
-	auto& sf_rect = smile_face.AddComponent<RectTransformComponent>();
-	sf_rect.AnchorMin = { 0.0f, 0.0f };
-	sf_rect.AnchorMax = { 0.0f, 0.0f };
-	sf_rect.OffsetMin = { 10.0f, 10.0f };
-	sf_rect.OffsetMax = { 200.0f, 200.0f };
-
-	auto& image = smile_face.AddComponent<ImageComponent>();
-	image.Texture = AssetManager::ImportAsset("assets://images/awesomeface.png");
-	image.Scale = ImageComponent::ScaleMode::FitInside;
-
-	Entity btn_entity = m_editor_scene->CreateEntity(hud, "Button");
-	auto& btn_rect = btn_entity.AddComponent<RectTransformComponent>();
-	btn_rect.AnchorMin = { 0.0f, 0.0f };
-	btn_rect.AnchorMax = { 0.0f, 0.0f };
-	btn_rect.OffsetMin = { 10.0f, 210.0f };
-	btn_rect.OffsetMax = { 300.0f, 310.0f };
-
-	auto& btn_com = btn_entity.AddComponent<ButtonComponent>();
-	auto& btn_img = btn_entity.AddComponent<ImageComponent>();
-	btn_img.Color = { 0.2f, 0.5f, 0.9f, 1.0f };
-	auto& btn_text = btn_entity.AddComponent<UITextComponent>();
-	btn_text.Font = AssetManager::ImportAsset("assets://fonts/Inter-VariableFont_opsz,wght.ttf");
-	btn_text.Text = "Click Me!";
-	btn_text.FontSize = 32.0f;
-	btn_text.HAlign = UITextComponent::HorizontalAlignment::Center;
-	btn_text.VAlign = UITextComponent::VerticalAlignment::Middle;
-
 	// Script module will be loaded in OnScenePlay()
 	// Do not call OnRuntimeStart() in edit mode, as scripts should only run in Play mode
 
