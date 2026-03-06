@@ -31,6 +31,7 @@ namespace ignis {
 		
 	private:
 		void RenderTransformComponent(TransformComponent& transform);
+		void RenderCameraComponent(CameraComponent& camera);
 		void RenderDirectionalLightComponent(DirectionalLightComponent& light);
 		void RenderPointLightComponent(PointLightComponent& light);
 		void RenderSpotLightComponent(SpotLightComponent& light);

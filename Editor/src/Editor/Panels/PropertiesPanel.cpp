@@ -49,6 +49,13 @@ namespace ignis {
 					RenderTransformComponent(transform);
 				}
 				
+				// Render Camera Component
+				if (entity->HasComponent<CameraComponent>())
+				{
+					auto& camera = entity->GetComponent<CameraComponent>();
+					RenderCameraComponent(camera);
+				}
+				
 				// Render Directional Light Component
 				if (entity->HasComponent<DirectionalLightComponent>())
 				{
@@ -328,6 +335,91 @@ namespace ignis {
 			ImGui::DragFloat3("Scale", &transform.Scale.x, 0.1f);
 			ImGui::Spacing();
 		}
+	}
+	
+	void PropertiesPanel::RenderCameraComponent(CameraComponent& camera_component)
+	{
+		ImGui::PushID("CameraComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Camera Component", flags);
+		
+		// Remove button
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<CameraComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			// Primary checkbox
+			ImGui::Checkbox("Primary", &camera_component.Primary);
+			
+			// Fixed aspect ratio checkbox
+			ImGui::Checkbox("Fixed Aspect Ratio", &camera_component.FixedAspectRatio);
+			
+			// Projection type dropdown
+			const char* projection_types[] = { "Perspective", "Orthographic" };
+			int current_projection = (int)camera_component.Camera->GetProjectionType();
+			if (ImGui::Combo("Projection", &current_projection, projection_types, 2))
+			{
+				camera_component.Camera->SetProjectionType(
+					(SceneCamera::ProjectionType)current_projection);
+			}
+			
+			ImGui::Spacing();
+			
+			// Perspective settings
+			if (camera_component.Camera->GetProjectionType() == SceneCamera::ProjectionType::Perspective)
+			{
+				float fov = camera_component.Camera->GetPerspectiveFOV();
+				if (ImGui::SliderFloat("FOV", &fov, 1.0f, 120.0f))
+				{
+					camera_component.Camera->SetPerspectiveFOV(fov);
+				}
+				
+				float near_clip = camera_component.Camera->GetPerspectiveNearClip();
+				if (ImGui::DragFloat("Near Clip", &near_clip, 0.01f, 0.001f, 100.0f))
+				{
+					camera_component.Camera->SetPerspectiveNearClip(near_clip);
+				}
+				
+				float far_clip = camera_component.Camera->GetPerspectiveFarClip();
+				if (ImGui::DragFloat("Far Clip", &far_clip, 1.0f, 1.0f, 10000.0f))
+				{
+					camera_component.Camera->SetPerspectiveFarClip(far_clip);
+				}
+			}
+			// Orthographic settings
+			else
+			{
+				float size = camera_component.Camera->GetOrthographicSize();
+				if (ImGui::SliderFloat("Size", &size, 0.1f, 100.0f))
+				{
+					camera_component.Camera->SetOrthographicSize(size);
+				}
+				
+				float near_clip = camera_component.Camera->GetOrthographicNearClip();
+				if (ImGui::DragFloat("Near Clip", &near_clip, 0.1f, -100.0f, 100.0f))
+				{
+					camera_component.Camera->SetOrthographicNearClip(near_clip);
+				}
+				
+				float far_clip = camera_component.Camera->GetOrthographicFarClip();
+				if (ImGui::DragFloat("Far Clip", &far_clip, 0.1f, -100.0f, 100.0f))
+				{
+					camera_component.Camera->SetOrthographicFarClip(far_clip);
+				}
+			}
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
 	}
 	
 	void PropertiesPanel::RenderDirectionalLightComponent(DirectionalLightComponent& light)
@@ -1006,6 +1098,12 @@ namespace ignis {
 	void PropertiesPanel::DrawAddComponentMenu(std::shared_ptr<Entity> entity)
 	{
 		ImGui::TextDisabled("Select Component to Add:");
+		ImGui::Separator();
+		
+		// Camera Component
+		ImGui::Text("Camera:");
+		DrawAddComponentMenuItemImpl<CameraComponent>(entity, "  Camera");
+		
 		ImGui::Separator();
 		
 		// Light Components
