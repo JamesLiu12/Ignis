@@ -58,6 +58,7 @@ namespace ignis
 		m_shader_library->Load("resources://shaders/PrefilterGGX.glsl", "PrefilterGGX");
 		m_shader_library->Load("resources://shaders/BRDFIntegration.glsl", "BRDFIntegration");
 		m_shader_library->Load("resources://shaders/Text.glsl", "Text");
+		m_shader_library->Load("resources://shaders/UI.glsl", "UI");
 
 		// Cube
 		m_cube_vao = VertexArray::Create();
@@ -85,6 +86,20 @@ namespace ignis
 
 		m_text_vao = VertexArray::Create();
 		m_text_vao->AddVertexBuffer(m_text_vbo);
+
+		// Sprite quad (dynamic, reused every draw call)
+		m_sprite_vbo = VertexBuffer::Create(4 * sizeof(float) * 4, VertexBuffer::Usage::Dynamic);
+		m_sprite_vbo->SetLayout({
+			{ 0, Shader::DataType::Float2 },  // a_Position
+			{ 1, Shader::DataType::Float2 }   // a_TexCoord
+			});
+		m_sprite_vao = VertexArray::Create();
+		m_sprite_vao->AddVertexBuffer(m_sprite_vbo);
+
+		// Static index buffer shared by all sprite draws
+		uint32_t sprite_indices[6] = { 0, 1, 2, 0, 2, 3 };
+		auto sprite_ibo = IndexBuffer::Create(sprite_indices, sizeof(sprite_indices));
+		m_sprite_vao->SetIndexBuffer(sprite_ibo);
 	}
 
 	void GLRenderer::BeginFrame()
@@ -299,5 +314,120 @@ namespace ignis
 		m_quad_vao->Bind();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		m_quad_vao->UnBind();
+	}
+
+	void GLRenderer::RenderSprite(const glm::vec2& min, const glm::vec2& max)
+	{
+		// (0,0) top-left, UV (0,0)-(1,1)
+		struct Vertex { float x, y, u, v; };
+		Vertex verts[4] = {
+			{ min.x, min.y, 0.0f, 0.0f },   // top-left
+			{ max.x, min.y, 1.0f, 0.0f },   // top-right
+			{ max.x, max.y, 1.0f, 1.0f },   // bottom-right
+			{ min.x, max.y, 0.0f, 1.0f }    // bottom-left
+		};
+		m_sprite_vbo->SetData(verts, sizeof(verts));
+
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDepthMask(GL_FALSE);
+
+		DrawIndexed(*m_sprite_vao);
+
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+		glDisable(GL_BLEND);
+		glEnable(GL_CULL_FACE);
+	}
+
+	void GLRenderer::RenderUIText(const Font& font, const std::string& text,
+		const glm::mat4& projection,
+		const glm::mat4& model,
+		const glm::vec4& color,
+		float scale)
+	{
+		// Identical vertex-building logic to RenderText,
+		// but uses explicit projection + identity view.
+		if (text.empty() || !font.GetAtlas()) return;
+
+		struct Vertex { float x, y, u, v; };
+		std::vector<Vertex>   vertices;
+		std::vector<uint32_t> indices;
+		vertices.reserve(text.size() * 4);
+		indices.reserve(text.size() * 6);
+
+		float    cursor_x = 0.0f;
+		float    cursor_y = 0.0f;
+		uint32_t quad_idx = 0;
+
+		for (unsigned char c : text)
+		{
+			if (c == '\n')
+			{
+				cursor_x = 0.0f;
+				cursor_y -= font.GetLineHeight() * scale; // y-up: move down = subtract
+				continue;
+			}
+
+			const GlyphMetrics* g = font.GetGlyph(static_cast<char>(c));
+			if (!g)
+			{
+				if (const GlyphMetrics* sp = font.GetGlyph(' '))
+					cursor_x += sp->Advance * scale;
+				continue;
+			}
+
+			const float px0 = cursor_x + g->QuadMin.x * scale;
+			const float py0 = cursor_y - g->QuadMax.y * scale;
+			const float px1 = cursor_x + g->QuadMax.x * scale;
+			const float py1 = cursor_y - g->QuadMin.y * scale;
+
+			const float u0 = g->AtlasMin.x, v0 = g->AtlasMin.y;
+			const float u1 = g->AtlasMax.x, v1 = g->AtlasMax.y;
+
+			vertices.push_back({ px0, py1, u0, v0 });
+			vertices.push_back({ px1, py1, u1, v0 });
+			vertices.push_back({ px1, py0, u1, v1 });
+			vertices.push_back({ px0, py0, u0, v1 });
+
+			const uint32_t b = quad_idx * 4;
+			indices.insert(indices.end(), { b, b + 1, b + 2,  b, b + 2, b + 3 });
+
+			cursor_x += g->Advance * scale;
+			++quad_idx;
+		}
+
+		if (vertices.empty()) return;
+
+		m_text_vbo->SetData(vertices.data(), vertices.size() * sizeof(Vertex));
+		auto ibo = IndexBuffer::Create(indices.data(),
+			static_cast<uint32_t>(indices.size() * sizeof(uint32_t)));
+		m_text_vao->SetIndexBuffer(ibo);
+
+		auto mat = Material::Create(m_shader_library->Get("Text"));
+		mat->Set("u_Model", model);
+		mat->Set("u_View", glm::mat4(1.0f));   // identity ¡ª no 3D camera
+		mat->Set("u_Projection", projection);
+		mat->Set("u_ScreenSize", glm::vec2(static_cast<float>(m_viewport_width),
+			static_cast<float>(m_viewport_height)));
+		mat->Set("u_Color", color);
+		mat->Set("u_Atlas", font.GetAtlas());
+		font.GetAtlas()->Bind(0);
+
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDepthMask(GL_FALSE);
+
+		mat->Bind();
+		DrawIndexed(*m_text_vao);
+
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+		glDisable(GL_BLEND);
+		glEnable(GL_CULL_FACE);
 	}
 }

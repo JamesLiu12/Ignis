@@ -49,6 +49,9 @@ namespace ignis
 		virtual void RenderCube() = 0;
 		virtual void RenderQuad() = 0;
 
+		virtual void RenderSprite(const glm::vec2& min, const glm::vec2& max) = 0;
+		virtual void RenderUIText(const Font& font, const std::string& text, const glm::mat4& projection, const glm::mat4& model, const glm::vec4& color, float scale) = 0;
+
 		static std::unique_ptr<Renderer> Create();
 
 		static std::shared_ptr<Texture2D> GetWhiteTexture();

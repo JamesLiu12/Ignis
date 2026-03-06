@@ -44,6 +44,9 @@ namespace ignis
 		void RenderCube() override;
 		void RenderQuad() override;
 
+		void RenderSprite(const glm::vec2& min, const glm::vec2& max) override;
+		void RenderUIText(const Font& font, const std::string& text, const glm::mat4& projection, const glm::mat4& model, const glm::vec4& color, float scale) override;
+
 	private:
 		std::shared_ptr<VertexArray> m_cube_vao;
 		std::shared_ptr<VertexArray> m_quad_vao;
@@ -56,5 +59,7 @@ namespace ignis
 		std::shared_ptr<VertexBuffer> m_text_vbo;
 		uint32_t m_viewport_width = 1920;
 		uint32_t m_viewport_height = 1080;
+		std::shared_ptr<VertexArray>  m_sprite_vao;
+		std::shared_ptr<VertexBuffer> m_sprite_vbo;
 	};
 }
