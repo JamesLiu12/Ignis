@@ -5,6 +5,8 @@
 #include "Editor/Panels/ViewportPanel.h"
 #include "Editor/Panels/AssetBrowserPanel.h"
 #include "Ignis/Renderer/IBLBaker.h"
+#include "Ignis/Core/Events/MouseEvents.h"
+#include "Ignis/Core/Events/KeyEvents.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace ignis {
@@ -188,11 +190,14 @@ void EditorSceneLayer::OnUpdate(float dt)
 		}
 	}
 
+	auto& window = m_editor_app->GetWindow();
+
 	// Only update runtime (scripts) in Play mode
 	if (m_scene_state == SceneState::Play && m_current_scene)
 	{
 		m_current_scene->OnRuntimeUpdate(dt);
 	}
+	
 
 	SceneRenderer scene_renderer(m_renderer);
 	if (!m_current_scene)
@@ -213,12 +218,21 @@ void EditorSceneLayer::OnUpdate(float dt)
 			? m_editor_camera 
 			: m_current_scene->GetPrimaryCamera();
 		
+		m_ui_system.OnUpdate(*m_current_scene, window.GetFramebufferWidth(), window.GetFramebufferHeight());
+
+		m_renderer.BeginFrame();
+
 		scene_renderer.BeginScene({ m_current_scene, render_camera, m_pipeline});
 		m_current_scene->OnRender(scene_renderer);
 		scene_renderer.EndScene();
+
+		m_ui_renderer.BeginUI(window.GetFramebufferWidth(), window.GetFramebufferHeight());
+		m_ui_system.OnRender(*m_current_scene, m_ui_renderer, window.GetFramebufferWidth(), window.GetFramebufferHeight());
+		m_ui_renderer.EndUI();
+
+		m_renderer.EndFrame();
 	}
 	
-	auto& window = m_editor_app->GetWindow();
 }
 
 void EditorSceneLayer::OnEvent(EventBase& event)
@@ -226,13 +240,30 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 	// window resize handling removed, and viewport panel now manages framebuffer size
 	// and camera aspect ratio is updated in OnUpdate() based on viewport panel size
 
-	if (auto* resize_event = dynamic_cast<WindowResizeEvent*>(&event))
+	if (auto* e = dynamic_cast<WindowResizeEvent*>(&event))
 	{
 		if (m_current_scene)
-		{
-			m_current_scene->OnViewportResize(resize_event->GetWidth(), resize_event->GetHeight());
-		}
-		
+			m_current_scene->OnViewportResize(e->GetWidth(), e->GetHeight());
+	}
+	else if (auto* e = dynamic_cast<MouseMovedEvent*>(&event))
+	{
+		if (m_current_scene)
+			m_ui_system.OnMouseMoved(*m_current_scene, e->GetX(), e->GetY());
+	}
+	else if (auto* e = dynamic_cast<MouseButtonPressedEvent*>(&event))
+	{
+		if (m_current_scene)
+			m_ui_system.OnMouseButtonPressed(*m_current_scene, e->GetMouseButton());
+	}
+	else if (auto* e = dynamic_cast<MouseButtonReleasedEvent*>(&event))
+	{
+		if (m_current_scene)
+			m_ui_system.OnMouseButtonReleased(*m_current_scene, e->GetMouseButton());
+	}
+	else if (auto* e = dynamic_cast<KeyTypedEvent*>(&event))
+	{
+		if (m_current_scene)
+			m_ui_system.OnKeyTyped(*m_current_scene, e->GetKeyCode());
 	}
 }
 
@@ -276,6 +307,7 @@ void EditorSceneLayer::ReloadProject()
 	AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
 	SceneSerializer scene_serializer;
 	m_editor_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
+
 
 	// Script module will be loaded in OnScenePlay()
 	// Do not call OnRuntimeStart() in edit mode, as scripts should only run in Play mode
