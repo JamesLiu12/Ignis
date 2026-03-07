@@ -44,37 +44,7 @@ namespace ignis
 
 	AssetImportOptions AssetManager::DefaultImportOptions(AssetType type)
 	{
-		switch (type)
-		{
-		case AssetType::Texture2D:
-			return TextureImportOptions{};
-
-		case AssetType::TextureCube:
-		{
-			TextureImportOptions opts{};
-			opts.FlipVertical = false;
-			opts.WrapS = TextureWrap::ClampToEdge;
-			opts.WrapT = TextureWrap::ClampToEdge;
-			return opts;
-		}
-
-		case AssetType::EquirectIBLEnv:
-		{
-			EquirectImportOptions opts{};
-			opts.TexOptions.FlipVertical = false;
-			opts.TexOptions.GenMipmaps = false;
-			return opts;
-		}
-
-		case AssetType::Font:
-			return FontImportOptions{};
-
-		case AssetType::AudioClip:
-			return AudioImportOptions{};
-
-		default:
-			return std::monostate{};
-		}
+		return DefaultImportOptionsForType(type);
 	}
 
 	bool AssetManager::IsAssetLoaded(AssetHandle handle)

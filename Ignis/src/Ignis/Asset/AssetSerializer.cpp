@@ -160,7 +160,12 @@ namespace ignis
 		data["Handle"] = meta.Handle.ToString();
 		data["Type"] = static_cast<int>(meta.Type);
 		data["FilePath"] = FileSystem::ToUnixPath(meta.FilePath);
-		data["ImportOptions"] = SerializeImportOptions(meta.ImportOptions);
+
+		AssetImportOptions options = meta.ImportOptions;
+		if (std::holds_alternative<std::monostate>(options))
+			options = DefaultImportOptionsForType(meta.Type);
+
+		data["ImportOptions"] = SerializeImportOptions(options);
 		return data;
 	}
 
@@ -176,6 +181,9 @@ namespace ignis
 
 		if (data.contains("ImportOptions"))
 			out_meta.ImportOptions = DeserializeImportOptions(data["ImportOptions"]);
+
+		if (std::holds_alternative<std::monostate>(out_meta.ImportOptions))
+			out_meta.ImportOptions = DefaultImportOptionsForType(out_meta.Type);
 
 		return true;
 	}
