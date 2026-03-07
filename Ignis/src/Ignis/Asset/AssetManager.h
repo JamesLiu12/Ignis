@@ -57,9 +57,11 @@ namespace ignis
 
 		static AssetHandle ImportAsset(const std::filesystem::path& path, AssetType asset_type = AssetType::Unknown);
 		static void RemoveAsset(AssetHandle handle);
+		static void UnloadAsset(AssetHandle handle);
 
 		static const AssetMetadata* GetMetadata(AssetHandle handle);
 		static const AssetMetadata* GetMetadata(std::filesystem::path path);
+		static AssetMetadata* GetMetadataMutable(AssetHandle handle);
 
 		static bool LoadAssetRegistry(const std::filesystem::path& path);
 		static bool SaveAssetRegistry(const std::filesystem::path& path);
@@ -71,6 +73,7 @@ namespace ignis
 
 	private:
 		static std::shared_ptr<Asset> LoadAssetFromFile(const AssetMetadata& metadata);
+		static AssetImportOptions     DefaultImportOptions(AssetType type);
 
 		inline static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_loaded_assets;
 		inline static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_memory_assets;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AssetImportOptions.h"
 #include "Ignis/Core/UUID.h"
 
 #include <filesystem>
@@ -24,6 +25,7 @@ namespace ignis
 		AssetHandle Handle = AssetHandle::Invalid;
 		AssetType Type;
 		std::filesystem::path FilePath;
+		AssetImportOptions ImportOptions;
 	};
 
 	class Asset

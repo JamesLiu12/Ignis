@@ -262,6 +262,15 @@ namespace ignis {
 
 }
 
+template <>
+struct fmt::formatter<std::filesystem::path> : fmt::formatter<std::string>
+{
+	auto format(const std::filesystem::path& p, fmt::format_context& ctx) const
+	{
+		return fmt::formatter<std::string>::format(p.string(), ctx);
+	}
+};
+
 // Modern C++ Usage Examples:
 // ignis::Log::CoreInfo("Engine initialized successfully");
 // ignis::Log::TraceTag("Renderer", "Loaded {} textures", count);

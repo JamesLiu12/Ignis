@@ -42,6 +42,41 @@ namespace ignis
 		return AssetType::Unknown;
 	}
 
+	AssetImportOptions AssetManager::DefaultImportOptions(AssetType type)
+	{
+		switch (type)
+		{
+		case AssetType::Texture2D:
+			return TextureImportOptions{};
+
+		case AssetType::TextureCube:
+		{
+			TextureImportOptions opts{};
+			opts.FlipVertical = false;
+			opts.WrapS = TextureWrap::ClampToEdge;
+			opts.WrapT = TextureWrap::ClampToEdge;
+			return opts;
+		}
+
+		case AssetType::EquirectIBLEnv:
+		{
+			EquirectImportOptions opts{};
+			opts.TexOptions.FlipVertical = false;
+			opts.TexOptions.GenMipmaps = false;
+			return opts;
+		}
+
+		case AssetType::Font:
+			return FontImportOptions{};
+
+		case AssetType::AudioClip:
+			return AudioImportOptions{};
+
+		default:
+			return std::monostate{};
+		}
+	}
+
 	bool AssetManager::IsAssetLoaded(AssetHandle handle)
 	{
 		return s_loaded_assets.find(handle) != s_loaded_assets.end();
@@ -54,25 +89,22 @@ namespace ignis
 
 	AssetHandle AssetManager::ImportAsset(const std::filesystem::path& path, AssetType asset_type)
 	{
-		// Convert absolute path to VFS path if within project
 		std::string vfs_path = VFS::ToVFSPath(path);
-		
-		const AssetMetadata* metadata = GetMetadata(vfs_path);
+		const AssetMetadata* existing = GetMetadata(vfs_path);
+		if (existing)
+			return existing->Handle;
 
-		if (metadata)
-		{
-			return metadata->Handle;
-		}
-		
 		AssetHandle handle = AssetHandle();
-		AssetMetadata new_metadata;
-		new_metadata.FilePath = vfs_path;
-		if (asset_type == AssetType::Unknown) new_metadata.Type = DetermineTypeFromExtension(path);
-		else new_metadata.Type = asset_type;
-		new_metadata.Handle = handle;
 
-		s_asset_registry[handle] = new_metadata;
+		AssetMetadata metadata;
+		metadata.Handle = handle;
+		metadata.FilePath = vfs_path;
+		metadata.Type = (asset_type == AssetType::Unknown)
+			? DetermineTypeFromExtension(path)
+			: asset_type;
+		metadata.ImportOptions = DefaultImportOptions(metadata.Type);
 
+		s_asset_registry[handle] = metadata;
 		return handle;
 	}
 
@@ -80,6 +112,11 @@ namespace ignis
 	{
 		s_loaded_assets.erase(handle);
 		s_asset_registry.erase(handle);
+	}
+
+	void AssetManager::UnloadAsset(AssetHandle handle)
+	{
+		s_loaded_assets.erase(handle);
 	}
 
 	const AssetMetadata* AssetManager::GetMetadata(AssetHandle handle)
@@ -103,6 +140,13 @@ namespace ignis
 
 		return nullptr;
 	}
+
+	AssetMetadata* AssetManager::GetMetadataMutable(AssetHandle handle)
+	{
+		auto it = s_asset_registry.find(handle);
+		return (it != s_asset_registry.end()) ? &it->second : nullptr;
+	}
+
 
 	bool AssetManager::LoadAssetRegistry(const std::filesystem::path& path)
 	{
@@ -142,35 +186,20 @@ namespace ignis
 		switch (metadata.Type)
 		{
 		case AssetType::Texture2D:
-		{
-			 return Texture2DImporter::Get().Import(metadata.FilePath.string(), s_load_context);
-		}
-		case AssetType::Mesh:
-		{
-			return MeshImporter::Get().Import(metadata.FilePath.string(), s_load_context);
-		}
+			return Texture2DImporter::Get().Import(metadata, s_load_context);
 		case AssetType::TextureCube:
-		{
-			return TextureCubeImporter::Get().Import(metadata.FilePath.string(), s_load_context);
-		}
+			return TextureCubeImporter::Get().Import(metadata, s_load_context);
 		case AssetType::EquirectIBLEnv:
-		{
-			return EquirectEnvImporter::Get().Import(metadata.FilePath.string(), s_load_context);
-		}
+			return EquirectEnvImporter::Get().Import(metadata, s_load_context);
+		case AssetType::Mesh:
+			return MeshImporter::Get().Import(metadata, s_load_context);
 		case AssetType::Font:
-		{
-			return FontImporter::Get().Import(metadata.FilePath.string(), s_load_context);
-		}
+			return FontImporter::Get().Import(metadata, s_load_context);
 		case AssetType::AudioClip:
-		{
-			return AudioImporter::Get().Import(metadata.FilePath.string(), s_load_context);
-		}
-		case AssetType::Unknown:
-		{
+			return AudioImporter::Get().Import(metadata, s_load_context);
+		default:
 			Log::CoreError("Unknown asset type for file: {}", metadata.FilePath.string());
 			return nullptr;
 		}
-		}
-		return nullptr;
 	}
 }

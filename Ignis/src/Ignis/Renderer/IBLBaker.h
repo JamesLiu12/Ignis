@@ -1,11 +1,13 @@
 #pragma once
 
 #include "Ignis/Core/API.h"
-#include "Ignis/Renderer/Texture.h"
-#include "Ignis/Renderer/Image.h"
 
 namespace ignis
 {
+	class TextureCube;
+	class Texture2D;
+	class Image;
+
 	struct IBLBakeSettings
 	{
 		uint32_t EnvironmentResolution = 1024;
