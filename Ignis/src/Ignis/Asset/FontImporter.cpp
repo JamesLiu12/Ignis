@@ -1,6 +1,6 @@
 #include "FontImporter.h"
 #include "Ignis/Renderer/Font.h"
-#include "AssetImportTypes.h"
+#include "AssetLoadContext.h"
 
 #include <stb_truetype.h>
 #include <fstream>
@@ -10,15 +10,16 @@ namespace ignis
 {
 	AssetType FontImporter::GetType() const { return AssetType::Font; }
 
-	std::shared_ptr<Asset> FontImporter::Import(const std::string& path, const AssetLoadContext& context)
+	std::shared_ptr<Asset> FontImporter::Import(const AssetMetadata& metadata, const AssetLoadContext& context)
 	{
-		const FontImportOptions& opts = context.FontOptions;
+		const auto* opts = std::get_if<FontImportOptions>(&metadata.ImportOptions);
+		const FontImportOptions& options = opts ? *opts : FontImportOptions{};
 
-		std::filesystem::path resolved = VFS::Resolve(path);
+		std::filesystem::path resolved = VFS::Resolve(metadata.FilePath.string());
 		std::ifstream file(resolved, std::ios::binary | std::ios::ate);
 		if (!file)
 		{
-			Log::CoreError("FontImporter: Cannot open '{}'", path);
+			Log::CoreError("FontImporter: Cannot open '{}'", metadata.FilePath);
 			return nullptr;
 		}
 		std::vector<uint8_t> ttf((size_t)file.tellg());
@@ -27,27 +28,27 @@ namespace ignis
 
 		constexpr int kFirst = 32, kCount = 95;
 		std::vector<stbtt_packedchar> packed(kCount);
-		std::vector<uint8_t>          bitmap(opts.AtlasWidth * opts.AtlasHeight, 0);
+		std::vector<uint8_t>          bitmap(options.AtlasWidth * options.AtlasHeight, 0);
 
 		stbtt_pack_context ctx;
-		if (!stbtt_PackBegin(&ctx, bitmap.data(), (int)opts.AtlasWidth, (int)opts.AtlasHeight, 0, 1, nullptr))
+		if (!stbtt_PackBegin(&ctx, bitmap.data(), (int)options.AtlasWidth, (int)options.AtlasHeight, 0, 1, nullptr))
 		{
-			Log::CoreError("FontImporter: stbtt_PackBegin failed for '{}'", path);
+			Log::CoreError("FontImporter: stbtt_PackBegin failed for '{}'", metadata.FilePath);
 			return nullptr;
 		}
 		stbtt_PackSetOversampling(&ctx, 2, 2);
-		stbtt_PackFontRange(&ctx, ttf.data(), 0, opts.FontSize, kFirst, kCount, packed.data());
+		stbtt_PackFontRange(&ctx, ttf.data(), 0, options.FontSize, kFirst, kCount, packed.data());
 		stbtt_PackEnd(&ctx);
 
 		stbtt_fontinfo info;
 		stbtt_InitFont(&info, ttf.data(), 0);
-		float scale = stbtt_ScaleForPixelHeight(&info, opts.FontSize);
+		float scale = stbtt_ScaleForPixelHeight(&info, options.FontSize);
 		int asc, desc, gap;
 		stbtt_GetFontVMetrics(&info, &asc, &desc, &gap);
 		float line_height = (asc - desc + gap) * scale;
 
-		float inv_w = 1.0f / (float)opts.AtlasWidth;
-		float inv_h = 1.0f / (float)opts.AtlasHeight;
+		float inv_w = 1.0f / (float)options.AtlasWidth;
+		float inv_h = 1.0f / (float)options.AtlasHeight;
 
 		auto font = std::make_shared<Font>();
 		font->m_line_height = line_height;
@@ -65,8 +66,8 @@ namespace ignis
 		}
 
 		TextureSpecs specs;
-		specs.Width = opts.AtlasWidth;
-		specs.Height = opts.AtlasHeight;
+		specs.Width = options.AtlasWidth;
+		specs.Height = options.AtlasHeight;
 		specs.Format = TextureFormat::R8;
 		specs.WrapS = TextureWrap::ClampToEdge;
 		specs.WrapT = TextureWrap::ClampToEdge;
@@ -81,12 +82,12 @@ namespace ignis
 		font->m_atlas = Texture2D::Create(specs, ImageFormat::R8, r8);
 		if (!font->m_atlas)
 		{
-			Log::CoreError("FontImporter: GPU upload failed for '{}'", path);
+			Log::CoreError("FontImporter: GPU upload failed for '{}'", metadata.FilePath);
 			return nullptr;
 		}
 
 		Log::CoreInfo("FontImporter: Loaded '{}' ({:.0f}px, {}x{} atlas)",
-			path, opts.FontSize, opts.AtlasWidth, opts.AtlasHeight);
+			metadata.FilePath, options.FontSize, options.AtlasWidth, options.AtlasHeight);
 		return font;
 	}
 

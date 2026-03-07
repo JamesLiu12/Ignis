@@ -1,5 +1,7 @@
 #pragma once
 #include "Ignis/Renderer/IBLBaker.h"
+#include "Ignis/Renderer/TextureTypes.h"
+#include <variant>
 
 namespace ignis
 {
@@ -7,10 +9,9 @@ namespace ignis
 	{
 		bool FlipVertical = true;
 		bool GenMipmaps = true;
-
 		TextureFormat InternalFormat = TextureFormat::RGBA8;
-		TextureWrap WrapS = TextureWrap::Repeat;
-		TextureWrap WrapT = TextureWrap::Repeat;
+		TextureWrap   WrapS = TextureWrap::Repeat;
+		TextureWrap   WrapT = TextureWrap::Repeat;
 		TextureFilter MinFilter = TextureFilter::LinearMipmapLinear;
 		TextureFilter MagFilter = TextureFilter::Linear;
 	};
@@ -27,15 +28,17 @@ namespace ignis
 		bool Stream = false;
 	};
 
-	struct AssetLoadContext
+	struct EquirectImportOptions
 	{
-		std::shared_ptr<IBLBaker> IBLBakerService = nullptr;
-
-		TextureImportOptions Texture2DOptions{};
-		TextureImportOptions TextureCubeOptions{};
-		TextureImportOptions EquirectOptions{};
-		IBLBakeSettings EquirectBakeSettings{};
-		FontImportOptions FontOptions{};
-		AudioImportOptions AudioOptions{};
+		TextureImportOptions TexOptions{};
+		IBLBakeSettings      BakeSettings{};
 	};
+
+	using AssetImportOptions = std::variant<
+		std::monostate,
+		TextureImportOptions,
+		FontImportOptions,
+		AudioImportOptions,
+		EquirectImportOptions
+	>;
 }
