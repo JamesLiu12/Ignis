@@ -327,15 +327,6 @@ void EditorSceneLayer::ReloadProject()
 	SceneSerializer scene_serializer;
 	m_editor_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
 
-	AssetHandle clip_handle = AssetManager::ImportAsset("assets://audio/mrfriends-pistol-shot-233473.mp3");
-	auto gun_entity = m_editor_scene->GetEntityByID(UUID("03d861ce-0d8b-49f9-b504-09c49c17abd7"));
-	auto& source_com = gun_entity.AddComponent<AudioSourceComponent>();
-	source_com.Clip = clip_handle;
-	source_com.Loop = true;
-
-	auto camera_entity = m_editor_scene->GetEntityByID(UUID("980c8de8-199e-47ae-b473-1cbee5c62ea3"));
-	auto& lis_com = camera_entity.AddComponent<AudioListenerComponent>();
-
 	// Script module will be loaded in OnScenePlay()
 	// Do not call OnRuntimeStart() in edit mode, as scripts should only run in Play mode
 
