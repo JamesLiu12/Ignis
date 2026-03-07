@@ -57,6 +57,8 @@ namespace ignis
 		glm::mat4 GetLocalTransform() const;
 		glm::mat4 GetWorldTransform() const;
 
+		Scene* GetScene() const { return m_scene; }
+
 	private:
 		entt::entity m_handle = entt::null;
 		Scene* m_scene = nullptr;
