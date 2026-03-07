@@ -16,6 +16,7 @@ namespace ignis
 		Mesh,
 		EquirectIBLEnv,
 		Font,
+		AudioClip,
 	};
 
 	struct AssetMetadata

@@ -3,6 +3,7 @@
 #include "Scene.h"
 #include "Ignis/Core/File/File.h"
 #include "Ignis/Renderer/Material.h"
+#include "Ignis/UI/UIComponents.h"
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -10,6 +11,16 @@ using ordered_json = nlohmann::ordered_json;
 
 namespace ignis
 {
+	static ordered_json SerializeVec2(const glm::vec2& vec)
+	{
+		return ordered_json({ vec.x, vec.y });
+	}
+
+	static glm::vec2 DeserializeVec2(const ordered_json& data)
+	{
+		return glm::vec2(data[0], data[1]);
+	}
+
 	static ordered_json SerializeVec3(const glm::vec3& vec)
 	{
 		return ordered_json({ vec.x, vec.y, vec.z });
@@ -18,6 +29,16 @@ namespace ignis
 	static glm::vec3 DeserializeVec3(const ordered_json& data)
 	{
 		return glm::vec3(data[0], data[1], data[2]);
+	}
+
+	static ordered_json SerializeVec4(const glm::vec4& vec)
+	{
+		return ordered_json({ vec.x, vec.y, vec.z, vec.w });
+	}
+
+	static glm::vec4 DeserializeVec4(const ordered_json& data)
+	{
+		return glm::vec4(data[0], data[1], data[2], data[3]);
 	}
 
 	static MaterialData DeserializeMaterialData(const json& data)
@@ -179,6 +200,104 @@ namespace ignis
 			text_data["Alpha"] = text_com.Alpha;
 			text_data["Scale"] = text_com.Scale;
 			entity_data["Text"] = text_data;
+		}
+
+		if (entity.HasComponent<AudioSourceComponent>())
+		{
+			const auto& audio = entity.GetComponent<AudioSourceComponent>();
+			ordered_json audio_data;
+			audio_data["Clip"] = audio.Clip.ToString();
+			audio_data["Volume"] = audio.Volume;
+			audio_data["Pitch"] = audio.Pitch;
+			audio_data["Loop"] = audio.Loop;
+			audio_data["PlayOnStart"] = audio.PlayOnStart;
+			audio_data["Spatial"] = audio.Spatial;
+			audio_data["MinDistance"] = audio.MinDistance;
+			audio_data["MaxDistance"] = audio.MaxDistance;
+			entity_data["AudioSource"] = audio_data;
+		}
+
+		if (entity.HasComponent<AudioListenerComponent>())
+		{
+			const auto& listener = entity.GetComponent<AudioListenerComponent>();
+			ordered_json listener_data;
+			listener_data["Primary"] = listener.Primary;
+			entity_data["AudioListener"] = listener_data;
+		}
+
+		if (entity.HasComponent<RectTransformComponent>())
+		{
+			const auto& rect = entity.GetComponent<RectTransformComponent>();
+			ordered_json rect_data;
+			// ResolvedMin / ResolvedMax are runtime-only, skip them
+			rect_data["AnchorMin"] = SerializeVec2(rect.AnchorMin);
+			rect_data["AnchorMax"] = SerializeVec2(rect.AnchorMax);
+			rect_data["OffsetMin"] = SerializeVec2(rect.OffsetMin);
+			rect_data["OffsetMax"] = SerializeVec2(rect.OffsetMax);
+			entity_data["RectTransform"] = rect_data;
+		}
+
+		if (entity.HasComponent<CanvasComponent>())
+		{
+			const auto& canvas = entity.GetComponent<CanvasComponent>();
+			ordered_json canvas_data;
+			canvas_data["RenderMode"] = static_cast<int>(canvas.Mode);
+			canvas_data["SortOrder"] = canvas.SortOrder;
+			canvas_data["Visible"] = canvas.Visible;
+			entity_data["Canvas"] = canvas_data;
+		}
+
+		if (entity.HasComponent<ImageComponent>())
+		{
+			const auto& image = entity.GetComponent<ImageComponent>();
+			ordered_json image_data;
+			image_data["Texture"] = image.Texture.ToString();
+			image_data["Color"] = SerializeVec4(image.Color);
+			image_data["Visible"] = image.Visible;
+			image_data["RaycastTarget"] = image.RaycastTarget;
+			image_data["ScaleMode"] = static_cast<int>(image.Scale);
+			entity_data["Image"] = image_data;
+		}
+
+		if (entity.HasComponent<UITextComponent>())
+		{
+			const auto& ui_text = entity.GetComponent<UITextComponent>();
+			ordered_json ui_text_data;
+			ui_text_data["Text"] = ui_text.Text;
+			ui_text_data["Font"] = ui_text.Font.ToString();
+			ui_text_data["Color"] = SerializeVec4(ui_text.Color);
+			ui_text_data["FontSize"] = ui_text.FontSize;
+			ui_text_data["HAlign"] = static_cast<int>(ui_text.HAlign);
+			ui_text_data["VAlign"] = static_cast<int>(ui_text.VAlign);
+			ui_text_data["Visible"] = ui_text.Visible;
+			entity_data["UIText"] = ui_text_data;
+		}
+
+		if (entity.HasComponent<ButtonComponent>())
+		{
+			const auto& button = entity.GetComponent<ButtonComponent>();
+			ordered_json button_data;
+			// IsHovered / IsPressed / CurrentColor are runtime-only, skip them
+			button_data["NormalColor"] = SerializeVec4(button.NormalColor);
+			button_data["HoverColor"] = SerializeVec4(button.HoverColor);
+			button_data["PressedColor"] = SerializeVec4(button.PressedColor);
+			button_data["DisabledColor"] = SerializeVec4(button.DisabledColor);
+			button_data["Interactable"] = button.Interactable;
+			entity_data["Button"] = button_data;
+		}
+
+		if (entity.HasComponent<ProgressBarComponent>())
+		{
+			const auto& bar = entity.GetComponent<ProgressBarComponent>();
+			ordered_json bar_data;
+			bar_data["Value"] = bar.Value;
+			bar_data["MinValue"] = bar.MinValue;
+			bar_data["MaxValue"] = bar.MaxValue;
+			bar_data["ForegroundColor"] = SerializeVec4(bar.ForegroundColor);
+			bar_data["BackgroundColor"] = SerializeVec4(bar.BackgroundColor);
+			bar_data["FillDirection"] = static_cast<int>(bar.Direction);
+			bar_data["Visible"] = bar.Visible;
+			entity_data["ProgressBar"] = bar_data;
 		}
 
 		return entity_data;
@@ -362,6 +481,94 @@ namespace ignis
 			text.Color = DeserializeVec3(text_data["Color"]);
 			text.Alpha = text_data.value("Alpha", 1.0f);
 			text.Scale = text_data.value("Scale", 1.0f);
+		}
+
+		if (entity_data.contains("AudioSource"))
+		{
+			const auto& audio_data = entity_data["AudioSource"];
+			auto& audio = entity.AddComponent<AudioSourceComponent>();
+			audio.Clip = AssetHandle(audio_data.value("Clip", ""));
+			audio.Volume = audio_data.value("Volume", 1.0f);
+			audio.Pitch = audio_data.value("Pitch", 1.0f);
+			audio.Loop = audio_data.value("Loop", false);
+			audio.PlayOnStart = audio_data.value("PlayOnStart", true);
+			audio.Spatial = audio_data.value("Spatial", true);
+			audio.MinDistance = audio_data.value("MinDistance", 1.0f);
+			audio.MaxDistance = audio_data.value("MaxDistance", 50.0f);
+		}
+
+		if (entity_data.contains("AudioListener"))
+		{
+			const auto& listener_data = entity_data["AudioListener"];
+			auto& listener = entity.AddComponent<AudioListenerComponent>();
+			listener.Primary = listener_data.value("Primary", true);
+		}
+
+		if (entity_data.contains("RectTransform"))
+		{
+			const auto& rect_data = entity_data["RectTransform"];
+			auto& rect = entity.AddComponent<RectTransformComponent>();
+			rect.AnchorMin = DeserializeVec2(rect_data["AnchorMin"]);
+			rect.AnchorMax = DeserializeVec2(rect_data["AnchorMax"]);
+			rect.OffsetMin = DeserializeVec2(rect_data["OffsetMin"]);
+			rect.OffsetMax = DeserializeVec2(rect_data["OffsetMax"]);
+		}
+
+		if (entity_data.contains("Canvas"))
+		{
+			const auto& canvas_data = entity_data["Canvas"];
+			auto& canvas = entity.AddComponent<CanvasComponent>();
+			canvas.Mode = static_cast<CanvasComponent::RenderMode>(canvas_data.value("RenderMode", 0));
+			canvas.SortOrder = canvas_data.value("SortOrder", 0);
+			canvas.Visible = canvas_data.value("Visible", true);
+		}
+
+		if (entity_data.contains("Image"))
+		{
+			const auto& image_data = entity_data["Image"];
+			auto& image = entity.AddComponent<ImageComponent>();
+			image.Texture = AssetHandle(image_data.value("Texture", ""));
+			image.Color = DeserializeVec4(image_data["Color"]);
+			image.Visible = image_data.value("Visible", true);
+			image.RaycastTarget = image_data.value("RaycastTarget", true);
+			image.Scale = static_cast<ImageComponent::ScaleMode>(image_data.value("ScaleMode", 0));
+		}
+
+		if (entity_data.contains("UIText"))
+		{
+			const auto& ui_text_data = entity_data["UIText"];
+			auto& ui_text = entity.AddComponent<UITextComponent>();
+			ui_text.Text = ui_text_data.value("Text", "");
+			ui_text.Font = AssetHandle(ui_text_data.value("Font", ""));
+			ui_text.Color = DeserializeVec4(ui_text_data["Color"]);
+			ui_text.FontSize = ui_text_data.value("FontSize", 16.0f);
+			ui_text.HAlign = static_cast<UITextComponent::HorizontalAlignment>(ui_text_data.value("HAlign", 0));
+			ui_text.VAlign = static_cast<UITextComponent::VerticalAlignment>(ui_text_data.value("VAlign", 0));
+			ui_text.Visible = ui_text_data.value("Visible", true);
+		}
+
+		if (entity_data.contains("Button"))
+		{
+			const auto& button_data = entity_data["Button"];
+			auto& button = entity.AddComponent<ButtonComponent>();
+			button.NormalColor = DeserializeVec4(button_data["NormalColor"]);
+			button.HoverColor = DeserializeVec4(button_data["HoverColor"]);
+			button.PressedColor = DeserializeVec4(button_data["PressedColor"]);
+			button.DisabledColor = DeserializeVec4(button_data["DisabledColor"]);
+			button.Interactable = button_data.value("Interactable", true);
+		}
+
+		if (entity_data.contains("ProgressBar"))
+		{
+			const auto& bar_data = entity_data["ProgressBar"];
+			auto& bar = entity.AddComponent<ProgressBarComponent>();
+			bar.Value = bar_data.value("Value", 1.0f);
+			bar.MinValue = bar_data.value("MinValue", 0.0f);
+			bar.MaxValue = bar_data.value("MaxValue", 1.0f);
+			bar.ForegroundColor = DeserializeVec4(bar_data["ForegroundColor"]);
+			bar.BackgroundColor = DeserializeVec4(bar_data["BackgroundColor"]);
+			bar.Direction = static_cast<ProgressBarComponent::FillDirection>(bar_data.value("FillDirection", 0));
+			bar.Visible = bar_data.value("Visible", true);
 		}
 
 		return entity;

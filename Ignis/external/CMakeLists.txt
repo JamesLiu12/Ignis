@@ -74,3 +74,5 @@ add_subdirectory(assimp)
 add_subdirectory(stduuid)
 
 add_subdirectory(json)
+
+add_subdirectory(miniaudio)

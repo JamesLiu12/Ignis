@@ -5,6 +5,9 @@
 #include "Editor/Panels/ViewportPanel.h"
 #include "Editor/Panels/AssetBrowserPanel.h"
 #include "Ignis/Renderer/IBLBaker.h"
+#include "Ignis/Core/Events/MouseEvents.h"
+#include "Ignis/Core/Events/KeyEvents.h"
+#include "Ignis/Audio/AudioEngine.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace ignis {
@@ -33,14 +36,14 @@ EditorSceneLayer::~EditorSceneLayer()
 void EditorSceneLayer::OnAttach()
 {
 	m_renderer.Init();
+	AudioEngine::Get().Init();
 	
 	AssetManager::SetLoadContext({
 		.IBLBakerService = IBLBaker::Create(m_renderer),
 		});
 
 	auto& window = m_editor_app->GetWindow();
-	float aspect_ratio = static_cast<float>(window.GetFramebufferWidth()) / static_cast<float>(window.GetFramebufferHeight());
-	m_editor_camera = std::make_shared<EditorCamera>(45.0f, aspect_ratio, 0.1f, 1000.0f);
+	m_editor_camera = std::make_shared<EditorCamera>(45.0f, 1, 0.1f, 1000.0f);
 	m_editor_camera->SetPosition({ 1.5f, 0.0f, 10.0f });
 	m_editor_camera->RecalculateViewMatrix();
 
@@ -48,8 +51,8 @@ void EditorSceneLayer::OnAttach()
 	m_pipeline = std::make_shared<PBRPipeline>(m_renderer.GetShaderLibrary());
 	
 	FrameBufferSpecs specs;
-	specs.Width = window.GetFramebufferWidth();
-	specs.Height = window.GetFramebufferHeight();
+	specs.Width = 1;
+	specs.Height = 1;
 	specs.Attachments = { TextureFormat::RGBA8, TextureFormat::Depth24Stencil8 };
 	auto framebuffer = Framebuffer::Create(specs);
 	m_renderer.SetFramebuffer(framebuffer);
@@ -120,6 +123,8 @@ void EditorSceneLayer::OnDetach()
 	}
 	m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
 	m_script_module.Unload();
+
+	AudioEngine::Get().Init();
 }
 
 void EditorSceneLayer::OnUpdate(float dt)
@@ -188,16 +193,19 @@ void EditorSceneLayer::OnUpdate(float dt)
 		}
 	}
 
+	auto& window = m_editor_app->GetWindow();
+
 	// Only update runtime (scripts) in Play mode
 	if (m_scene_state == SceneState::Play && m_current_scene)
 	{
 		m_current_scene->OnRuntimeUpdate(dt);
 	}
+	
+	auto framebuffer = m_renderer.GetFramebuffer();
 
 	SceneRenderer scene_renderer(m_renderer);
 	if (!m_current_scene)
 	{
-		auto framebuffer = m_renderer.GetFramebuffer();
 		if (framebuffer)
 		{
 			framebuffer->Bind();
@@ -213,12 +221,21 @@ void EditorSceneLayer::OnUpdate(float dt)
 			? m_editor_camera 
 			: m_current_scene->GetPrimaryCamera();
 		
+		m_ui_system.OnUpdate(*m_current_scene, framebuffer->GetWidth(), framebuffer->GetHeight());
+
+		m_renderer.BeginFrame();
+
 		scene_renderer.BeginScene({ m_current_scene, render_camera, m_pipeline});
 		m_current_scene->OnRender(scene_renderer);
 		scene_renderer.EndScene();
+
+		m_ui_renderer.BeginUI(framebuffer->GetWidth(), framebuffer->GetHeight());
+		m_ui_system.OnRender(*m_current_scene, m_ui_renderer, framebuffer->GetWidth(), framebuffer->GetHeight());
+		m_ui_renderer.EndUI();
+
+		m_renderer.EndFrame();
 	}
 	
-	auto& window = m_editor_app->GetWindow();
 }
 
 void EditorSceneLayer::OnEvent(EventBase& event)
@@ -226,13 +243,46 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 	// window resize handling removed, and viewport panel now manages framebuffer size
 	// and camera aspect ratio is updated in OnUpdate() based on viewport panel size
 
-	if (auto* resize_event = dynamic_cast<WindowResizeEvent*>(&event))
+	if (auto* e = dynamic_cast<WindowResizeEvent*>(&event))
 	{
 		if (m_current_scene)
 		{
-			m_current_scene->OnViewportResize(resize_event->GetWidth(), resize_event->GetHeight());
+			auto framebuffer = m_renderer.GetFramebuffer();
+			m_current_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
 		}
+	}
+	else if (m_viewport_panel && m_viewport_panel->IsFocused())
+	{
+		int mouse_x = Input::GetMouseX();
+		int mouse_y = Input::GetMouseY();
 		
+		if (auto* e = dynamic_cast<KeyTypedEvent*>(&event))
+		{
+			if (m_current_scene)
+				m_ui_system.OnKeyTyped(*m_current_scene, e->GetKeyCode());
+		}
+		else if (m_viewport_panel->IsPointInViewport(mouse_x, mouse_y))
+		{
+			ImVec2 min_bound = m_viewport_panel->GetViewportMinBound();
+            float local_x = mouse_x - min_bound.x;
+            float local_y = mouse_y - min_bound.y;
+
+			if (auto* e = dynamic_cast<MouseMovedEvent*>(&event))
+			{
+				if (m_current_scene)
+					m_ui_system.OnMouseMoved(*m_current_scene, e->GetX() - min_bound.x, e->GetY() - min_bound.y);
+			}
+			else if (auto* e = dynamic_cast<MouseButtonPressedEvent*>(&event))
+			{
+				if (m_current_scene)
+					m_ui_system.OnMouseButtonPressed(*m_current_scene, e->GetMouseButton());
+			}
+			else if (auto* e = dynamic_cast<MouseButtonReleasedEvent*>(&event))
+			{
+				if (m_current_scene)
+					m_ui_system.OnMouseButtonReleased(*m_current_scene, e->GetMouseButton());
+			}
+		}
 	}
 }
 
@@ -280,8 +330,8 @@ void EditorSceneLayer::ReloadProject()
 	// Script module will be loaded in OnScenePlay()
 	// Do not call OnRuntimeStart() in edit mode, as scripts should only run in Play mode
 
-	auto& window = m_editor_app->GetWindow();
-	m_editor_scene->OnViewportResize(window.GetFramebufferWidth(), window.GetFramebufferHeight());
+	auto framebuffer = m_renderer.GetFramebuffer();
+	m_editor_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
 	
 	// Refresh asset browser with new project files
 	if (auto* asset_browser = m_editor_app->GetAssetBrowserPanel())
