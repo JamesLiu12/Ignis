@@ -25,6 +25,7 @@ namespace ignis {
 		ImVec2 GetViewportMinBound() const { return m_viewport_min_bound; }
 		ImVec2 GetViewportMaxBound() const { return m_viewport_max_bound; }
 		bool IsFocused() const { return m_is_focused; }
+		bool IsPointInViewport(float x, float y) const;
 
 	private:
 		void RenderToolbar();  // Render Play/Stop toolbar overlay

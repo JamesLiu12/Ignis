@@ -8,16 +8,17 @@ namespace ignis
 		return AssetType::Texture2D;
 	}
 
-	std::shared_ptr<Asset> Texture2DImporter::Import(const std::string& path, const AssetLoadContext& context)
+	std::shared_ptr<Asset> Texture2DImporter::Import(const AssetMetadata& metadata, const AssetLoadContext& context)
 	{
-		const TextureImportOptions& options = context.Texture2DOptions;
+		const auto* opts = std::get_if<TextureImportOptions>(&metadata.ImportOptions);
+		const TextureImportOptions& options = opts ? *opts : TextureImportOptions{};
 
-		std::filesystem::path resolved = VFS::Resolve(path);
+		std::filesystem::path resolved = VFS::Resolve(metadata.FilePath);
 		auto image = Image::LoadFromFile(resolved, options.FlipVertical);
 
 		if (!image)
 		{
-			Log::CoreError("Failed to load texture from file: {}", path);
+			Log::CoreError("Failed to load texture from file: {}", metadata.FilePath);
 			return nullptr;
 		}
 
@@ -47,17 +48,17 @@ namespace ignis
 		return AssetType::TextureCube;
 	}
 
-	std::shared_ptr<Asset> TextureCubeImporter::Import(const std::string& path, const AssetLoadContext& context)
+	std::shared_ptr<Asset> TextureCubeImporter::Import(const AssetMetadata& metadata, const AssetLoadContext& context)
 	{
-		const TextureImportOptions& options = context.TextureCubeOptions;
+		const auto* opts = std::get_if<TextureImportOptions>(&metadata.ImportOptions);
+		const TextureImportOptions& options = opts ? *opts : TextureImportOptions{};
 
-		std::filesystem::path resolved = VFS::Resolve(path);
-
+		std::filesystem::path resolved = VFS::Resolve(metadata.FilePath);
 		auto image = Image::LoadFromFile(resolved, options.FlipVertical);
 
 		if (!image)
 		{
-			Log::CoreError("Failed to load texture from file: {}", path);
+			Log::CoreError("Failed to load texture from file: {}", metadata.FilePath);
 			return nullptr;
 		}
 
@@ -135,18 +136,18 @@ namespace ignis
 		return AssetType::EquirectIBLEnv;
 	}
 
-	std::shared_ptr<Asset> EquirectEnvImporter::Import(const std::string& path, const AssetLoadContext& context)
+	std::shared_ptr<Asset> EquirectEnvImporter::Import(const AssetMetadata& metadata, const AssetLoadContext& context)
 	{
-		const TextureImportOptions& options = context.EquirectOptions;
+		const auto* opts = std::get_if<TextureImportOptions>(&metadata.ImportOptions);
+		const TextureImportOptions& options = opts ? *opts : TextureImportOptions{};
 		auto ibl_baker = context.IBLBakerService;
 
-		std::filesystem::path resolved = VFS::Resolve(path);
-
+		std::filesystem::path resolved = VFS::Resolve(metadata.FilePath);
 		auto image = Image::LoadFromFile(resolved, options.FlipVertical);
 
 		if (!image)
 		{
-			Log::CoreError("Failed to load texture from file: {}", path);
+			Log::CoreError("Failed to load texture from file: {}", metadata.FilePath);
 			return nullptr;
 		}
 

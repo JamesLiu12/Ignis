@@ -17,9 +17,6 @@ namespace ignis {
 		void AllowInputEvents(bool allow_events);
 
 		static std::unique_ptr<ImGuiLayer> Create();
-
-	protected:
-		bool m_block_events = true;
 	};
 
 }

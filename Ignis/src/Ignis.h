@@ -27,5 +27,7 @@
 #include "Ignis/Scene/Components.h"
 #include "Ignis/Scene/SceneSerializer.h"
 
+#include "Ignis/UI/UIComponents.h"
+
 #include "Ignis/Script/ScriptBehaviour.h"
 #include "Ignis/Script/ScriptAutoRegistry.h"

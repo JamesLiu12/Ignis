@@ -9,7 +9,7 @@ namespace ignis
 	{
 	public:
 		AssetType GetType() const override;
-		std::shared_ptr<Asset> Import(const std::string& path, const AssetLoadContext& context) override;
+		std::shared_ptr<Asset> Import(const AssetMetadata& metadata, const AssetLoadContext& context) override;
 
 		static MeshImporter& Get();
 

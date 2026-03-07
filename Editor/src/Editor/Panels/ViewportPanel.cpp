@@ -75,6 +75,13 @@ namespace ignis {
 	{
 	}
 
+	bool ViewportPanel::IsPointInViewport(float x, float y) const
+	{
+		return x >= m_viewport_min_bound.x && x <= m_viewport_max_bound.x
+			&& y >= m_viewport_min_bound.y && y <= m_viewport_max_bound.y;
+	}
+
+
 	void ViewportPanel::RenderToolbar()
 	{
 		// Validation checks

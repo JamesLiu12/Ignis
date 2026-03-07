@@ -138,7 +138,7 @@ namespace ignis {
 			std::string mesh_path = "Unknown";
 			if (auto* metadata = AssetManager::GetMetadata((*m_current_mesh_ptr)->GetHandle()))
 			{
-				mesh_path = metadata->FilePath.string();
+				mesh_path = metadata->FilePath;
 			}
 			
 			ImGui::Text("Mesh: %s", mesh_path.c_str());
@@ -244,7 +244,7 @@ namespace ignis {
 			else if (auto* metadata = AssetManager::GetMetadata(current_handle))
 			{
 				// File-based texture
-				preview = metadata->FilePath.string();
+				preview = metadata->FilePath;
 				// Show just filename
 				size_t last_slash = preview.find_last_of("/\\");
 				if (last_slash != std::string::npos)
@@ -533,7 +533,7 @@ namespace ignis {
 				{
 					ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), "Loaded");
 					ImGui::SameLine();
-					ImGui::TextWrapped("%s", metadata->FilePath.string().c_str());
+					ImGui::TextWrapped("%s", metadata->FilePath.c_str());
 				}
 				else
 				{
@@ -757,7 +757,7 @@ namespace ignis {
 				// Show mesh file path if available
 				if (auto* metadata = AssetManager::GetMetadata(mesh_component.Mesh))
 				{
-					ImGui::TextWrapped("File: %s", metadata->FilePath.filename().string().c_str());
+					ImGui::TextWrapped("File: %s", std::filesystem::path(metadata->FilePath).filename().string().c_str());
 				}
 			}
 			else
@@ -913,7 +913,7 @@ namespace ignis {
 			{
 				ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), "Loaded");
 				ImGui::SameLine();
-				ImGui::TextWrapped("%s", metadata->FilePath.filename().string().c_str());
+				ImGui::TextWrapped("%s", std::filesystem::path(metadata->FilePath).filename().string().c_str());
 			}
 			else
 			{
@@ -1125,6 +1125,33 @@ namespace ignis {
 		// Script Component
 		ImGui::Text("Scripting:");
 		DrawAddComponentMenuItemImpl<ScriptComponent>(entity, "  Script");
+	}
+
+	void PropertiesPanel::ReimportAsset(AssetHandle handle)
+	{
+		if (AssetMetadata* meta = AssetManager::GetMetadataMutable(handle))
+		{
+			std::visit(overloaded{
+				[](std::monostate) {
+					// TODO
+				},
+				[](TextureImportOptions& opts) {
+					// TODO
+				},
+				[](FontImportOptions& opts) {
+					// TODO
+				},
+				[](AudioImportOptions& opts) {
+					// TODO
+				},
+				[](EquirectImportOptions& opts) {
+					// TODO
+				},
+				}, meta->ImportOptions);
+		}
+
+		AssetManager::UnloadAsset(handle);
+		AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
 	}
 
 } // namespace ignis

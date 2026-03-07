@@ -7,6 +7,9 @@
 #include "Ignis/Script/ScriptModule.h"
 #include "Ignis/Asset/AssetSerializer.h"
 
+#include "Ignis/UI/UISystem.h"
+#include "Ignis/UI/UIRenderer.h"
+
 namespace ignis {
 	class Renderer;
 	class EditorApp;
@@ -75,6 +78,9 @@ private:
 	SceneState m_scene_state = SceneState::Edit;
 
 	ScriptModule m_script_module;
+
+	UISystem m_ui_system;
+	UIRenderer m_ui_renderer{ Application::Get().GetRenderer() };
 };
 
 } // namespace ignis

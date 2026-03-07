@@ -3,6 +3,7 @@
 #include "TextureImporter.h"
 #include "FontImporter.h"
 #include "AssetSerializer.h"
+#include "AudioImporter.h"
 
 namespace ignis
 {
@@ -24,6 +25,10 @@ namespace ignis
 			{ ".obj", AssetType::Mesh },
 			{ ".fbx", AssetType::Mesh },
 			{ ".ttf", AssetType::Font },
+			{ ".wav", AssetType::AudioClip },
+			{ ".mp3", AssetType::AudioClip },
+			{ ".flac", AssetType::AudioClip },
+			{ ".ogg", AssetType::AudioClip },
 		};
 
 		std::string extension = ToLowerASCII(path.extension().string());
@@ -35,6 +40,11 @@ namespace ignis
 		}
 
 		return AssetType::Unknown;
+	}
+
+	AssetImportOptions AssetManager::DefaultImportOptions(AssetType type)
+	{
+		return DefaultImportOptionsForType(type);
 	}
 
 	bool AssetManager::IsAssetLoaded(AssetHandle handle)
@@ -49,25 +59,22 @@ namespace ignis
 
 	AssetHandle AssetManager::ImportAsset(const std::filesystem::path& path, AssetType asset_type)
 	{
-		// Convert absolute path to VFS path if within project
 		std::string vfs_path = VFS::ToVFSPath(path);
-		
-		const AssetMetadata* metadata = GetMetadata(vfs_path);
+		const AssetMetadata* existing = GetMetadata(vfs_path);
+		if (existing)
+			return existing->Handle;
 
-		if (metadata)
-		{
-			return metadata->Handle;
-		}
-		
 		AssetHandle handle = AssetHandle();
-		AssetMetadata new_metadata;
-		new_metadata.FilePath = vfs_path;
-		if (asset_type == AssetType::Unknown) new_metadata.Type = DetermineTypeFromExtension(path);
-		else new_metadata.Type = asset_type;
-		new_metadata.Handle = handle;
 
-		s_asset_registry[handle] = new_metadata;
+		AssetMetadata metadata;
+		metadata.Handle = handle;
+		metadata.FilePath = vfs_path;
+		metadata.Type = (asset_type == AssetType::Unknown)
+			? DetermineTypeFromExtension(path)
+			: asset_type;
+		metadata.ImportOptions = DefaultImportOptions(metadata.Type);
 
+		s_asset_registry[handle] = metadata;
 		return handle;
 	}
 
@@ -75,6 +82,11 @@ namespace ignis
 	{
 		s_loaded_assets.erase(handle);
 		s_asset_registry.erase(handle);
+	}
+
+	void AssetManager::UnloadAsset(AssetHandle handle)
+	{
+		s_loaded_assets.erase(handle);
 	}
 
 	const AssetMetadata* AssetManager::GetMetadata(AssetHandle handle)
@@ -98,6 +110,13 @@ namespace ignis
 
 		return nullptr;
 	}
+
+	AssetMetadata* AssetManager::GetMetadataMutable(AssetHandle handle)
+	{
+		auto it = s_asset_registry.find(handle);
+		return (it != s_asset_registry.end()) ? &it->second : nullptr;
+	}
+
 
 	bool AssetManager::LoadAssetRegistry(const std::filesystem::path& path)
 	{
@@ -128,40 +147,29 @@ namespace ignis
 
 	std::shared_ptr<Asset> AssetManager::LoadAssetFromFile(const AssetMetadata& metadata)
 	{
-		if (!VFS::Exists(metadata.FilePath.string()))
+		if (!VFS::Exists(metadata.FilePath))
 		{
-			Log::CoreError("Asset file does not exist: {}", metadata.FilePath.string());
+			Log::CoreError("Asset file does not exist: {}", metadata.FilePath);
 			return nullptr;
 		}
 
 		switch (metadata.Type)
 		{
 		case AssetType::Texture2D:
-		{
-			 return Texture2DImporter::Get().Import(metadata.FilePath.string(), s_load_context);
-		}
-		case AssetType::Mesh:
-		{
-			return MeshImporter::Get().Import(metadata.FilePath.string(), s_load_context);
-		}
+			return Texture2DImporter::Get().Import(metadata, s_load_context);
 		case AssetType::TextureCube:
-		{
-			return TextureCubeImporter::Get().Import(metadata.FilePath.string(), s_load_context);
-		}
+			return TextureCubeImporter::Get().Import(metadata, s_load_context);
 		case AssetType::EquirectIBLEnv:
-		{
-			return EquirectEnvImporter::Get().Import(metadata.FilePath.string(), s_load_context);
-		}
+			return EquirectEnvImporter::Get().Import(metadata, s_load_context);
+		case AssetType::Mesh:
+			return MeshImporter::Get().Import(metadata, s_load_context);
 		case AssetType::Font:
-		{
-			return FontImporter::Get().Import(metadata.FilePath.string(), s_load_context);
-		}
-		case AssetType::Unknown:
-		{
-			Log::CoreError("Unknown asset type for file: {}", metadata.FilePath.string());
+			return FontImporter::Get().Import(metadata, s_load_context);
+		case AssetType::AudioClip:
+			return AudioImporter::Get().Import(metadata, s_load_context);
+		default:
+			Log::CoreError("Unknown asset type for file: {}", metadata.FilePath);
 			return nullptr;
 		}
-		}
-		return nullptr;
 	}
 }

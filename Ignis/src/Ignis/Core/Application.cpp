@@ -121,7 +121,6 @@ namespace ignis
 	void Application::OnWindowResize(WindowResizeEvent& e)
 	{
 		Log::CoreInfoTag("Core", "Window resize event received");
-		m_renderer->SetViewport(0, 0, e.GetWidth(), e.GetHeight());
 	}
 
 	void Application::PushLayer(std::unique_ptr<Layer> layer)

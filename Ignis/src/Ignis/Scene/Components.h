@@ -149,4 +149,30 @@ namespace ignis
 		TextComponent() = default;
 		TextComponent(const std::string& text) : Text(text) {}
 	};
+
+	struct AudioSourceComponent : Component
+	{
+		AssetHandle Clip;
+
+		float Volume = 1.0f;
+		float Pitch = 1.0f;
+		bool  Loop = false;
+		bool  PlayOnStart = true;
+
+		bool  Spatial = true;
+		float MinDistance = 1.0f;
+		float MaxDistance = 50.0f;
+
+		AudioSourceComponent() = default;
+		AudioSourceComponent(const AudioSourceComponent&) = default;
+		AudioSourceComponent& operator=(const AudioSourceComponent&) = default;
+	};
+
+	struct AudioListenerComponent : Component
+	{
+		bool Primary = true;
+
+		AudioListenerComponent() = default;
+		AudioListenerComponent(const AudioListenerComponent&) = default;
+	};
 }
