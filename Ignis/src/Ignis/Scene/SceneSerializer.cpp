@@ -202,6 +202,29 @@ namespace ignis
 			entity_data["Text"] = text_data;
 		}
 
+		if (entity.HasComponent<AudioSourceComponent>())
+		{
+			const auto& audio = entity.GetComponent<AudioSourceComponent>();
+			ordered_json audio_data;
+			audio_data["Clip"] = audio.Clip.ToString();
+			audio_data["Volume"] = audio.Volume;
+			audio_data["Pitch"] = audio.Pitch;
+			audio_data["Loop"] = audio.Loop;
+			audio_data["PlayOnStart"] = audio.PlayOnStart;
+			audio_data["Spatial"] = audio.Spatial;
+			audio_data["MinDistance"] = audio.MinDistance;
+			audio_data["MaxDistance"] = audio.MaxDistance;
+			entity_data["AudioSource"] = audio_data;
+		}
+
+		if (entity.HasComponent<AudioListenerComponent>())
+		{
+			const auto& listener = entity.GetComponent<AudioListenerComponent>();
+			ordered_json listener_data;
+			listener_data["Primary"] = listener.Primary;
+			entity_data["AudioListener"] = listener_data;
+		}
+
 		if (entity.HasComponent<RectTransformComponent>())
 		{
 			const auto& rect = entity.GetComponent<RectTransformComponent>();
@@ -458,6 +481,27 @@ namespace ignis
 			text.Color = DeserializeVec3(text_data["Color"]);
 			text.Alpha = text_data.value("Alpha", 1.0f);
 			text.Scale = text_data.value("Scale", 1.0f);
+		}
+
+		if (entity_data.contains("AudioSource"))
+		{
+			const auto& audio_data = entity_data["AudioSource"];
+			auto& audio = entity.AddComponent<AudioSourceComponent>();
+			audio.Clip = AssetHandle(audio_data.value("Clip", ""));
+			audio.Volume = audio_data.value("Volume", 1.0f);
+			audio.Pitch = audio_data.value("Pitch", 1.0f);
+			audio.Loop = audio_data.value("Loop", false);
+			audio.PlayOnStart = audio_data.value("PlayOnStart", true);
+			audio.Spatial = audio_data.value("Spatial", true);
+			audio.MinDistance = audio_data.value("MinDistance", 1.0f);
+			audio.MaxDistance = audio_data.value("MaxDistance", 50.0f);
+		}
+
+		if (entity_data.contains("AudioListener"))
+		{
+			const auto& listener_data = entity_data["AudioListener"];
+			auto& listener = entity.AddComponent<AudioListenerComponent>();
+			listener.Primary = listener_data.value("Primary", true);
 		}
 
 		if (entity_data.contains("RectTransform"))
