@@ -24,6 +24,7 @@ namespace ignis
 
 		void SetEntity(Entity e) { m_entity = e; }
 		Entity GetEntity() const { return m_entity; }
+		Scene* GetScene() const { return m_entity.GetScene(); }
 
 	private:
 		Entity m_entity;

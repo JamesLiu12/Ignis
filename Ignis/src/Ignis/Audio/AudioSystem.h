@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
 #include "Ignis/Core/UUID.h"
 
 #include <memory>
@@ -8,7 +9,7 @@ namespace ignis
 {
 	class Scene;
 
-	class AudioSystem
+	class IGNIS_API AudioSystem
 	{
 	public:
 		explicit AudioSystem(Scene* scene);
