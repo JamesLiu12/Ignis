@@ -1127,4 +1127,31 @@ namespace ignis {
 		DrawAddComponentMenuItemImpl<ScriptComponent>(entity, "  Script");
 	}
 
+	void PropertiesPanel::ReimportAsset(AssetHandle handle)
+	{
+		if (AssetMetadata* meta = AssetManager::GetMetadataMutable(handle))
+		{
+			std::visit(overloaded{
+				[](std::monostate) {
+					// TODO
+				},
+				[](TextureImportOptions& opts) {
+					// TODO
+				},
+				[](FontImportOptions& opts) {
+					// TODO
+				},
+				[](AudioImportOptions& opts) {
+					// TODO
+				},
+				[](EquirectImportOptions& opts) {
+					// TODO
+				},
+				}, meta->ImportOptions);
+		}
+
+		AssetManager::UnloadAsset(handle);
+		AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
+	}
+
 } // namespace ignis
