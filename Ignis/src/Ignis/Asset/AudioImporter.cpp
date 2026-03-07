@@ -34,7 +34,7 @@ namespace ignis
 		}
 
 		auto clip = std::make_shared<AudioClip>();
-		clip->m_filepath = metadata.FilePath;
+		clip->m_filepath = resolved.string();
 		clip->m_stream = options.Stream;
 
 		Log::CoreInfo("AudioImporter: Registered '{}' ({})",
