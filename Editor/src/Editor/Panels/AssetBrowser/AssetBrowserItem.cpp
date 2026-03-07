@@ -298,7 +298,7 @@ namespace ignis {
 
 	// AssetBrowserAsset implementation
 	AssetBrowserAsset::AssetBrowserAsset(const AssetMetadata& asset_info)
-		: AssetBrowserItem(ItemType::Asset, asset_info.Handle, asset_info.FilePath.filename().string())
+		: AssetBrowserItem(ItemType::Asset, asset_info.Handle, std::filesystem::path(asset_info.FilePath).filename().string())
 		, m_asset_info(asset_info)
 	{
 	}
@@ -489,7 +489,7 @@ namespace ignis {
 			std::filesystem::rename(old_path, new_path);
 			
 			// Update asset metadata
-			m_asset_info.FilePath = std::filesystem::relative(new_path, Project::GetActiveAssetDirectory());
+			m_asset_info.FilePath = std::filesystem::relative(new_path, Project::GetActiveAssetDirectory()).string();
 			m_file_name = new_name;
 			
 			Log::Info("Renamed asset: {} -> {}", old_path.string(), new_path.string());

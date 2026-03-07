@@ -15,7 +15,7 @@ namespace ignis
 		const auto* opts = std::get_if<AudioImportOptions>(&metadata.ImportOptions);
 		const AudioImportOptions& options = opts ? *opts : AudioImportOptions{};
 
-		std::filesystem::path resolved = VFS::Resolve(metadata.FilePath.string());
+		std::filesystem::path resolved = VFS::Resolve(metadata.FilePath);
 		if (!std::filesystem::exists(resolved))
 		{
 			Log::CoreError("AudioImporter: File not found '{}'", metadata.FilePath);

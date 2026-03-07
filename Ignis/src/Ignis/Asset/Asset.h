@@ -24,7 +24,7 @@ namespace ignis
 	{
 		AssetHandle Handle = AssetHandle::Invalid;
 		AssetType Type;
-		std::filesystem::path FilePath;
+		std::string FilePath;
 		AssetImportOptions ImportOptions;
 	};
 

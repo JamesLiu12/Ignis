@@ -13,7 +13,7 @@ namespace ignis
 		const auto* opts = std::get_if<TextureImportOptions>(&metadata.ImportOptions);
 		const TextureImportOptions& options = opts ? *opts : TextureImportOptions{};
 
-		std::filesystem::path resolved = VFS::Resolve(metadata.FilePath.string());
+		std::filesystem::path resolved = VFS::Resolve(metadata.FilePath);
 		auto image = Image::LoadFromFile(resolved, options.FlipVertical);
 
 		if (!image)
@@ -53,7 +53,7 @@ namespace ignis
 		const auto* opts = std::get_if<TextureImportOptions>(&metadata.ImportOptions);
 		const TextureImportOptions& options = opts ? *opts : TextureImportOptions{};
 
-		std::filesystem::path resolved = VFS::Resolve(metadata.FilePath.string());
+		std::filesystem::path resolved = VFS::Resolve(metadata.FilePath);
 		auto image = Image::LoadFromFile(resolved, options.FlipVertical);
 
 		if (!image)
@@ -142,7 +142,7 @@ namespace ignis
 		const TextureImportOptions& options = opts ? *opts : TextureImportOptions{};
 		auto ibl_baker = context.IBLBakerService;
 
-		std::filesystem::path resolved = VFS::Resolve(metadata.FilePath.string());
+		std::filesystem::path resolved = VFS::Resolve(metadata.FilePath);
 		auto image = Image::LoadFromFile(resolved, options.FlipVertical);
 
 		if (!image)

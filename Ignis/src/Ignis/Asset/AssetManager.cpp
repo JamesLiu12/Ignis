@@ -177,9 +177,9 @@ namespace ignis
 
 	std::shared_ptr<Asset> AssetManager::LoadAssetFromFile(const AssetMetadata& metadata)
 	{
-		if (!VFS::Exists(metadata.FilePath.string()))
+		if (!VFS::Exists(metadata.FilePath))
 		{
-			Log::CoreError("Asset file does not exist: {}", metadata.FilePath.string());
+			Log::CoreError("Asset file does not exist: {}", metadata.FilePath);
 			return nullptr;
 		}
 
@@ -198,7 +198,7 @@ namespace ignis
 		case AssetType::AudioClip:
 			return AudioImporter::Get().Import(metadata, s_load_context);
 		default:
-			Log::CoreError("Unknown asset type for file: {}", metadata.FilePath.string());
+			Log::CoreError("Unknown asset type for file: {}", metadata.FilePath);
 			return nullptr;
 		}
 	}
