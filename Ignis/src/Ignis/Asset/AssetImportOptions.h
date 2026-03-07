@@ -1,6 +1,7 @@
 #pragma once
 #include "Ignis/Renderer/IBLBaker.h"
 #include "Ignis/Renderer/TextureTypes.h"
+#include "AssetType.h"
 #include <variant>
 
 namespace ignis
@@ -41,4 +42,40 @@ namespace ignis
 		AudioImportOptions,
 		EquirectImportOptions
 	>;
+
+	inline AssetImportOptions DefaultImportOptionsForType(AssetType type)
+	{
+		switch (type)
+		{
+		case AssetType::Texture2D:
+			return TextureImportOptions{};
+
+		case AssetType::TextureCube:
+		{
+			TextureImportOptions opts{};
+			opts.FlipVertical = false;
+			opts.WrapS = TextureWrap::ClampToEdge;
+			opts.WrapT = TextureWrap::ClampToEdge;
+			return opts;
+		}
+
+		case AssetType::EquirectIBLEnv:
+		{
+			EquirectImportOptions opts{};
+			opts.TexOptions.FlipVertical = false;
+			opts.TexOptions.GenMipmaps = false;
+			return opts;
+		}
+
+		case AssetType::Font:
+			return FontImportOptions{};
+
+		case AssetType::AudioClip:
+			return AudioImportOptions{};
+
+		default:
+			return std::monostate{};
+		}
+	}
+
 }
