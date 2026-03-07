@@ -4,6 +4,7 @@
 #include "Entity.h"
 #include "Ignis/Renderer/Environment.h"
 #include "Ignis/Script/Script.h"
+#include "Ignis/Audio/AudioSystem.h"
 
 #include <entt.hpp>
 #include <glm/glm.hpp>
@@ -96,6 +97,7 @@ namespace ignis
 		void CopyTo(std::shared_ptr<Scene>& target);
 
 		ScriptBehaviour* GetRuntimeScript(UUID entity_id);
+		AudioSystem* GetAudioSystem() { return m_audio_system.get(); }
 
 	private:
 		entt::registry m_registry;
@@ -105,6 +107,7 @@ namespace ignis
 		std::unordered_map<UUID, Entity> m_id_entity_map;
 		std::string m_name;
 		std::unordered_map<UUID, Script> m_runtime_scripts;
+		std::unique_ptr<AudioSystem> m_audio_system;
 
 		friend class Entity;
 		friend class SceneSerializer;
