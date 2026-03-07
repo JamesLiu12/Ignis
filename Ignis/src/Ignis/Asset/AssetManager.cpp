@@ -3,6 +3,7 @@
 #include "TextureImporter.h"
 #include "FontImporter.h"
 #include "AssetSerializer.h"
+#include "AudioImporter.h"
 
 namespace ignis
 {
@@ -24,6 +25,10 @@ namespace ignis
 			{ ".obj", AssetType::Mesh },
 			{ ".fbx", AssetType::Mesh },
 			{ ".ttf", AssetType::Font },
+			{ ".wav", AssetType::AudioClip },
+			{ ".mp3", AssetType::AudioClip },
+			{ ".flac", AssetType::AudioClip },
+			{ ".ogg", AssetType::AudioClip },
 		};
 
 		std::string extension = ToLowerASCII(path.extension().string());
@@ -155,6 +160,10 @@ namespace ignis
 		case AssetType::Font:
 		{
 			return FontImporter::Get().Import(metadata.FilePath.string(), s_load_context);
+		}
+		case AssetType::AudioClip:
+		{
+			return AudioImporter::Get().Import(metadata.FilePath.string(), s_load_context);
 		}
 		case AssetType::Unknown:
 		{
