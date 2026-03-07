@@ -320,6 +320,9 @@ namespace ignis
 	{
 		OnRuntimeStop();
 
+		m_audio_system = std::make_unique<AudioSystem>(this);
+		m_audio_system->OnStart();
+
 		auto scripts = m_registry.group<ScriptComponent>(entt::get<IDComponent>);
 
 		scripts.each([&](entt::entity entity_handle, ScriptComponent& script_component, IDComponent& id_component)
@@ -367,10 +370,19 @@ namespace ignis
 				Entity entity(entity_handle, this);
 				camera_component.Camera->SetViewFromWorldTransform(entity.GetWorldTransform());
 			});
+
+		if (m_audio_system)
+			m_audio_system->OnUpdate(dt);
 	}
 
 	void Scene::OnRuntimeStop()
 	{
+		if (m_audio_system)
+		{
+			m_audio_system->OnStop();
+			m_audio_system.reset();
+		}
+
 		auto scripts = m_registry.group<ScriptComponent>(entt::get<IDComponent>);
 
 		scripts.each([&](entt::entity entity_handle, ScriptComponent& script_component, IDComponent& id_component)
@@ -438,6 +450,8 @@ namespace ignis
 		CopyComponent<UITextComponent>(target->m_registry, m_registry, entt_map);
 		CopyComponent<ButtonComponent>(target->m_registry, m_registry, entt_map);
 		CopyComponent<ProgressBarComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<AudioSourceComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<AudioListenerComponent>(target->m_registry, m_registry, entt_map);
 		
 		// Step 3: Deep copy camera instances (avoid shared camera between scenes)
 		auto cameras = m_registry.view<CameraComponent>();
