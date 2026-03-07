@@ -165,7 +165,7 @@ namespace ignis
 		auto mesh = std::make_shared<Mesh>();
 
 		Assimp::Importer importer;
-		auto resolved = VFS::Resolve(metadata.FilePath.string());
+		auto resolved = VFS::Resolve(metadata.FilePath);
 		std::filesystem::path model_path = resolved;
 
 		const aiScene* scene = importer.ReadFile(
@@ -191,7 +191,7 @@ namespace ignis
 		for (unsigned int i = 0; i < scene->mNumMaterials; ++i)
 		{
 			aiMaterial* aimat = scene->mMaterials[i];
-			LoadMaterialTextures(aimat, VFS::ParentPath(metadata.FilePath.string()), mesh->m_materials_data[i]);
+			LoadMaterialTextures(aimat, VFS::ParentPath(metadata.FilePath), mesh->m_materials_data[i]);
 		}
 
 		mesh->m_vertices.clear();

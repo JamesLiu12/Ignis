@@ -15,7 +15,7 @@ namespace ignis
 		const auto* opts = std::get_if<FontImportOptions>(&metadata.ImportOptions);
 		const FontImportOptions& options = opts ? *opts : FontImportOptions{};
 
-		std::filesystem::path resolved = VFS::Resolve(metadata.FilePath.string());
+		std::filesystem::path resolved = VFS::Resolve(metadata.FilePath);
 		std::ifstream file(resolved, std::ios::binary | std::ios::ate);
 		if (!file)
 		{
