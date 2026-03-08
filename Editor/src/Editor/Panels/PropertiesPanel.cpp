@@ -105,6 +105,62 @@ namespace ignis {
 					RenderTextComponent(text);
 				}
 				
+				// Render RectTransform Component
+				if (entity->HasComponent<RectTransformComponent>())
+				{
+					auto& rect = entity->GetComponent<RectTransformComponent>();
+					RenderRectTransformComponent(rect);
+				}
+				
+				// Render Canvas Component
+				if (entity->HasComponent<CanvasComponent>())
+				{
+					auto& canvas = entity->GetComponent<CanvasComponent>();
+					RenderCanvasComponent(canvas);
+				}
+				
+				// Render Image Component
+				if (entity->HasComponent<ImageComponent>())
+				{
+					auto& image = entity->GetComponent<ImageComponent>();
+					RenderImageComponent(image);
+				}
+				
+				// Render UIText Component
+				if (entity->HasComponent<UITextComponent>())
+				{
+					auto& ui_text = entity->GetComponent<UITextComponent>();
+					RenderUITextComponent(ui_text);
+				}
+				
+				// Render Button Component
+				if (entity->HasComponent<ButtonComponent>())
+				{
+					auto& button = entity->GetComponent<ButtonComponent>();
+					RenderButtonComponent(button);
+				}
+				
+				// Render ProgressBar Component
+				if (entity->HasComponent<ProgressBarComponent>())
+				{
+					auto& bar = entity->GetComponent<ProgressBarComponent>();
+					RenderProgressBarComponent(bar);
+				}
+				
+				// Render AudioSource Component
+				if (entity->HasComponent<AudioSourceComponent>())
+				{
+					auto& audio = entity->GetComponent<AudioSourceComponent>();
+					RenderAudioSourceComponent(audio);
+				}
+				
+				// Render AudioListener Component
+				if (entity->HasComponent<AudioListenerComponent>())
+				{
+					auto& listener = entity->GetComponent<AudioListenerComponent>();
+					RenderAudioListenerComponent(listener);
+				}
+				
 				// Add Component button at bottom
 				ImGui::Separator();
 				ImGui::Spacing();
@@ -898,6 +954,441 @@ namespace ignis {
 		ImGui::PopID();
 	}
 
+	void PropertiesPanel::RenderRectTransformComponent(RectTransformComponent& rect)
+	{
+		ImGui::PushID("RectTransformComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Rect Transform", flags);
+		
+		// Remove button
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<RectTransformComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			// Anchor Min
+			ImGui::DragFloat2("Anchor Min", &rect.AnchorMin[0], 0.01f, 0.0f, 1.0f);
+			
+			// Anchor Max
+			ImGui::DragFloat2("Anchor Max", &rect.AnchorMax[0], 0.01f, 0.0f, 1.0f);
+			
+			// Offset Min
+			ImGui::DragFloat2("Offset Min", &rect.OffsetMin[0], 1.0f);
+			
+			// Offset Max
+			ImGui::DragFloat2("Offset Max", &rect.OffsetMax[0], 1.0f);
+			
+			// Show resolved values (read-only)
+			ImGui::Separator();
+			ImGui::TextDisabled("Resolved (Read-Only):");
+			ImGui::Text("Min: (%.1f, %.1f)", rect.ResolvedMin.x, rect.ResolvedMin.y);
+			ImGui::Text("Max: (%.1f, %.1f)", rect.ResolvedMax.x, rect.ResolvedMax.y);
+			ImGui::Text("Size: (%.1f, %.1f)", rect.GetSize().x, rect.GetSize().y);
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
+	}
+
+	void PropertiesPanel::RenderCanvasComponent(CanvasComponent& canvas)
+	{
+		ImGui::PushID("CanvasComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Canvas", flags);
+		
+		// Remove button
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<CanvasComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			// Render Mode dropdown
+			const char* render_modes[] = { "Screen Space", "World Space" };
+			int current_mode = static_cast<int>(canvas.Mode);
+			if (ImGui::Combo("Render Mode", &current_mode, render_modes, 2))
+			{
+				canvas.Mode = static_cast<CanvasComponent::RenderMode>(current_mode);
+			}
+			
+			// Sort Order
+			ImGui::DragInt("Sort Order", &canvas.SortOrder, 1.0f, -100, 100);
+			ImGui::TextDisabled("Higher values render on top");
+			
+			// Visible checkbox
+			ImGui::Checkbox("Visible", &canvas.Visible);
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
+	}
+
+	void PropertiesPanel::RenderImageComponent(ImageComponent& image)
+	{
+		ImGui::PushID("ImageComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Image", flags);
+		
+		// Remove button
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<ImageComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			// Texture asset selector
+			ImGui::Text("Texture:");
+			ImGui::Indent();
+			if (image.Texture.IsValid())
+			{
+				ImGui::Text("Asset: %s", image.Texture.ToString().c_str());
+			}
+			else
+			{
+				ImGui::TextDisabled("No texture (solid color)");
+			}
+			
+			if (ImGui::Button("Select Texture", ImVec2(-1, 0)))
+			{
+				// TODO: Open texture asset picker when asset browser is ready
+				Log::CoreWarn("Texture asset picker not yet implemented");
+			}
+			ImGui::Unindent();
+			
+			// Color picker
+			ImGui::ColorEdit4("Color", &image.Color[0]);
+			
+			// Scale Mode dropdown
+			const char* scale_modes[] = { "Stretch", "Fit Inside", "Fit Outside", "Native Size" };
+			int current_scale = static_cast<int>(image.Scale);
+			if (ImGui::Combo("Scale Mode", &current_scale, scale_modes, 4))
+			{
+				image.Scale = static_cast<ImageComponent::ScaleMode>(current_scale);
+			}
+			
+			// Visible checkbox
+			ImGui::Checkbox("Visible", &image.Visible);
+			
+			// Raycast Target checkbox
+			ImGui::Checkbox("Raycast Target", &image.RaycastTarget);
+			ImGui::TextDisabled("Participates in UI hit-testing");
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
+	}
+
+	void PropertiesPanel::RenderUITextComponent(UITextComponent& ui_text)
+	{
+		ImGui::PushID("UITextComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("UI Text", flags);
+		
+		// Remove button
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<UITextComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			// Text input (multiline)
+			char buffer[1024];
+			strncpy(buffer, ui_text.Text.c_str(), sizeof(buffer) - 1);
+			buffer[sizeof(buffer) - 1] = '\0';
+			
+			if (ImGui::InputTextMultiline("Text", buffer, sizeof(buffer), ImVec2(-1, 100)))
+			{
+				ui_text.Text = buffer;
+			}
+			
+			// Font asset selector
+			ImGui::Text("Font:");
+			ImGui::Indent();
+			if (ui_text.Font.IsValid())
+			{
+				ImGui::Text("Asset: %s", ui_text.Font.ToString().c_str());
+			}
+			else
+			{
+				ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "No font assigned");
+			}
+			
+			if (ImGui::Button("Select Font", ImVec2(-1, 0)))
+			{
+				// TODO: Open font asset picker when asset browser is ready
+				Log::CoreWarn("Font asset picker not yet implemented");
+			}
+			ImGui::Unindent();
+			
+			// Color picker
+			ImGui::ColorEdit4("Color", &ui_text.Color[0]);
+			
+			// Font Size
+			ImGui::DragFloat("Font Size", &ui_text.FontSize, 0.5f, 1.0f, 200.0f);
+			
+			// Horizontal Alignment
+			const char* h_align[] = { "Left", "Center", "Right" };
+			int current_h_align = static_cast<int>(ui_text.HAlign);
+			if (ImGui::Combo("Horizontal Align", &current_h_align, h_align, 3))
+			{
+				ui_text.HAlign = static_cast<UITextComponent::HorizontalAlignment>(current_h_align);
+			}
+			
+			// Vertical Alignment
+			const char* v_align[] = { "Top", "Middle", "Bottom" };
+			int current_v_align = static_cast<int>(ui_text.VAlign);
+			if (ImGui::Combo("Vertical Align", &current_v_align, v_align, 3))
+			{
+				ui_text.VAlign = static_cast<UITextComponent::VerticalAlignment>(current_v_align);
+			}
+			
+			// Visible checkbox
+			ImGui::Checkbox("Visible", &ui_text.Visible);
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
+	}
+
+	void PropertiesPanel::RenderButtonComponent(ButtonComponent& button)
+	{
+		ImGui::PushID("ButtonComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Button", flags);
+		
+		// Remove button
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<ButtonComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			// Interactable checkbox
+			ImGui::Checkbox("Interactable", &button.Interactable);
+			
+			ImGui::Separator();
+			ImGui::Text("Colors:");
+			
+			// Normal Color
+			ImGui::ColorEdit4("Normal", &button.NormalColor[0]);
+			
+			// Hover Color
+			ImGui::ColorEdit4("Hover", &button.HoverColor[0]);
+			
+			// Pressed Color
+			ImGui::ColorEdit4("Pressed", &button.PressedColor[0]);
+			
+			// Disabled Color
+			ImGui::ColorEdit4("Disabled", &button.DisabledColor[0]);
+			
+			// Runtime state (read-only)
+			ImGui::Separator();
+			ImGui::TextDisabled("Runtime State (Read-Only):");
+			ImGui::Text("Is Hovered: %s", button.IsHovered ? "Yes" : "No");
+			ImGui::Text("Is Pressed: %s", button.IsPressed ? "Yes" : "No");
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
+	}
+
+	void PropertiesPanel::RenderProgressBarComponent(ProgressBarComponent& bar)
+	{
+		ImGui::PushID("ProgressBarComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Progress Bar", flags);
+		
+		// Remove button
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<ProgressBarComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			// Value slider
+			ImGui::SliderFloat("Value", &bar.Value, bar.MinValue, bar.MaxValue);
+			
+			// Min/Max values
+			ImGui::DragFloat("Min Value", &bar.MinValue, 0.1f);
+			ImGui::DragFloat("Max Value", &bar.MaxValue, 0.1f);
+			
+			// Show normalized value
+			ImGui::Text("Normalized: %.2f%%", bar.GetNormalizedValue() * 100.0f);
+			
+			ImGui::Separator();
+			
+			// Foreground Color
+			ImGui::ColorEdit4("Foreground", &bar.ForegroundColor[0]);
+			
+			// Background Color
+			ImGui::ColorEdit4("Background", &bar.BackgroundColor[0]);
+			
+			// Fill Direction
+			const char* directions[] = { "Left to Right", "Right to Left", "Bottom to Top", "Top to Bottom" };
+			int current_direction = static_cast<int>(bar.Direction);
+			if (ImGui::Combo("Fill Direction", &current_direction, directions, 4))
+			{
+				bar.Direction = static_cast<ProgressBarComponent::FillDirection>(current_direction);
+			}
+			
+			// Visible checkbox
+			ImGui::Checkbox("Visible", &bar.Visible);
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
+	}
+
+	void PropertiesPanel::RenderAudioSourceComponent(AudioSourceComponent& audio)
+	{
+		ImGui::PushID("AudioSourceComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Audio Source", flags);
+		
+		// Remove button
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<AudioSourceComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			// Audio Clip asset selector
+			ImGui::Text("Audio Clip:");
+			ImGui::Indent();
+			if (audio.Clip.IsValid())
+			{
+				ImGui::Text("Asset: %s", audio.Clip.ToString().c_str());
+			}
+			else
+			{
+				ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "No audio clip assigned");
+			}
+			
+			if (ImGui::Button("Select Audio Clip", ImVec2(-1, 0)))
+			{
+				// TODO: Open audio asset picker when asset browser is ready
+				Log::CoreWarn("Audio asset picker not yet implemented");
+			}
+			ImGui::Unindent();
+			
+			ImGui::Separator();
+			
+			// Volume slider
+			ImGui::SliderFloat("Volume", &audio.Volume, 0.0f, 1.0f);
+			
+			// Pitch slider
+			ImGui::SliderFloat("Pitch", &audio.Pitch, 0.1f, 3.0f);
+			
+			// Loop checkbox
+			ImGui::Checkbox("Loop", &audio.Loop);
+			
+			// Play On Start checkbox
+			ImGui::Checkbox("Play On Start", &audio.PlayOnStart);
+			
+			ImGui::Separator();
+			
+			// Spatial checkbox
+			ImGui::Checkbox("Spatial (3D)", &audio.Spatial);
+			
+			if (audio.Spatial)
+			{
+				ImGui::Indent();
+				
+				// Min Distance
+				ImGui::DragFloat("Min Distance", &audio.MinDistance, 0.1f, 0.0f, 1000.0f);
+				ImGui::TextDisabled("Distance where volume is at maximum");
+				
+				// Max Distance
+				ImGui::DragFloat("Max Distance", &audio.MaxDistance, 1.0f, 0.0f, 10000.0f);
+				ImGui::TextDisabled("Distance where volume reaches zero");
+				
+				ImGui::Unindent();
+			}
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
+	}
+
+	void PropertiesPanel::RenderAudioListenerComponent(AudioListenerComponent& listener)
+	{
+		ImGui::PushID("AudioListenerComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Audio Listener", flags);
+		
+		// Remove button
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<AudioListenerComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			// Primary checkbox
+			ImGui::Checkbox("Primary", &listener.Primary);
+			ImGui::TextDisabled("Only one listener should be primary");
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
+	}
+
 	void PropertiesPanel::RenderTextureMapSlot(const char* label, AssetHandle& texture_handle, MeshComponent& mesh_component, MaterialType type)
 	{
 		ImGui::PushID(label);
@@ -1119,6 +1610,24 @@ namespace ignis {
 		ImGui::Text("Rendering:");
 		DrawAddComponentMenuItemImpl<MeshComponent>(entity, "  Mesh");
 		DrawAddComponentMenuItemImpl<TextComponent>(entity, "  Text");
+		
+		ImGui::Separator();
+		
+		// UI Components
+		ImGui::Text("UI:");
+		DrawAddComponentMenuItemImpl<RectTransformComponent>(entity, "  Rect Transform");
+		DrawAddComponentMenuItemImpl<CanvasComponent>(entity, "  Canvas");
+		DrawAddComponentMenuItemImpl<ImageComponent>(entity, "  Image");
+		DrawAddComponentMenuItemImpl<UITextComponent>(entity, "  UI Text");
+		DrawAddComponentMenuItemImpl<ButtonComponent>(entity, "  Button");
+		DrawAddComponentMenuItemImpl<ProgressBarComponent>(entity, "  Progress Bar");
+		
+		ImGui::Separator();
+		
+		// Audio Components
+		ImGui::Text("Audio:");
+		DrawAddComponentMenuItemImpl<AudioSourceComponent>(entity, "  Audio Source");
+		DrawAddComponentMenuItemImpl<AudioListenerComponent>(entity, "  Audio Listener");
 		
 		ImGui::Separator();
 		
