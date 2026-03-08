@@ -17,7 +17,6 @@ namespace ignis
 	{
 		m_context = context;
 
-		m_renderer.BeginFrame();
 		m_renderer.SetPipeline(context.Pipeline);
 		m_renderer.SetCamera(context.Camera);
 
@@ -36,7 +35,6 @@ namespace ignis
 
 	void SceneRenderer::EndScene()
 	{
-		m_renderer.EndFrame();
 	}
 
 	void SceneRenderer::SubmitMesh(const Mesh& mesh, const glm::mat4& transform) const

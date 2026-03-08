@@ -95,6 +95,8 @@ namespace ignis
 		// Scene copying (for Edit/Play mode)
 		void CopyTo(std::shared_ptr<Scene>& target);
 
+		ScriptBehaviour* GetRuntimeScript(UUID entity_id);
+
 	private:
 		entt::registry m_registry;
 		LightEnvironment m_light_environment;
