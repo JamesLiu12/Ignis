@@ -1401,13 +1401,13 @@ namespace ignis {
 			ImGui::Unindent();
 			
 			ImGui::Separator();
-			
-			// Volume slider
-			ImGui::SliderFloat("Volume", &audio.Volume, 0.0f, 1.0f);
-			
-			// Pitch slider
-			ImGui::SliderFloat("Pitch", &audio.Pitch, 0.1f, 3.0f);
-			
+		
+			// Volume
+			ImGui::DragFloat("Volume", &audio.Volume, 0.01f, 0.0f, 10.0f, "%.2f");
+		
+			// Pitch
+			ImGui::DragFloat("Pitch", &audio.Pitch, 0.01f, 0.1f, 10.0f, "%.2f");
+		
 			// Loop checkbox
 			ImGui::Checkbox("Loop", &audio.Loop);
 			
