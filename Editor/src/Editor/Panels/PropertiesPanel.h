@@ -58,7 +58,7 @@ namespace ignis {
 		void RenderTextureSlot(std::shared_ptr<Mesh> mesh, uint32_t material_index, MaterialType type, const char* label);
 		void LoadNewModel(const std::string& filepath);
 		void LoadMeshFromFile(const std::string& filepath, MeshComponent& mesh_component);
-		void RenderTextureMapSlot(const char* label, AssetHandle& texture_handle, MeshComponent& mesh_component, MaterialType type);
+		void RenderTextureMapSlot(const char* label, AssetHandle& texture_handle, MeshComponent& mesh_component, uint32_t slot_index, MaterialType type);
 		
 		// Add Component UI
 		void DrawAddComponentMenu(std::shared_ptr<Entity> entity);
