@@ -35,6 +35,7 @@ target_link_libraries(Ignis
         stb
         assimp
         nlohmannjson
+        miniaudio
 )
 
 target_include_directories(Ignis PUBLIC

@@ -22,6 +22,11 @@ namespace ignis
 		uint32_t AtlasHeight = 512;
 	};
 
+	struct AudioImportOptions
+	{
+		bool Stream = false;
+	};
+
 	struct AssetLoadContext
 	{
 		std::shared_ptr<IBLBaker> IBLBakerService = nullptr;
@@ -31,5 +36,6 @@ namespace ignis
 		TextureImportOptions EquirectOptions{};
 		IBLBakeSettings EquirectBakeSettings{};
 		FontImportOptions FontOptions{};
+		AudioImportOptions AudioOptions{};
 	};
 }

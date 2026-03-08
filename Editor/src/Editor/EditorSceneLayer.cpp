@@ -7,6 +7,7 @@
 #include "Ignis/Renderer/IBLBaker.h"
 #include "Ignis/Core/Events/MouseEvents.h"
 #include "Ignis/Core/Events/KeyEvents.h"
+#include "Ignis/Audio/AudioEngine.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace ignis {
@@ -35,6 +36,7 @@ EditorSceneLayer::~EditorSceneLayer()
 void EditorSceneLayer::OnAttach()
 {
 	m_renderer.Init();
+	AudioEngine::Get().Init();
 	
 	AssetManager::SetLoadContext({
 		.IBLBakerService = IBLBaker::Create(m_renderer),
@@ -121,6 +123,8 @@ void EditorSceneLayer::OnDetach()
 	}
 	m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
 	m_script_module.Unload();
+
+	AudioEngine::Get().Init();
 }
 
 void EditorSceneLayer::OnUpdate(float dt)
