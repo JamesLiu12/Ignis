@@ -286,7 +286,12 @@ namespace ignis
 				{
 					if (auto mesh = AssetManager::GetAsset<Mesh>(mesh_component.Mesh))
 					{
-						mesh->SetMaterialData(0, mesh_component.MeterialData);
+						const uint32_t slot_count = static_cast<uint32_t>(mesh_component.MaterialSlots.size());
+						for (uint32_t i = 0; i < slot_count; i++)
+						{
+							mesh->SetMaterialData(i, mesh_component.MaterialSlots[i]);
+						}
+
 						Entity entity(entity_handle, this);
 						scene_renderer.SubmitMesh(*mesh, entity.GetWorldTransform());
 					}

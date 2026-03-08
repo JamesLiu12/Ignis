@@ -842,17 +842,30 @@ namespace ignis {
 			ImGui::Separator();
 			ImGui::Spacing();
 			
-			// Material/Texture section
-			if (ImGui::TreeNodeEx("Material Textures", ImGuiTreeNodeFlags_DefaultOpen))
+			// Material Slots
+			if (mesh_component.MaterialSlots.empty())
 			{
-				RenderTextureMapSlot("Albedo Map", mesh_component.MeterialData.AlbedoMap, mesh_component, MaterialType::Albedo);
-				RenderTextureMapSlot("Normal Map", mesh_component.MeterialData.NormalMap, mesh_component, MaterialType::Normal);
-				RenderTextureMapSlot("Metalness Map", mesh_component.MeterialData.MetalnessMap, mesh_component, MaterialType::Metal);
-				RenderTextureMapSlot("Roughness Map", mesh_component.MeterialData.RoughnessMap, mesh_component, MaterialType::Roughness);
-				RenderTextureMapSlot("Emissive Map", mesh_component.MeterialData.EmissiveMap, mesh_component, MaterialType::Emissive);
-				RenderTextureMapSlot("AO Map", mesh_component.MeterialData.AOMap, mesh_component, MaterialType::AO);
-				
-				ImGui::TreePop();
+				ImGui::TextDisabled("No material slots");
+			}
+			else
+			{
+				for (uint32_t i = 0; i < (uint32_t)mesh_component.MaterialSlots.size(); ++i)
+				{
+					ImGui::PushID((int)i);
+					std::string header = "Material Slot " + std::to_string(i);
+					if (ImGui::TreeNodeEx(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+					{
+						auto& slot = mesh_component.MaterialSlots[i];
+						RenderTextureMapSlot("Albedo Map", slot.AlbedoMap, mesh_component, i, MaterialType::Albedo);
+						RenderTextureMapSlot("Normal Map", slot.NormalMap, mesh_component, i, MaterialType::Normal);
+						RenderTextureMapSlot("Metalness Map", slot.MetalnessMap, mesh_component, i, MaterialType::Metal);
+						RenderTextureMapSlot("Roughness Map", slot.RoughnessMap, mesh_component, i, MaterialType::Roughness);
+						RenderTextureMapSlot("Emissive Map", slot.EmissiveMap, mesh_component, i, MaterialType::Emissive);
+						RenderTextureMapSlot("AO Map", slot.AOMap, mesh_component, i, MaterialType::AO);
+						ImGui::TreePop();
+					}
+					ImGui::PopID();
+				}
 			}
 			
 			ImGui::Spacing();
@@ -1469,15 +1482,12 @@ namespace ignis {
 		ImGui::PopID();
 	}
 
-	void PropertiesPanel::RenderTextureMapSlot(const char* label, AssetHandle& texture_handle, MeshComponent& mesh_component, MaterialType type)
+	void PropertiesPanel::RenderTextureMapSlot(const char* label, AssetHandle& texture_handle, MeshComponent& mesh_component, uint32_t slot_index, MaterialType type)
 	{
 		ImGui::PushID(label);
-		
-		// Label
 		ImGui::Text("%s:", label);
 		ImGui::Indent();
-		
-		// Display texture info
+
 		if (texture_handle.IsValid())
 		{
 			if (auto* metadata = AssetManager::GetMetadata(texture_handle))
@@ -1488,43 +1498,36 @@ namespace ignis {
 			}
 			else
 			{
-				ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.4f, 1.0f), "Handle: %llu", texture_handle);
+				ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.4f, 1.0f), "Handle: %llu", (uint64_t)texture_handle);
 			}
 		}
 		else
 		{
 			ImGui::TextDisabled("Not loaded");
 		}
-		
-		// Browse button
+
 		if (ImGui::Button("Browse...", ImVec2(-1, 0)))
 		{
-			std::string filepath = FileDialog::OpenFile("Texture Files", {"png", "jpg", "jpeg", "tga", "bmp"});
+			std::string filepath = FileDialog::OpenFile("Texture Files", { "png", "jpg", "jpeg", "tga", "bmp" });
 			if (!filepath.empty())
 			{
-				// Import texture
-				AssetHandle new_texture_handle = AssetManager::ImportAsset(filepath);
-				if (new_texture_handle.IsValid())
+				AssetHandle new_handle = AssetManager::ImportAsset(filepath);
+				if (new_handle.IsValid())
 				{
-					// Update the texture handle
-					texture_handle = new_texture_handle;
-					
-					// Update mesh material data if mesh is loaded
+					// Update the slot struct directly
+					texture_handle = new_handle;
+
+					// Mirror into the loaded Mesh asset so the renderer sees the change
 					if (mesh_component.Mesh.IsValid())
 					{
 						auto mesh = AssetManager::GetAsset<Mesh>(mesh_component.Mesh);
-						if (mesh && !mesh->GetMaterialsData().empty())
-						{
-							mesh->SetMaterialDataTexture(0, type, new_texture_handle);
-						}
+						if (mesh && slot_index < (uint32_t)mesh->GetMaterialsData().size())
+							mesh->SetMaterialDataTexture(slot_index, type, new_handle);
 					}
-					
-					// Save asset registry to persist the imported texture
+
 					AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
-					
-					Log::CoreInfo("PropertiesPanel: Loaded texture '{}' for {}", 
-					              std::filesystem::path(filepath).filename().string(), 
-					              label);
+					Log::CoreInfo("PropertiesPanel: Loaded texture '{}' for {} (slot {})",
+						std::filesystem::path(filepath).filename().string(), label, slot_index);
 				}
 				else
 				{
@@ -1532,7 +1535,7 @@ namespace ignis {
 				}
 			}
 		}
-		
+
 		ImGui::Unindent();
 		ImGui::Spacing();
 		ImGui::PopID();
@@ -1540,112 +1543,53 @@ namespace ignis {
 
 	void PropertiesPanel::LoadMeshFromFile(const std::string& filepath, MeshComponent& mesh_component)
 	{
-		// Validate file extension
 		std::filesystem::path path(filepath);
-		std::string extension = path.extension().string();
-		
-		// Convert to lowercase for comparison
-		std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
-		
-		if (extension != ".obj" && extension != ".fbx" && extension != ".gltf" && extension != ".glb")
+		std::string ext = path.extension().string();
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+		if (ext != ".obj" && ext != ".fbx" && ext != ".gltf" && ext != ".glb")
 		{
-			Log::Error("Invalid model file format: {}. Supported formats: .obj, .fbx, .gltf, .glb", extension);
+			Log::Error("Invalid model format: {}. Supported: .obj .fbx .gltf .glb", ext);
 			return;
 		}
-		
-		// Import mesh asset
+
 		AssetHandle mesh_handle = AssetManager::ImportAsset(filepath);
-		if (!mesh_handle.IsValid())
-		{
-			Log::Error("Failed to import model: {}", filepath);
-			return;
-		}
-		
-		// Save asset registry to persist the imported mesh
+		if (!mesh_handle.IsValid()) { Log::Error("Failed to import model: {}", filepath); return; }
+
 		AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
-		
-		// Load mesh to verify it's valid
+
 		auto new_mesh = AssetManager::GetAsset<Mesh>(mesh_handle);
-		if (!new_mesh)
+		if (!new_mesh || new_mesh->GetVertices().empty())
 		{
-			Log::Error("Failed to load mesh asset: {}", filepath);
+			Log::Error("Mesh is empty or invalid: {}", filepath);
 			return;
 		}
-		
-		// Validate mesh has vertices
-		if (new_mesh->GetVertices().empty())
-		{
-			Log::Error("Loaded mesh has no vertices: {}", filepath);
-			return;
-		}
-		
-		// Assign mesh handle to component
+
 		mesh_component.Mesh = mesh_handle;
-		
-		// Initialize materials with default textures for missing slots
+
+		// Fill missing texture slots with defaults
 		const auto& materials = new_mesh->GetMaterialsData();
-		Log::CoreInfo("Loaded model with {} materials: {}", materials.size(), filepath);
-		
-		for (uint32_t i = 0; i < materials.size(); ++i)
+		for (uint32_t i = 0; i < (uint32_t)materials.size(); ++i)
 		{
 			const MaterialData& mat = materials[i];
-			
-			// Set default textures for missing material slots
-			if (!mat.AlbedoMap.IsValid())
-			{
-				new_mesh->SetMaterialDataTexture(i, MaterialType::Albedo, 
-				                                      Renderer::GetWhiteTextureHandle());
-			}
-			
-			if (!mat.NormalMap.IsValid())
-			{
-				new_mesh->SetMaterialDataTexture(i, MaterialType::Normal, 
-				                                      Renderer::GetDefaultNormalTextureHandle());
-			}
-			
-			if (!mat.MetalnessMap.IsValid())
-			{
-				new_mesh->SetMaterialDataTexture(i, MaterialType::Metal, 
-				                                      Renderer::GetBlackTextureHandle());
-			}
-			
-			if (!mat.RoughnessMap.IsValid())
-			{
-				new_mesh->SetMaterialDataTexture(i, MaterialType::Roughness, 
-				                                      Renderer::GetDefaultRoughnessTextureHandle());
-			}
-			
-			if (!mat.EmissiveMap.IsValid())
-			{
-				new_mesh->SetMaterialDataTexture(i, MaterialType::Emissive, 
-				                                      Renderer::GetBlackTextureHandle());
-			}
-			
-			if (!mat.AOMap.IsValid())
-			{
-				new_mesh->SetMaterialDataTexture(i, MaterialType::AO, 
-				                                      Renderer::GetWhiteTextureHandle());
-			}
+			if (!mat.AlbedoMap.IsValid())    new_mesh->SetMaterialDataTexture(i, MaterialType::Albedo, Renderer::GetWhiteTextureHandle());
+			if (!mat.NormalMap.IsValid())    new_mesh->SetMaterialDataTexture(i, MaterialType::Normal, Renderer::GetDefaultNormalTextureHandle());
+			if (!mat.MetalnessMap.IsValid()) new_mesh->SetMaterialDataTexture(i, MaterialType::Metal, Renderer::GetBlackTextureHandle());
+			if (!mat.RoughnessMap.IsValid()) new_mesh->SetMaterialDataTexture(i, MaterialType::Roughness, Renderer::GetDefaultRoughnessTextureHandle());
+			if (!mat.EmissiveMap.IsValid())  new_mesh->SetMaterialDataTexture(i, MaterialType::Emissive, Renderer::GetBlackTextureHandle());
+			if (!mat.AOMap.IsValid())        new_mesh->SetMaterialDataTexture(i, MaterialType::AO, Renderer::GetWhiteTextureHandle());
 		}
-		
-		// Copy material data back to component (only if materials exist)
-		if (!new_mesh->GetMaterialsData().empty())
-		{
-			mesh_component.MeterialData = new_mesh->GetMaterialsData()[0];
-		}
-		else
-		{
-			// Initialize with default material data
-			mesh_component.MeterialData = MaterialData{};
-			Log::CoreWarn("Mesh has no materials, using default material data");
-		}
-		
+
+		// Copy all slots into the component ¡ª this is what the serializer persists
+		mesh_component.MaterialSlots = new_mesh->GetMaterialsData();
+
+		if (mesh_component.MaterialSlots.empty())
+			Log::CoreWarn("Mesh has no materials, MaterialSlots is empty");
+
 		if (auto entity = m_selected_entity.lock())
-		{
-			Log::CoreInfo("PropertiesPanel: Loaded mesh '{}' into entity '{}'", 
-			              path.filename().string(),
-			              entity->GetComponent<TagComponent>().Tag);
-		}
+			Log::CoreInfo("PropertiesPanel: Loaded mesh '{}' ({} slot(s)) into entity '{}'",
+				path.filename().string(), mesh_component.MaterialSlots.size(),
+				entity->GetComponent<TagComponent>().Tag);
 	}
 
 	// Template helper function for drawing add component menu items

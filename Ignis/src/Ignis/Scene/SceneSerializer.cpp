@@ -177,7 +177,14 @@ namespace ignis
 			const auto& mesh = entity.GetComponent<MeshComponent>();
 			ordered_json mesh_data;
 			mesh_data["Mesh"] = mesh.Mesh.ToString();
-			mesh_data["MaterialData"] = SerializeMaterialData(mesh.MeterialData);
+
+			ordered_json slots = ordered_json::array();
+			for (const auto& slot : mesh.MaterialSlots)
+			{
+				slots.push_back(SerializeMaterialData(slot));
+			}
+			mesh_data["MaterialSlots"] = slots;
+
 			entity_data["Mesh"] = mesh_data;
 		}
 
@@ -455,13 +462,18 @@ namespace ignis
 			const auto& mesh_data = entity_data["Mesh"];
 			auto& mesh = entity.AddComponent<MeshComponent>();
 
-			if (mesh_data.contains("Mesh"))
-				mesh.Mesh = AssetHandle(mesh_data["Mesh"].get<std::string>());
-			else
-				mesh.Mesh = AssetHandle::Invalid;
+			mesh.Mesh = mesh_data.contains("Mesh")
+				? AssetHandle(mesh_data["Mesh"].get<std::string>())
+				: AssetHandle::Invalid;
 
-			if (mesh_data.contains("MaterialData"))
-				mesh.MeterialData = DeserializeMaterialData(mesh_data["MaterialData"]);
+			// New Format: MaterialSlots Array
+			if (mesh_data.contains("MaterialSlots") && mesh_data["MaterialSlots"].is_array())
+			{
+				for (const auto& slot_data : mesh_data["MaterialSlots"])
+				{
+					mesh.MaterialSlots.push_back(DeserializeMaterialData(slot_data));
+				}
+			}
 		}
 
 		if (entity_data.contains("Script"))

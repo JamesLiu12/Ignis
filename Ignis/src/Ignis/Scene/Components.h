@@ -129,7 +129,7 @@ namespace ignis
 	struct MeshComponent : Component
 	{
 		AssetHandle Mesh;
-		MaterialData MeterialData;
+		std::vector<MaterialData> MaterialSlots;
 	};
 
 	struct ScriptComponent : Component
