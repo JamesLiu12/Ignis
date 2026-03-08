@@ -34,6 +34,9 @@ namespace ignis {
 		void SetSelectedItem(AssetBrowserItem* item);
 		AssetBrowserItem* GetSelectedItem() const { return m_selected_item; }
 		
+		// Properties Panel integration
+		void SetPropertiesPanel(class PropertiesPanel* properties_panel) { m_properties_panel = properties_panel; }
+		
 		// File operations (public for item callbacks)
 		void ShowInExplorer(const std::filesystem::path& path);
 
@@ -85,6 +88,9 @@ namespace ignis {
 		
 		// State flags
 		bool m_update_breadcrumbs = false;
+		
+		// Properties Panel reference
+		class PropertiesPanel* m_properties_panel = nullptr;
 	};
 
 } // namespace ignis

@@ -53,11 +53,15 @@ EditorApp::EditorApp()
 	auto physics_debug = panel_manager.AddPanel<PhysicsDebugPanel>("PhysicsDebug", "Physics Debug", false);
 	physics_debug->SetPhysicsWorld(m_physics_world.get());
 	
+	// Add Properties panel (right section) - CREATE FIRST so other panels can reference it
+	m_properties_panel = panel_manager.AddPanel<PropertiesPanel>("Properties", "Properties", true);
+	
 	// Add Tabbed Panel Container (bottom section)
 	auto tabbed_container = panel_manager.AddPanel<TabbedPanelContainer>("BottomPanel", "Bottom Panel", true);
 	
 	// Create asset browser panel and add it as a tab (first tab)
 	m_asset_browser_panel = std::make_shared<AssetBrowserPanel>();
+	m_asset_browser_panel->SetPropertiesPanel(m_properties_panel.get());
 	tabbed_container->AddTab("assets", "Assets", m_asset_browser_panel);
 	
 	// Create console panel and add it as a tab (second tab)
@@ -69,9 +73,6 @@ EditorApp::EditorApp()
 	editor_sink->set_pattern("%v"); // Simple pattern for UI
 	Log::GetCoreLogger()->sinks().push_back(editor_sink);
 	Log::GetClientLogger()->sinks().push_back(editor_sink);
-	
-	// Add Properties panel (right section)
-	m_properties_panel = panel_manager.AddPanel<PropertiesPanel>("Properties", "Properties", true);
 	
 	// Add Scene Hierarchy panel (left section)
 	m_scene_hierarchy_panel = panel_manager.AddPanel<SceneHierarchyPanel>("SceneHierarchy", "Scene Hierarchy", true);
