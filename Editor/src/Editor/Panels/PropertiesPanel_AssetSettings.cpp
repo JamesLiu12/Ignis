@@ -93,7 +93,7 @@ namespace ignis {
 		m_selected_entity.reset();
 		m_asset_settings_modified = false;
 
-		const AssetType inferred_type = InferAssetTypeFromPath(path);
+		const AssetType inferred_type = AssetManager::DetermineTypeFromExtension(path);
 		switch (inferred_type)
 		{
 		case AssetType::Texture2D:

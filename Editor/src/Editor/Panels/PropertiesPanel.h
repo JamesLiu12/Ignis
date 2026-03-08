@@ -79,8 +79,6 @@ namespace ignis {
 		void ReimportAsset(AssetHandle handle);
 
 		void RenderUnregisteredFileProperties();
-
-		static AssetType InferAssetTypeFromPath(const std::filesystem::path& path);
 		
 	private:
 		// TODO: Replace weak_ptr with EntityHandle + Scene* for safer entity management

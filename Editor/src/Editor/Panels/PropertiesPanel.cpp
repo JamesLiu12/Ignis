@@ -1594,7 +1594,7 @@ namespace ignis {
 			if (!mat.AOMap.IsValid())        new_mesh->SetMaterialDataTexture(i, MaterialType::AO, Renderer::GetWhiteTextureHandle());
 		}
 
-		// Copy all slots into the component ¡ª this is what the serializer persists
+		// Copy all slots into the component ï¿½ï¿½ this is what the serializer persists
 		mesh_component.MaterialSlots = new_mesh->GetMaterialsData();
 
 		if (mesh_component.MaterialSlots.empty())
@@ -1748,7 +1748,7 @@ namespace ignis {
 				ImGui::Text("Size: %.2f MB", file_size / (1024.0f * 1024.0f));
 		}
 
-		const AssetType inferred_type = InferAssetTypeFromPath(m_selected_unregistered_file);
+		const AssetType inferred_type = AssetManager::DetermineTypeFromExtension(m_selected_unregistered_file);
 		const char* type_label = "Unknown";
 		switch (inferred_type)
 		{
@@ -1826,29 +1826,6 @@ namespace ignis {
 				Log::Error("PropertiesPanel: Failed to import '{}'", file_path);
 			}
 		}
-	}
-
-	AssetType PropertiesPanel::InferAssetTypeFromPath(const std::filesystem::path& path)
-	{
-		std::string ext = path.extension().string();
-		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-
-		if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".tga" || ext == ".bmp")
-			return AssetType::Texture2D;
-
-		if (ext == ".hdr")
-			return AssetType::EquirectIBLEnv;
-
-		if (ext == ".ttf" || ext == ".otf")
-			return AssetType::Font;
-
-		if (ext == ".wav" || ext == ".mp3" || ext == ".flac" || ext == ".ogg")
-			return AssetType::AudioClip;
-
-		if (ext == ".obj" || ext == ".fbx" || ext == ".gltf" || ext == ".glb")
-			return AssetType::Mesh;
-
-		return AssetType::Unknown;
 	}
 
 } // namespace ignis
