@@ -91,6 +91,8 @@ void ProjectManager::SaveProject(const std::filesystem::path& filepath)
 							Log::CoreError("Failed to save scene: {}", Project::GetActiveStartScene().string());
 						}
 					}
+
+					AssetManager::SaveAssetRegistry(project->GetActiveAssetRegistry());
 				}
 			}
 		}
@@ -113,6 +115,8 @@ bool ProjectManager::SaveProjectAs(const std::filesystem::path& destinationFolde
 		Log::CoreError("No active project to save");
 		return false;
 	}
+
+	AssetManager::SaveAssetRegistry(project->GetActiveAssetRegistry());
 
 	// Create new project directory path
 	std::filesystem::path newProjectDir = destinationFolder / project->GetProjectName();
