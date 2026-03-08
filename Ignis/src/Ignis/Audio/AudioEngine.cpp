@@ -43,7 +43,7 @@ namespace ignis
 		if (!m_impl->Initialized) return;
 		ma_engine_uninit(&m_impl->Engine);
 		m_impl->Initialized = false;
-		Log::CoreInfo("AudioEngine: Shut down.");
+		// Don't log here as logger may be already shut down
 	}
 
 	bool AudioEngine::IsInitialized() const { return m_impl->Initialized; }
