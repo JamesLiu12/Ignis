@@ -1,6 +1,8 @@
 #pragma once
 
+#include "AssetImportOptions.h"
 #include "Ignis/Core/UUID.h"
+#include "AssetType.h"
 
 #include <filesystem>
 
@@ -8,22 +10,12 @@ namespace ignis
 {
 	using AssetHandle = UUID;
 
-	enum class AssetType
-	{
-		Unknown = 0,
-		Texture2D,
-		TextureCube,
-		Mesh,
-		EquirectIBLEnv,
-		Font,
-		AudioClip,
-	};
-
 	struct AssetMetadata
 	{
 		AssetHandle Handle = AssetHandle::Invalid;
 		AssetType Type;
-		std::filesystem::path FilePath;
+		std::string FilePath;
+		AssetImportOptions ImportOptions;
 	};
 
 	class Asset

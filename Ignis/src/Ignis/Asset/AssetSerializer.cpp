@@ -7,27 +7,183 @@ using ordered_json = nlohmann::ordered_json;
 
 namespace ignis
 {
+	static ordered_json SerializeTextureImportOptions(const TextureImportOptions& opts)
+	{
+		ordered_json data;
+		data["FlipVertical"] = opts.FlipVertical;
+		data["GenMipmaps"] = opts.GenMipmaps;
+		data["InternalFormat"] = static_cast<int>(opts.InternalFormat);
+		data["WrapS"] = static_cast<int>(opts.WrapS);
+		data["WrapT"] = static_cast<int>(opts.WrapT);
+		data["MinFilter"] = static_cast<int>(opts.MinFilter);
+		data["MagFilter"] = static_cast<int>(opts.MagFilter);
+		return data;
+	}
+
+	static TextureImportOptions DeserializeTextureImportOptions(const ordered_json& data)
+	{
+		TextureImportOptions opts{};
+		opts.FlipVertical = data.value("FlipVertical", opts.FlipVertical);
+		opts.GenMipmaps = data.value("GenMipmaps", opts.GenMipmaps);
+		opts.InternalFormat = static_cast<TextureFormat>(data.value("InternalFormat", static_cast<int>(opts.InternalFormat)));
+		opts.WrapS = static_cast<TextureWrap>  (data.value("WrapS", static_cast<int>(opts.WrapS)));
+		opts.WrapT = static_cast<TextureWrap>  (data.value("WrapT", static_cast<int>(opts.WrapT)));
+		opts.MinFilter = static_cast<TextureFilter>(data.value("MinFilter", static_cast<int>(opts.MinFilter)));
+		opts.MagFilter = static_cast<TextureFilter>(data.value("MagFilter", static_cast<int>(opts.MagFilter)));
+		return opts;
+	}
+
+	static ordered_json SerializeFontImportOptions(const FontImportOptions& opts)
+	{
+		ordered_json data;
+		data["FontSize"] = opts.FontSize;
+		data["AtlasWidth"] = opts.AtlasWidth;
+		data["AtlasHeight"] = opts.AtlasHeight;
+		return data;
+	}
+
+	static FontImportOptions DeserializeFontImportOptions(const ordered_json& data)
+	{
+		FontImportOptions opts{};
+		opts.FontSize = data.value("FontSize", opts.FontSize);
+		opts.AtlasWidth = data.value("AtlasWidth", opts.AtlasWidth);
+		opts.AtlasHeight = data.value("AtlasHeight", opts.AtlasHeight);
+		return opts;
+	}
+
+	static ordered_json SerializeAudioImportOptions(const AudioImportOptions& opts)
+	{
+		ordered_json data;
+		data["Stream"] = opts.Stream;
+		return data;
+	}
+
+	static AudioImportOptions DeserializeAudioImportOptions(const ordered_json& data)
+	{
+		AudioImportOptions opts{};
+		opts.Stream = data.value("Stream", opts.Stream);
+		return opts;
+	}
+
+	static ordered_json SerializeIBLBakeSettings(const IBLBakeSettings& settings)
+	{
+		ordered_json data;
+		data["EnvironmentResolution"] = settings.EnvironmentResolution;
+		data["IrradianceResolution"] = settings.IrradianceResolution;
+		data["PrefilterResolution"] = settings.PrefilterResolution;
+		data["BrdfLUTResolution"] = settings.BrdfLUTResolution;
+		return data;
+	}
+
+	static IBLBakeSettings DeserializeIBLBakeSettings(const ordered_json& data)
+	{
+		IBLBakeSettings settings{};
+		settings.EnvironmentResolution = data.value("EnvironmentResolution", settings.EnvironmentResolution);
+		settings.IrradianceResolution = data.value("IrradianceResolution", settings.IrradianceResolution);
+		settings.PrefilterResolution = data.value("PrefilterResolution", settings.PrefilterResolution);
+		settings.BrdfLUTResolution = data.value("BrdfLUTResolution", settings.BrdfLUTResolution);
+		return settings;
+	}
+
+	static ordered_json SerializeEquirectImportOptions(const EquirectImportOptions& opts)
+	{
+		ordered_json data;
+		data["TexOptions"] = SerializeTextureImportOptions(opts.TexOptions);
+		data["BakeSettings"] = SerializeIBLBakeSettings(opts.BakeSettings);
+		return data;
+	}
+
+	static EquirectImportOptions DeserializeEquirectImportOptions(const ordered_json& data)
+	{
+		EquirectImportOptions opts{};
+		if (data.contains("TexOptions"))
+			opts.TexOptions = DeserializeTextureImportOptions(data["TexOptions"]);
+		if (data.contains("BakeSettings"))
+			opts.BakeSettings = DeserializeIBLBakeSettings(data["BakeSettings"]);
+		return opts;
+	}
+
+	static ordered_json SerializeImportOptions(const AssetImportOptions& options)
+	{
+		ordered_json data;
+
+		if (std::holds_alternative<TextureImportOptions>(options))
+		{
+			data["OptionsType"] = "Texture";
+			data["Options"] = SerializeTextureImportOptions(std::get<TextureImportOptions>(options));
+		}
+		else if (std::holds_alternative<FontImportOptions>(options))
+		{
+			data["OptionsType"] = "Font";
+			data["Options"] = SerializeFontImportOptions(std::get<FontImportOptions>(options));
+		}
+		else if (std::holds_alternative<AudioImportOptions>(options))
+		{
+			data["OptionsType"] = "Audio";
+			data["Options"] = SerializeAudioImportOptions(std::get<AudioImportOptions>(options));
+		}
+		else if (std::holds_alternative<EquirectImportOptions>(options))
+		{
+			data["OptionsType"] = "Equirect";
+			data["Options"] = SerializeEquirectImportOptions(std::get<EquirectImportOptions>(options));
+		}
+		else
+		{
+			data["OptionsType"] = "None";
+		}
+
+		return data;
+	}
+
+	static AssetImportOptions DeserializeImportOptions(const ordered_json& data)
+	{
+		if (!data.contains("OptionsType"))
+			return std::monostate{};
+
+		std::string type = data.value("OptionsType", "None");
+
+		if (type == "Texture" && data.contains("Options"))
+			return DeserializeTextureImportOptions(data["Options"]);
+		if (type == "Font" && data.contains("Options"))
+			return DeserializeFontImportOptions(data["Options"]);
+		if (type == "Audio" && data.contains("Options"))
+			return DeserializeAudioImportOptions(data["Options"]);
+		if (type == "Equirect" && data.contains("Options"))
+			return DeserializeEquirectImportOptions(data["Options"]);
+
+		return std::monostate{};
+	}
+
 	static ordered_json SerializeMetadata(const AssetMetadata& meta)
 	{
 		ordered_json data;
 		data["Handle"] = meta.Handle.ToString();
 		data["Type"] = static_cast<int>(meta.Type);
 		data["FilePath"] = FileSystem::ToUnixPath(meta.FilePath);
+
+		AssetImportOptions options = meta.ImportOptions;
+		if (std::holds_alternative<std::monostate>(options))
+			options = DefaultImportOptionsForType(meta.Type);
+
+		data["ImportOptions"] = SerializeImportOptions(options);
 		return data;
 	}
 
 	static bool DeserializeMetadata(const ordered_json& data, AssetMetadata& out_meta)
 	{
-		if (!data.contains("Handle") || !data["Handle"].is_string())
-			return false;
-		if (!data.contains("Type") || !data["Type"].is_number_integer())
-			return false;
-		if (!data.contains("FilePath") || !data["FilePath"].is_string())
-			return false;
+		if (!data.contains("Handle") || !data["Handle"].is_string())   return false;
+		if (!data.contains("Type") || !data["Type"].is_number_integer()) return false;
+		if (!data.contains("FilePath") || !data["FilePath"].is_string()) return false;
 
 		out_meta.Handle = UUID(data["Handle"].get<std::string>());
 		out_meta.Type = static_cast<AssetType>(data["Type"].get<int>());
 		out_meta.FilePath = data["FilePath"].get<std::string>();
+
+		if (data.contains("ImportOptions"))
+			out_meta.ImportOptions = DeserializeImportOptions(data["ImportOptions"]);
+
+		if (std::holds_alternative<std::monostate>(out_meta.ImportOptions))
+			out_meta.ImportOptions = DefaultImportOptionsForType(out_meta.Type);
 
 		return true;
 	}

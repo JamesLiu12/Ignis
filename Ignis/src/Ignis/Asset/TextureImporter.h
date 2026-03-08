@@ -11,7 +11,7 @@ namespace ignis
 	{
 	public:
 		AssetType GetType() const override;
-		std::shared_ptr<Asset> Import(const std::string& path, const AssetLoadContext& context) override;
+		std::shared_ptr<Asset> Import(const AssetMetadata& metadata, const AssetLoadContext& context) override;
 
 		static Texture2DImporter& Get();
 	};
@@ -20,7 +20,7 @@ namespace ignis
 	{
 	public:
 		AssetType GetType() const override;
-		std::shared_ptr<Asset> Import(const std::string& path, const AssetLoadContext& context) override;
+		std::shared_ptr<Asset> Import(const AssetMetadata& metadata, const AssetLoadContext& context) override;
 
 		static TextureCubeImporter& Get();
 	};
@@ -29,7 +29,7 @@ namespace ignis
 	{
 	public:
 		AssetType GetType() const override;
-		std::shared_ptr<Asset> Import(const std::string& path, const AssetLoadContext& context) override;
+		std::shared_ptr<Asset> Import(const AssetMetadata& metadata, const AssetLoadContext& context) override;
 
 		static EquirectEnvImporter& Get();
 	};

@@ -1,6 +1,6 @@
 #include "AudioImporter.h"
 #include "Ignis/Audio/AudioClip.h"
-#include "AssetImportTypes.h"
+#include "AssetLoadContext.h"
 
 #include <filesystem>
 #include <algorithm>
@@ -10,13 +10,15 @@ namespace ignis
 {
 	AssetType AudioImporter::GetType() const { return AssetType::AudioClip; }
 
-	std::shared_ptr<Asset> AudioImporter::Import(const std::string& path, const AssetLoadContext& context)
+	std::shared_ptr<Asset> AudioImporter::Import(const AssetMetadata& metadata, const AssetLoadContext& context)
 	{
-		std::filesystem::path resolved = VFS::Resolve(path);
+		const auto* opts = std::get_if<AudioImportOptions>(&metadata.ImportOptions);
+		const AudioImportOptions& options = opts ? *opts : AudioImportOptions{};
 
+		std::filesystem::path resolved = VFS::Resolve(metadata.FilePath);
 		if (!std::filesystem::exists(resolved))
 		{
-			Log::CoreError("AudioImporter: File not found '{}'", path);
+			Log::CoreError("AudioImporter: File not found '{}'", metadata.FilePath);
 			return nullptr;
 		}
 
@@ -27,16 +29,16 @@ namespace ignis
 		static const std::unordered_set<std::string> k_supported = { ".wav", ".mp3", ".flac", ".ogg" };
 		if (!k_supported.count(ext))
 		{
-			Log::CoreError("AudioImporter: Unsupported format '{}' for '{}'", ext, path);
+			Log::CoreError("AudioImporter: Unsupported format '{}' for '{}'", ext, metadata.FilePath);
 			return nullptr;
 		}
 
 		auto clip = std::make_shared<AudioClip>();
 		clip->m_filepath = resolved.string();
-		clip->m_stream = context.AudioOptions.Stream;
+		clip->m_stream = options.Stream;
 
 		Log::CoreInfo("AudioImporter: Registered '{}' ({})",
-			path, clip->m_stream ? "streaming" : "in-memory");
+			metadata.FilePath, clip->m_stream ? "streaming" : "in-memory");
 		return clip;
 	}
 

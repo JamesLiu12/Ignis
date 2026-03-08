@@ -160,12 +160,12 @@ namespace ignis
 		return AssetType::Mesh;
 	}
 
-	std::shared_ptr<Asset> MeshImporter::Import(const std::string& path, const AssetLoadContext& context)
+	std::shared_ptr<Asset> MeshImporter::Import(const AssetMetadata& metadata, const AssetLoadContext& context)
 	{
 		auto mesh = std::make_shared<Mesh>();
 
 		Assimp::Importer importer;
-		auto resolved = VFS::Resolve(path);
+		auto resolved = VFS::Resolve(metadata.FilePath);
 		std::filesystem::path model_path = resolved;
 
 		const aiScene* scene = importer.ReadFile(
@@ -178,7 +178,7 @@ namespace ignis
 
 		if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode)
 		{
-			Log::Error("Assimp Error while loading {}: {}", path, importer.GetErrorString());
+			Log::Error("Assimp Error while loading {}: {}", metadata.FilePath, importer.GetErrorString());
 			return nullptr;
 		}
 
@@ -191,7 +191,7 @@ namespace ignis
 		for (unsigned int i = 0; i < scene->mNumMaterials; ++i)
 		{
 			aiMaterial* aimat = scene->mMaterials[i];
-			LoadMaterialTextures(aimat, VFS::ParentPath(path), mesh->m_materials_data[i]);
+			LoadMaterialTextures(aimat, VFS::ParentPath(metadata.FilePath), mesh->m_materials_data[i]);
 		}
 
 		mesh->m_vertices.clear();

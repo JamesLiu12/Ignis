@@ -50,6 +50,9 @@ namespace ignis {
 		
 		// Add Component UI
 		void DrawAddComponentMenu(std::shared_ptr<Entity> entity);
+
+		// Call this for saving asset import setting
+		void ReimportAsset(AssetHandle handle);
 		
 	private:
 		// TODO: Replace weak_ptr with EntityHandle + Scene* for safer entity management

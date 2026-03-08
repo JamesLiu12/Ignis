@@ -111,7 +111,7 @@ namespace ignis
 			flags |= MA_SOUND_FLAG_STREAM;
 
 		ma_result result = ma_sound_init_from_file(
-			engine, clip->GetFilePath().c_str(), flags, nullptr, nullptr, sound.get());
+			engine, clip->GetFilePath().string().c_str(), flags, nullptr, nullptr, sound.get());
 
 		if (result != MA_SUCCESS)
 		{
