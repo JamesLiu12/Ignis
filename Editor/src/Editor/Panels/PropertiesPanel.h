@@ -18,8 +18,12 @@ namespace ignis {
 		std::string_view GetID() const override { return "Properties"; }
 		
 		// Set the entity to display properties for
-		void SetSelectedEntity(std::shared_ptr<Entity> entity) { m_selected_entity = entity; }
+		void SetSelectedEntity(std::shared_ptr<Entity> entity);
 		std::shared_ptr<Entity> GetSelectedEntity() const { return m_selected_entity.lock(); }
+		
+		// Set the asset to display import settings for
+		void SetSelectedAsset(AssetHandle handle);
+		AssetHandle GetSelectedAsset() const { return m_selected_asset; }
 		
 		// Set current mesh for editing (demo approach)
 		void SetCurrentMesh(std::shared_ptr<Mesh>* mesh, TransformComponent* transform = nullptr) 
@@ -59,6 +63,13 @@ namespace ignis {
 		// Add Component UI
 		void DrawAddComponentMenu(std::shared_ptr<Entity> entity);
 
+		// Asset import settings rendering
+		void RenderAssetProperties(AssetHandle handle);
+		void RenderTextureImportSettings(TextureImportOptions& opts, AssetHandle handle);
+		void RenderFontImportSettings(FontImportOptions& opts, AssetHandle handle);
+		void RenderAudioImportSettings(AudioImportOptions& opts, AssetHandle handle);
+		void RenderEquirectImportSettings(EquirectImportOptions& opts, AssetHandle handle);
+		
 		// Call this for saving asset import setting
 		void ReimportAsset(AssetHandle handle);
 		
@@ -70,6 +81,11 @@ namespace ignis {
 		// Current mesh editing (demo approach - not ECS)
 		std::shared_ptr<Mesh>* m_current_mesh_ptr = nullptr;
 		TransformComponent* m_mesh_transform = nullptr;
+		
+		// Asset import settings
+		AssetHandle m_selected_asset = AssetHandle::Invalid;
+		bool m_asset_settings_modified = false;
+		AssetImportOptions m_original_import_options; // Store original to detect revert so that the yellow sign can be removed
 	};
 
 } // namespace ignis

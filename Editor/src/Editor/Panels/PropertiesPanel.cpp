@@ -31,8 +31,13 @@ namespace ignis {
 				ImGui::Separator();
 			}
 			
-			// Section 2: Show selected entity controls below
-			if (auto entity = m_selected_entity.lock())
+			// Section 2: Check asset selection first (mutually exclusive with entity)
+			if (m_selected_asset.IsValid())
+			{
+				RenderAssetProperties(m_selected_asset);
+			}
+			// Section 3: Show selected entity controls if no asset selected
+			else if (auto entity = m_selected_entity.lock())
 			{
 				// Render entity name
 				if (entity->HasComponent<TagComponent>())
@@ -1716,26 +1721,45 @@ namespace ignis {
 		if (AssetMetadata* meta = AssetManager::GetMetadataMutable(handle))
 		{
 			std::visit(overloaded{
-				[](std::monostate) {
-					// TODO
+				[&](std::monostate&) {
+					Log::CoreWarn("ReimportAsset: Asset has no import options");
 				},
-				[](TextureImportOptions& opts) {
-					// TODO
+				[&](TextureImportOptions& opts) {
+					Log::CoreInfo("ReimportAsset: Texture '{}' - FlipVertical={}, GenMipmaps={}, Format={}", 
+						meta->FilePath, opts.FlipVertical, opts.GenMipmaps, (int)opts.InternalFormat);
 				},
-				[](FontImportOptions& opts) {
-					// TODO
+				[&](FontImportOptions& opts) {
+					Log::CoreInfo("ReimportAsset: Font '{}' - Size={}, Atlas={}x{}", 
+						meta->FilePath, opts.FontSize, opts.AtlasWidth, opts.AtlasHeight);
 				},
-				[](AudioImportOptions& opts) {
-					// TODO
+				[&](AudioImportOptions& opts) {
+					Log::CoreInfo("ReimportAsset: Audio '{}' - Stream={}", 
+						meta->FilePath, opts.Stream);
 				},
-				[](EquirectImportOptions& opts) {
-					// TODO
+				[&](EquirectImportOptions& opts) {
+					Log::CoreInfo("ReimportAsset: Equirect '{}' - EnvRes={}, IrrRes={}, PrefilterRes={}", 
+						meta->FilePath, opts.BakeSettings.EnvironmentResolution, 
+						opts.BakeSettings.IrradianceResolution, opts.BakeSettings.PrefilterResolution);
 				},
 				}, meta->ImportOptions);
+			
+			// Unload the asset to force reload with new settings
+			AssetManager::UnloadAsset(handle);
+			
+			// Save the updated asset registry
+			if (AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry()))
+			{
+				Log::CoreInfo("ReimportAsset: Successfully saved asset registry");
+			}
+			else
+			{
+				Log::CoreError("ReimportAsset: Failed to save asset registry");
+			}
 		}
-
-		AssetManager::UnloadAsset(handle);
-		AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
+		else
+		{
+			Log::CoreError("ReimportAsset: Failed to get mutable metadata for handle {}", (uint64_t)handle);
+		}
 	}
 
 } // namespace ignis

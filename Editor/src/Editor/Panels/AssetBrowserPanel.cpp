@@ -1,5 +1,6 @@
 #include "AssetBrowserPanel.h"
 #include "Ignis/Asset/AssetManager.h"
+#include "Editor/Panels/PropertiesPanel.h"
 #include <imgui.h>
 
 namespace ignis {
@@ -418,6 +419,19 @@ namespace ignis {
 	void AssetBrowserPanel::SetSelectedItem(AssetBrowserItem* item)
 	{
 		m_selected_item = item;
+		
+		// Notify Properties Panel if an asset is selected
+		if (item && item->GetType() == AssetBrowserItem::ItemType::Asset)
+		{
+			auto* asset_item = static_cast<AssetBrowserAsset*>(item);
+			AssetHandle handle = asset_item->GetAssetInfo().Handle;
+			
+			// Update Properties Panel directly
+			if (m_properties_panel)
+			{
+				m_properties_panel->SetSelectedAsset(handle);
+			}
+		}
 	}
 	
 	// Keyboard input handling
