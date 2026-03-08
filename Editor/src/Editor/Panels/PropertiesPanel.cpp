@@ -496,7 +496,7 @@ namespace ignis {
 		if (open)
 		{
 			ImGui::ColorEdit3("Color", &light.Color.x);
-			ImGui::SliderFloat("Intensity", &light.Intensity, 0.0f, 10.0f);
+			ImGui::DragFloat("Intensity", &light.Intensity, 0.1f, 0.0f, 1000.0f, "%.2f");
 			ImGui::Spacing();
 		}
 		
@@ -524,8 +524,8 @@ namespace ignis {
 		if (open)
 		{
 			ImGui::ColorEdit3("Color", &light.Color.x);
-			ImGui::SliderFloat("Intensity", &light.Intensity, 0.0f, 10.0f);
-			ImGui::SliderFloat("Range", &light.Range, 0.1f, 100.0f);
+			ImGui::DragFloat("Intensity", &light.Intensity, 0.1f, 0.0f, 1000.0f, "%.2f");
+			ImGui::DragFloat("Range", &light.Range, 0.5f, 0.1f, 10000.0f, "%.1f");
 			ImGui::Spacing();
 		}
 		
@@ -553,8 +553,8 @@ namespace ignis {
 		if (open)
 		{
 			ImGui::ColorEdit3("Color", &light.Color.x);
-			ImGui::SliderFloat("Intensity", &light.Intensity, 0.0f, 10.0f);
-			ImGui::SliderFloat("Range", &light.Range, 0.1f, 100.0f);
+			ImGui::DragFloat("Intensity", &light.Intensity, 0.1f, 0.0f, 1000.0f, "%.2f");
+			ImGui::DragFloat("Range", &light.Range, 0.5f, 0.1f, 10000.0f, "%.1f");
 			ImGui::SliderFloat("Inner Cone Angle", &light.InnerConeAngle, 0.0f, 90.0f);
 			ImGui::SliderFloat("Outer Cone Angle", &light.OuterConeAngle, 0.0f, 90.0f);
 			ImGui::Spacing();
@@ -639,7 +639,7 @@ namespace ignis {
 			ImGui::Spacing();
 			
 			// Environment settings
-			ImGui::SliderFloat("Intensity", &light.Intensity, 0.0f, 10.0f);
+			ImGui::DragFloat("Intensity", &light.Intensity, 0.1f, 0.0f, 1000.0f, "%.2f");
 			ImGui::ColorEdit3("Tint", &light.Tint.x);
 			ImGui::SliderFloat("Rotation", &light.Rotation, 0.0f, 360.0f);
 			ImGui::SliderFloat("Skybox LOD", &light.SkyboxLod, 0.0f, 10.0f);
@@ -967,12 +967,12 @@ namespace ignis {
 			
 			// Color picker
 			ImGui::ColorEdit3("Color", &text_component.Color[0]);
-			
+		
 			// Alpha slider
 			ImGui::SliderFloat("Alpha", &text_component.Alpha, 0.0f, 1.0f);
-			
-			// Scale slider
-			ImGui::SliderFloat("Scale", &text_component.Scale, 0.1f, 10.0f);
+		
+			// Scale (unbounded)
+			ImGui::DragFloat("Scale", &text_component.Scale, 0.01f, 0.01f, FLT_MAX, "%.2f");
 			
 			ImGui::Spacing();
 		}
