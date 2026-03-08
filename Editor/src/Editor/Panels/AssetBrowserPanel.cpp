@@ -5,6 +5,12 @@
 
 namespace ignis {
 
+	static bool ShouldSkipEntry(const std::filesystem::path& path)
+	{
+		const std::string filename = path.filename().string();
+		return !filename.empty() && filename[0] == '.';
+	}
+
 	AssetBrowserPanel::AssetBrowserPanel()
 	{
 		// Initialize from active project if available
@@ -28,14 +34,23 @@ namespace ignis {
 		
 		// Handle keyboard input
 		HandleKeyboardInput();
+
+		if (m_pending_activation)
+		{
+			AssetBrowserItem* item = m_pending_activation;
+			m_pending_activation = nullptr;
+			item->OnActivate();
+		}
 	}
 
 	ImVec4 AssetBrowserPanel::GetIconColor(const AssetBrowserItem& item) const
 	{
-		if (item.GetType() == AssetBrowserItem::ItemType::Directory)
-			return m_folder_color;
-		else
-			return m_file_color;
+		switch (item.GetType())
+		{
+		case AssetBrowserItem::ItemType::Directory:        return m_folder_color;
+		case AssetBrowserItem::ItemType::UnregisteredFile: return m_unregistered_color;
+		default:                                           return m_file_color;
+		}
 	}
 
 	void AssetBrowserPanel::RenderTopBar()
@@ -144,18 +159,18 @@ namespace ignis {
 	{
 		if (!m_current_directory)
 			return;
-		
+
 		m_current_items.clear();
-		
-		// Add subdirectories
+
+		// Directories
 		for (const auto& [handle, subdir] : m_current_directory->sub_directories)
 		{
 			auto item = std::make_shared<AssetBrowserDirectory>(subdir);
 			item->SetPanel(this);
 			m_current_items.push_back(item);
 		}
-		
-		// Add assets
+
+		// Registered assets
 		for (const auto& asset_handle : m_current_directory->assets)
 		{
 			const AssetMetadata* metadata = AssetManager::GetMetadata(asset_handle);
@@ -166,13 +181,23 @@ namespace ignis {
 				m_current_items.push_back(item);
 			}
 		}
-		
-		// Sort: directories first, then files, alphabetically
+
+		// Unregistered files - shown with distinct color, not auto-imported
+		for (const auto& file_path : m_current_directory->unregistered_files)
+		{
+			auto item = std::make_shared<AssetBrowserUnregisteredFile>(file_path);
+			item->SetPanel(this);
+			m_current_items.push_back(item);
+		}
+
+		// Sort: directories first, then all files alphabetically
 		std::sort(m_current_items.begin(), m_current_items.end(),
 			[](const std::shared_ptr<AssetBrowserItem>& a, const std::shared_ptr<AssetBrowserItem>& b)
 			{
-				if (a->GetType() != b->GetType())
-					return a->GetType() == AssetBrowserItem::ItemType::Directory;
+				bool a_is_dir = (a->GetType() == AssetBrowserItem::ItemType::Directory);
+				bool b_is_dir = (b->GetType() == AssetBrowserItem::ItemType::Directory);
+				if (a_is_dir != b_is_dir)
+					return a_is_dir;
 				return a->GetName() < b->GetName();
 			});
 	}
@@ -183,42 +208,39 @@ namespace ignis {
 		directory_info->handle = AssetHandle();
 		directory_info->parent = parent;
 		directory_info->file_path = directory_path;
-		
+
 		if (!std::filesystem::exists(directory_path))
 		{
 			Log::Warn("Directory does not exist: {}", directory_path.string());
 			return directory_info;
 		}
-		
-		// Iterate through directory contents
+
 		for (const auto& entry : std::filesystem::directory_iterator(directory_path))
 		{
+			if (ShouldSkipEntry(entry.path()))
+				continue;
+
 			if (entry.is_directory())
 			{
-				// Recursively process subdirectory
 				auto subdir = ProcessDirectory(entry.path(), directory_info);
 				directory_info->sub_directories[subdir->handle] = subdir;
 			}
 			else if (entry.is_regular_file())
 			{
-				// Check if this file is in the asset registry
-				const AssetMetadata* metadata = AssetManager::GetMetadata(entry.path());
+				std::string vfs_path = VFS::ToVFSPath(entry.path());
+				const AssetMetadata* metadata = AssetManager::GetMetadata(vfs_path);
+
 				if (metadata)
 				{
 					directory_info->assets.push_back(metadata->Handle);
 				}
 				else
 				{
-					// Show unregistered files too (import them on-demand)
-					AssetHandle handle = AssetManager::ImportAsset(entry.path());
-					if (handle.IsValid())
-					{
-						directory_info->assets.push_back(handle);
-					}
+					directory_info->unregistered_files.push_back(entry.path());
 				}
 			}
 		}
-		
+
 		return directory_info;
 	}
 	
@@ -419,18 +441,29 @@ namespace ignis {
 	void AssetBrowserPanel::SetSelectedItem(AssetBrowserItem* item)
 	{
 		m_selected_item = item;
-		
-		// Notify Properties Panel if an asset is selected
-		if (item && item->GetType() == AssetBrowserItem::ItemType::Asset)
+
+		if (!item || !m_properties_panel)
+			return;
+
+		switch (item->GetType())
+		{
+		case AssetBrowserItem::ItemType::Asset:
 		{
 			auto* asset_item = static_cast<AssetBrowserAsset*>(item);
-			AssetHandle handle = asset_item->GetAssetInfo().Handle;
-			
-			// Update Properties Panel directly
-			if (m_properties_panel)
-			{
-				m_properties_panel->SetSelectedAsset(handle);
-			}
+			m_properties_panel->SetSelectedAsset(asset_item->GetAssetInfo().Handle);
+			break;
+		}
+		case AssetBrowserItem::ItemType::UnregisteredFile:
+		{
+			// Show import settings preview in the Properties Panel.
+			// PropertiesPanel::SetSelectedUnregisteredFile should display
+			// the inferred asset type, import options, and an Import button.
+			auto* unregistered_item = static_cast<AssetBrowserUnregisteredFile*>(item);
+			m_properties_panel->SetSelectedUnregisteredFile(unregistered_item->GetFilePath());
+			break;
+		}
+		default:
+			break;
 		}
 	}
 	
@@ -596,6 +629,19 @@ namespace ignis {
 		catch (const std::exception& e)
 		{
 			Log::Error("Failed to create file: {}", e.what());
+		}
+	}
+
+	void AssetBrowserPanel::SetPropertiesPanel(PropertiesPanel* properties_panel)
+	{
+		m_properties_panel = properties_panel;
+
+		if (m_properties_panel)
+		{
+			m_properties_panel->SetImportCompleteCallback([this]()
+				{
+					Refresh();
+				});
 		}
 	}
 	

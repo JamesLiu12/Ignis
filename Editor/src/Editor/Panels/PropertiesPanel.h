@@ -24,6 +24,11 @@ namespace ignis {
 		// Set the asset to display import settings for
 		void SetSelectedAsset(AssetHandle handle);
 		AssetHandle GetSelectedAsset() const { return m_selected_asset; }
+
+		void SetSelectedUnregisteredFile(const std::filesystem::path& path);
+		const std::filesystem::path& GetSelectedUnregisteredFile() const { return m_selected_unregistered_file; }
+
+		void SetImportCompleteCallback(std::function<void()> callback) { m_import_complete_callback = std::move(callback); }
 		
 		// Set current mesh for editing (demo approach)
 		void SetCurrentMesh(std::shared_ptr<Mesh>* mesh, TransformComponent* transform = nullptr) 
@@ -72,6 +77,10 @@ namespace ignis {
 		
 		// Call this for saving asset import setting
 		void ReimportAsset(AssetHandle handle);
+
+		void RenderUnregisteredFileProperties();
+
+		static AssetType InferAssetTypeFromPath(const std::filesystem::path& path);
 		
 	private:
 		// TODO: Replace weak_ptr with EntityHandle + Scene* for safer entity management
@@ -86,6 +95,10 @@ namespace ignis {
 		AssetHandle m_selected_asset = AssetHandle::Invalid;
 		bool m_asset_settings_modified = false;
 		AssetImportOptions m_original_import_options; // Store original to detect revert so that the yellow sign can be removed
+
+		std::filesystem::path m_selected_unregistered_file;
+		AssetImportOptions m_pending_import_options;
+		std::function<void()> m_import_complete_callback;
 	};
 
 } // namespace ignis

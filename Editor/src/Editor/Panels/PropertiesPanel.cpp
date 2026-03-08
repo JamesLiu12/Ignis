@@ -36,6 +36,20 @@ namespace ignis {
 			{
 				RenderAssetProperties(m_selected_asset);
 			}
+			else if (!m_selected_unregistered_file.empty())
+			{
+				if (std::filesystem::exists(m_selected_unregistered_file))
+				{
+					RenderUnregisteredFileProperties();
+				}
+				else
+				{
+					ImGui::TextColored(ImVec4(0.8f, 0.3f, 0.3f, 1.0f), "File no longer exists:");
+					ImGui::TextWrapped("%s", m_selected_unregistered_file.string().c_str());
+					if (ImGui::Button("Clear", ImVec2(-1, 0)))
+						m_selected_unregistered_file.clear();
+				}
+			}
 			// Section 3: Show selected entity controls if no asset selected
 			else if (auto entity = m_selected_entity.lock())
 			{
@@ -1704,6 +1718,137 @@ namespace ignis {
 		{
 			Log::CoreError("ReimportAsset: Failed to get mutable metadata for handle {}", (uint64_t)handle);
 		}
+	}
+
+	void PropertiesPanel::RenderUnregisteredFileProperties()
+	{
+		const std::string filename = m_selected_unregistered_file.filename().string();
+		const std::string file_path = m_selected_unregistered_file.string();
+		const std::string ext = m_selected_unregistered_file.extension().string();
+
+		ImGui::TextColored(ImVec4(0.85f, 0.55f, 0.2f, 1.0f), "Not Imported");
+		ImGui::SameLine();
+		ImGui::TextDisabled("(?)");
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("This file exists on disk but has not been\nadded to the Asset Registry yet.\nAdjust import settings below, then click Import.");
+
+		ImGui::Spacing();
+		ImGui::Text("%s", filename.c_str());
+		ImGui::TextDisabled("%s", file_path.c_str());
+
+		std::error_code ec;
+		const uintmax_t file_size = std::filesystem::file_size(m_selected_unregistered_file, ec);
+		if (!ec)
+		{
+			if (file_size < 1024)
+				ImGui::Text("Size: %llu B", static_cast<unsigned long long>(file_size));
+			else if (file_size < 1024 * 1024)
+				ImGui::Text("Size: %.1f KB", file_size / 1024.0f);
+			else
+				ImGui::Text("Size: %.2f MB", file_size / (1024.0f * 1024.0f));
+		}
+
+		const AssetType inferred_type = InferAssetTypeFromPath(m_selected_unregistered_file);
+		const char* type_label = "Unknown";
+		switch (inferred_type)
+		{
+		case AssetType::Texture2D:      type_label = "Texture";          break;
+		case AssetType::EquirectIBLEnv: type_label = "Environment Map";  break;
+		case AssetType::Font:           type_label = "Font";             break;
+		case AssetType::AudioClip:      type_label = "Audio";            break;
+		case AssetType::Mesh:           type_label = "Mesh";             break;
+		default:                        type_label = "Unknown";          break;
+		}
+		ImGui::Text("Detected Type: ");
+		ImGui::SameLine();
+		ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s", type_label);
+
+		ImGui::Separator();
+
+		ImGui::Text("Import Settings:");
+		ImGui::Spacing();
+
+		std::visit(overloaded{
+			[](std::monostate&)
+			{
+				ImGui::TextDisabled("No configurable import settings for this file type.");
+			},
+			[&](TextureImportOptions& opts)
+			{
+				RenderTextureImportSettings(opts, AssetHandle::Invalid);
+			},
+			[&](FontImportOptions& opts)
+			{
+				RenderFontImportSettings(opts, AssetHandle::Invalid);
+			},
+			[&](AudioImportOptions& opts)
+			{
+				RenderAudioImportSettings(opts, AssetHandle::Invalid);
+			},
+			[&](EquirectImportOptions& opts)
+			{
+				RenderEquirectImportSettings(opts, AssetHandle::Invalid);
+			},
+			}, m_pending_import_options);
+
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.55f, 0.2f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.65f, 0.3f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.15f, 0.45f, 0.15f, 1.0f));
+
+		const bool do_import = ImGui::Button("Import", ImVec2(-1.0f, 0.0f));
+
+		ImGui::PopStyleColor(3);
+
+		if (do_import)
+		{
+			AssetHandle handle = AssetManager::ImportAsset(m_selected_unregistered_file);
+
+			if (handle.IsValid())
+			{
+				if (AssetMetadata* meta = AssetManager::GetMetadataMutable(handle))
+					meta->ImportOptions = m_pending_import_options;
+
+				ReimportAsset(handle);
+
+				Log::CoreInfo("PropertiesPanel: Imported '{}' as handle {}", filename, (uint64_t)handle);
+
+				SetSelectedAsset(handle);
+
+				if (m_import_complete_callback)
+					m_import_complete_callback();
+			}
+			else
+			{
+				Log::Error("PropertiesPanel: Failed to import '{}'", file_path);
+			}
+		}
+	}
+
+	AssetType PropertiesPanel::InferAssetTypeFromPath(const std::filesystem::path& path)
+	{
+		std::string ext = path.extension().string();
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+		if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".tga" || ext == ".bmp")
+			return AssetType::Texture2D;
+
+		if (ext == ".hdr")
+			return AssetType::EquirectIBLEnv;
+
+		if (ext == ".ttf" || ext == ".otf")
+			return AssetType::Font;
+
+		if (ext == ".wav" || ext == ".mp3" || ext == ".flac" || ext == ".ogg")
+			return AssetType::AudioClip;
+
+		if (ext == ".obj" || ext == ".fbx" || ext == ".gltf" || ext == ".glb")
+			return AssetType::Mesh;
+
+		return AssetType::Unknown;
 	}
 
 } // namespace ignis

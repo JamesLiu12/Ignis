@@ -35,10 +35,12 @@ namespace ignis {
 		AssetBrowserItem* GetSelectedItem() const { return m_selected_item; }
 		
 		// Properties Panel integration
-		void SetPropertiesPanel(class PropertiesPanel* properties_panel) { m_properties_panel = properties_panel; }
+		void SetPropertiesPanel(class PropertiesPanel* properties_panel);
 		
 		// File operations (public for item callbacks)
 		void ShowInExplorer(const std::filesystem::path& path);
+
+		void SetPendingActivation(AssetBrowserItem* item) { m_pending_activation = item; }
 
 	private:
 		void RenderTopBar();
@@ -78,6 +80,7 @@ namespace ignis {
 		// Icon colors
 		ImVec4 m_folder_color = ImVec4(0.2f, 0.6f, 1.0f, 1.0f);
 		ImVec4 m_file_color = ImVec4(0.7f, 0.7f, 0.7f, 1.0f);
+		ImVec4 m_unregistered_color = ImVec4(0.6f, 0.4f, 0.2f, 0.8f);
 
 		// Grid layout settings
 		float m_thumbnail_size = 64.0f;
@@ -91,6 +94,8 @@ namespace ignis {
 		
 		// Properties Panel reference
 		class PropertiesPanel* m_properties_panel = nullptr;
+
+		AssetBrowserItem* m_pending_activation = nullptr;
 	};
 
 } // namespace ignis
