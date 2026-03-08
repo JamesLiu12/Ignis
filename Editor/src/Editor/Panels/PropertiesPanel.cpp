@@ -808,12 +808,15 @@ namespace ignis {
 			// Display mesh info
 			if (mesh_component.Mesh.IsValid())
 			{
-				ImGui::Text("Mesh Handle: %llu", mesh_component.Mesh);
-				
-				// Show mesh file path if available
 				if (auto* metadata = AssetManager::GetMetadata(mesh_component.Mesh))
 				{
-					ImGui::TextWrapped("File: %s", std::filesystem::path(metadata->FilePath).filename().string().c_str());
+					ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), "Loaded");
+					ImGui::SameLine();
+					ImGui::TextWrapped("%s", metadata->FilePath.c_str());
+				}
+				else
+				{
+					ImGui::TextColored(ImVec4(0.8f, 0.4f, 0.4f, 1.0f), "Invalid Handle");
 				}
 			}
 			else
@@ -925,7 +928,16 @@ namespace ignis {
 			ImGui::Indent();
 			if (text_component.Font.IsValid())
 			{
-				ImGui::Text("Asset: %s", text_component.Font.ToString().c_str());
+				if (auto* metadata = AssetManager::GetMetadata(text_component.Font))
+				{
+					ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), "Loaded");
+					ImGui::SameLine();
+					ImGui::TextWrapped("%s", metadata->FilePath.c_str());
+				}
+				else
+				{
+					ImGui::TextColored(ImVec4(0.8f, 0.4f, 0.4f, 1.0f), "Invalid Handle");
+				}
 			}
 			else
 			{
@@ -934,8 +946,17 @@ namespace ignis {
 			
 			if (ImGui::Button("Select Font", ImVec2(-1, 0)))
 			{
-				// TODO: Open font asset picker when asset browser is ready
-				Log::CoreWarn("Font asset picker not yet implemented");
+				std::string filepath = FileDialog::OpenFile("Font Files", {"ttf", "otf"});
+				if (!filepath.empty())
+				{
+					// Import font asset
+					AssetHandle handle = AssetManager::ImportAsset(filepath);
+					if (handle.IsValid())
+					{
+						text_component.Font = handle;
+						Log::CoreInfo("Loaded font: {}", filepath);
+					}
+				}
 			}
 			ImGui::Unindent();
 			
@@ -1062,7 +1083,16 @@ namespace ignis {
 			ImGui::Indent();
 			if (image.Texture.IsValid())
 			{
-				ImGui::Text("Asset: %s", image.Texture.ToString().c_str());
+				if (auto* metadata = AssetManager::GetMetadata(image.Texture))
+				{
+					ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), "Loaded");
+					ImGui::SameLine();
+					ImGui::TextWrapped("%s", metadata->FilePath.c_str());
+				}
+				else
+				{
+					ImGui::TextColored(ImVec4(0.8f, 0.4f, 0.4f, 1.0f), "Invalid Handle");
+				}
 			}
 			else
 			{
@@ -1071,8 +1101,17 @@ namespace ignis {
 			
 			if (ImGui::Button("Select Texture", ImVec2(-1, 0)))
 			{
-				// TODO: Open texture asset picker when asset browser is ready
-				Log::CoreWarn("Texture asset picker not yet implemented");
+				std::string filepath = FileDialog::OpenFile("Texture Files", {"png", "jpg", "jpeg", "tga", "bmp"});
+				if (!filepath.empty())
+				{
+					// Import texture asset
+					AssetHandle handle = AssetManager::ImportAsset(filepath);
+					if (handle.IsValid())
+					{
+						image.Texture = handle;
+						Log::CoreInfo("Loaded texture: {}", filepath);
+					}
+				}
 			}
 			ImGui::Unindent();
 			
@@ -1134,7 +1173,16 @@ namespace ignis {
 			ImGui::Indent();
 			if (ui_text.Font.IsValid())
 			{
-				ImGui::Text("Asset: %s", ui_text.Font.ToString().c_str());
+				if (auto* metadata = AssetManager::GetMetadata(ui_text.Font))
+				{
+					ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), "Loaded");
+					ImGui::SameLine();
+					ImGui::TextWrapped("%s", metadata->FilePath.c_str());
+				}
+				else
+				{
+					ImGui::TextColored(ImVec4(0.8f, 0.4f, 0.4f, 1.0f), "Invalid Handle");
+				}
 			}
 			else
 			{
@@ -1143,8 +1191,17 @@ namespace ignis {
 			
 			if (ImGui::Button("Select Font", ImVec2(-1, 0)))
 			{
-				// TODO: Open font asset picker when asset browser is ready
-				Log::CoreWarn("Font asset picker not yet implemented");
+				std::string filepath = FileDialog::OpenFile("Font Files", {"ttf", "otf"});
+				if (!filepath.empty())
+				{
+					// Import font asset
+					AssetHandle handle = AssetManager::ImportAsset(filepath);
+					if (handle.IsValid())
+					{
+						ui_text.Font = handle;
+						Log::CoreInfo("Loaded font: {}", filepath);
+					}
+				}
 			}
 			ImGui::Unindent();
 			
@@ -1306,7 +1363,16 @@ namespace ignis {
 			ImGui::Indent();
 			if (audio.Clip.IsValid())
 			{
-				ImGui::Text("Asset: %s", audio.Clip.ToString().c_str());
+				if (auto* metadata = AssetManager::GetMetadata(audio.Clip))
+				{
+					ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), "Loaded");
+					ImGui::SameLine();
+					ImGui::TextWrapped("%s", metadata->FilePath.c_str());
+				}
+				else
+				{
+					ImGui::TextColored(ImVec4(0.8f, 0.4f, 0.4f, 1.0f), "Invalid Handle");
+				}
 			}
 			else
 			{
@@ -1315,8 +1381,17 @@ namespace ignis {
 			
 			if (ImGui::Button("Select Audio Clip", ImVec2(-1, 0)))
 			{
-				// TODO: Open audio asset picker when asset browser is ready
-				Log::CoreWarn("Audio asset picker not yet implemented");
+				std::string filepath = FileDialog::OpenFile("Audio Files", {"wav", "mp3", "flac", "ogg"});
+				if (!filepath.empty())
+				{
+					// Import audio asset
+					AssetHandle handle = AssetManager::ImportAsset(filepath);
+					if (handle.IsValid())
+					{
+						audio.Clip = handle;
+						Log::CoreInfo("Loaded audio clip: {}", filepath);
+					}
+				}
 			}
 			ImGui::Unindent();
 			
