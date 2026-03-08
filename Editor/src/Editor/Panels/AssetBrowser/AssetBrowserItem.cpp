@@ -472,6 +472,29 @@ namespace ignis {
 		}
 	}
 
+	void AssetBrowserAsset::Unload()
+	{
+		AssetManager::RemoveAsset(m_asset_info.Handle);
+		AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
+
+		Log::Info("Unloaded asset from registry (file kept on disk): {}",
+			m_asset_info.FilePath);
+
+		if (m_panel)
+			m_panel->Refresh();
+	}
+
+	void AssetBrowserAsset::OnRenderContextMenu()
+	{
+		if (ImGui::MenuItem("Unload", nullptr))
+			Unload();
+
+		ImGui::Separator();
+
+		AssetBrowserItem::OnRenderContextMenu();
+	}
+
+
 	void AssetBrowserAsset::OnRenamed(const std::string& new_name)
 	{
 		if (new_name == m_file_name)

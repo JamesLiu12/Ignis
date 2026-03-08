@@ -118,8 +118,10 @@ namespace ignis {
 
 	void OnActivate() override;
 	void Delete() override;
+	void Unload();
 
 	protected:
+		void OnRenderContextMenu() override;
 		void OnRenamed(const std::string& new_name) override;
 
 	private:
