@@ -39,6 +39,14 @@ namespace ignis {
 		void RenderMeshComponent(MeshComponent& mesh);
 		void RenderScriptComponent(ScriptComponent& script);
 		void RenderTextComponent(TextComponent& text);
+		void RenderRectTransformComponent(RectTransformComponent& rect);
+		void RenderCanvasComponent(CanvasComponent& canvas);
+		void RenderImageComponent(ImageComponent& image);
+		void RenderUITextComponent(UITextComponent& text);
+		void RenderButtonComponent(ButtonComponent& button);
+		void RenderProgressBarComponent(ProgressBarComponent& bar);
+		void RenderAudioSourceComponent(AudioSourceComponent& audio);
+		void RenderAudioListenerComponent(AudioListenerComponent& listener);
 		
 		// Mesh editing UI
 		void RenderMeshEditor();
