@@ -1403,10 +1403,10 @@ namespace ignis {
 			ImGui::Separator();
 		
 			// Volume
-			ImGui::DragFloat("Volume", &audio.Volume, 0.01f, 0.0f, 10.0f, "%.2f");
+			ImGui::DragFloat("Volume", &audio.Volume, 0.01f, 0.0f, FLT_MAX, "%.2f");
 		
 			// Pitch
-			ImGui::DragFloat("Pitch", &audio.Pitch, 0.01f, 0.1f, 10.0f, "%.2f");
+			ImGui::DragFloat("Pitch", &audio.Pitch, 0.01f, 0.1f, FLT_MAX, "%.2f");
 		
 			// Loop checkbox
 			ImGui::Checkbox("Loop", &audio.Loop);
