@@ -14,7 +14,8 @@ namespace ignis {
 		enum class ItemType : uint16_t
 		{
 			Directory,
-			Asset
+			Asset,
+			UnregisteredFile
 		};
 
 	public:
@@ -57,6 +58,8 @@ namespace ignis {
 
 	protected:
 		virtual void OnRenamed(const std::string& new_name) { m_file_name = new_name; }
+		virtual void OnRenderContextMenu();
+
 		void SetDisplayNameFromFileName();
 
 	protected:
@@ -81,6 +84,7 @@ namespace ignis {
 		std::shared_ptr<DirectoryInfo> parent;
 		std::filesystem::path file_path;
 		std::vector<AssetHandle> assets;
+		std::vector<std::filesystem::path> unregistered_files;
 		std::map<AssetHandle, std::shared_ptr<DirectoryInfo>> sub_directories;
 	};
 
@@ -103,7 +107,7 @@ namespace ignis {
 		std::shared_ptr<DirectoryInfo> m_directory_info;
 	};
 
-	// Represents an asset item
+	// Represents a registered asset item
 	class AssetBrowserAsset : public AssetBrowserItem
 	{
 	public:
@@ -114,12 +118,36 @@ namespace ignis {
 
 	void OnActivate() override;
 	void Delete() override;
+	void Unload();
 
 	protected:
+		void OnRenderContextMenu() override;
 		void OnRenamed(const std::string& new_name) override;
 
 	private:
 		AssetMetadata m_asset_info;
+	};
+
+	// Represents a file that exists on disk but has NOT been imported into the AssetRegistry.
+	class AssetBrowserUnregisteredFile : public AssetBrowserItem
+	{
+	public:
+		explicit AssetBrowserUnregisteredFile(const std::filesystem::path& file_path);
+		virtual ~AssetBrowserUnregisteredFile() = default;
+
+		const std::filesystem::path& GetFilePath() const { return m_file_path; }
+
+		void OnActivate() override;
+		void Delete() override;
+
+		void Import();
+
+	protected:
+		void OnRenderContextMenu() override;
+		void OnRenamed(const std::string& new_name) override;
+
+	private:
+		std::filesystem::path m_file_path;
 	};
 
 } // namespace ignis

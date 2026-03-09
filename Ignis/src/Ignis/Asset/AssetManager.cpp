@@ -14,34 +14,6 @@ namespace ignis
 		return s;
 	}
 
-	static AssetType DetermineTypeFromExtension(const std::filesystem::path& path)
-	{
-		static const std::unordered_map<std::string, AssetType> extension_to_type = {
-			{ ".png", AssetType::Texture2D },
-			{ ".jpg", AssetType::Texture2D },
-			{ ".jpeg", AssetType::Texture2D },
-			{ ".tga", AssetType::Texture2D},
-			{ ".hdr", AssetType::EquirectIBLEnv},
-			{ ".obj", AssetType::Mesh },
-			{ ".fbx", AssetType::Mesh },
-			{ ".ttf", AssetType::Font },
-			{ ".wav", AssetType::AudioClip },
-			{ ".mp3", AssetType::AudioClip },
-			{ ".flac", AssetType::AudioClip },
-			{ ".ogg", AssetType::AudioClip },
-		};
-
-		std::string extension = ToLowerASCII(path.extension().string());
-
-		auto it = extension_to_type.find(extension);
-		if (it != extension_to_type.end())
-		{
-			return it->second;
-		}
-
-		return AssetType::Unknown;
-	}
-
 	AssetImportOptions AssetManager::DefaultImportOptions(AssetType type)
 	{
 		return DefaultImportOptionsForType(type);
@@ -145,6 +117,61 @@ namespace ignis
 		return s_load_context;
 	}
 
+	AssetType AssetManager::DetermineTypeFromExtension(const std::filesystem::path& path)
+	{
+		static const std::unordered_map<std::string, AssetType> extension_to_type = {
+			{ ".png",  AssetType::Texture2D },
+			{ ".jpg",  AssetType::Texture2D },
+			{ ".jpeg", AssetType::Texture2D },
+			{ ".tga",  AssetType::Texture2D },
+			{ ".bmp",  AssetType::Texture2D },
+			{ ".psd",  AssetType::Texture2D },
+			{ ".gif",  AssetType::Texture2D },
+			{ ".pic",  AssetType::Texture2D },
+			{ ".ppm",  AssetType::Texture2D },
+			{ ".pgm",  AssetType::Texture2D },
+
+			{ ".hdr",  AssetType::EquirectIBLEnv },
+
+			{ ".obj",      AssetType::Mesh },
+			{ ".fbx",      AssetType::Mesh },
+			{ ".gltf",     AssetType::Mesh },
+			{ ".glb",      AssetType::Mesh },
+			{ ".dae",      AssetType::Mesh },
+			{ ".3ds",      AssetType::Mesh },
+			{ ".blend",    AssetType::Mesh },
+			{ ".stl",      AssetType::Mesh },
+			{ ".ply",      AssetType::Mesh },
+			{ ".x",        AssetType::Mesh },
+			{ ".lwo",      AssetType::Mesh },
+			{ ".ms3d",     AssetType::Mesh },
+			{ ".ac",       AssetType::Mesh },
+			{ ".b3d",      AssetType::Mesh },
+			{ ".md2",      AssetType::Mesh },
+			{ ".md3",      AssetType::Mesh },
+			{ ".md5mesh",  AssetType::Mesh },
+			{ ".smd",      AssetType::Mesh },
+			{ ".vta",      AssetType::Mesh },
+			{ ".off",      AssetType::Mesh },
+			{ ".ogex",     AssetType::Mesh },
+
+			{ ".wav",  AssetType::AudioClip },
+			{ ".mp3",  AssetType::AudioClip },
+			{ ".flac", AssetType::AudioClip },
+			{ ".ogg",  AssetType::AudioClip },
+		};
+
+		std::string extension = ToLowerASCII(path.extension().string());
+
+		auto it = extension_to_type.find(extension);
+		if (it != extension_to_type.end())
+		{
+			return it->second;
+		}
+
+		return AssetType::Unknown;
+	}
+
 	std::shared_ptr<Asset> AssetManager::LoadAssetFromFile(const AssetMetadata& metadata)
 	{
 		if (!VFS::Exists(metadata.FilePath))
@@ -172,4 +199,6 @@ namespace ignis
 			return nullptr;
 		}
 	}
+
+
 }

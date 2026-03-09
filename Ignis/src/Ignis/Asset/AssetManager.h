@@ -71,6 +71,8 @@ namespace ignis
 		static void SetLoadContext(const AssetLoadContext& context);
 		static AssetLoadContext& GetLoadContext();
 
+		static AssetType DetermineTypeFromExtension(const std::filesystem::path& path);
+
 	private:
 		static std::shared_ptr<Asset> LoadAssetFromFile(const AssetMetadata& metadata);
 		static AssetImportOptions     DefaultImportOptions(AssetType type);

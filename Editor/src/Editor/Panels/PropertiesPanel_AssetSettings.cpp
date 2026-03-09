@@ -67,22 +67,50 @@ namespace ignis {
 	void PropertiesPanel::SetSelectedEntity(std::shared_ptr<Entity> entity)
 	{
 		m_selected_entity = entity;
-		// Clear asset selection (mutually exclusive)
 		m_selected_asset = AssetHandle::Invalid;
+		m_selected_unregistered_file.clear();
 		m_asset_settings_modified = false;
 	}
 
 	void PropertiesPanel::SetSelectedAsset(AssetHandle handle)
 	{
 		m_selected_asset = handle;
-		// Clear entity selection (mutually exclusive)
+		m_selected_entity.reset();
+		m_selected_unregistered_file.clear();
+		m_asset_settings_modified = false;
+
+		if (handle.IsValid())
+		{
+			if (const AssetMetadata* meta = AssetManager::GetMetadata(handle))
+				m_original_import_options = meta->ImportOptions;
+		}
+	}
+
+	void PropertiesPanel::SetSelectedUnregisteredFile(const std::filesystem::path& path)
+	{
+		m_selected_unregistered_file = path;
+		m_selected_asset = AssetHandle::Invalid;
 		m_selected_entity.reset();
 		m_asset_settings_modified = false;
-		
-		// Store original import options for comparison
-		if (const AssetMetadata* metadata = AssetManager::GetMetadata(handle))
+
+		const AssetType inferred_type = AssetManager::DetermineTypeFromExtension(path);
+		switch (inferred_type)
 		{
-			m_original_import_options = metadata->ImportOptions;
+		case AssetType::Texture2D:
+			m_pending_import_options = TextureImportOptions{};
+			break;
+		case AssetType::EquirectIBLEnv: 
+			m_pending_import_options = EquirectImportOptions{};
+			break;
+		case AssetType::Font:
+			m_pending_import_options = FontImportOptions{};
+			break;
+		case AssetType::AudioClip:
+			m_pending_import_options = AudioImportOptions{};
+			break;
+		default:
+			m_pending_import_options = std::monostate{};
+			break;
 		}
 	}
 

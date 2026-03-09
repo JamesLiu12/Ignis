@@ -18,100 +18,93 @@ namespace ignis {
 
 	void AssetBrowserItem::OnRender()
 	{
-		// Determine icon color
+		// Delegate icon color to the panel for centralized control
 		ImVec4 icon_color;
-		if (m_type == ItemType::Directory)
-			icon_color = ImVec4(0.2f, 0.6f, 1.0f, 1.0f);
+		if (m_panel)
+		{
+			icon_color = m_panel->GetIconColor(*this);
+		}
 		else
-			icon_color = ImVec4(0.7f, 0.7f, 0.7f, 1.0f);
+		{
+			switch (m_type)
+			{
+			case ItemType::Directory:        icon_color = ImVec4(0.2f, 0.6f, 1.0f, 1.0f); break;
+			case ItemType::UnregisteredFile: icon_color = ImVec4(0.6f, 0.4f, 0.2f, 0.8f); break;
+			default:                         icon_color = ImVec4(0.7f, 0.7f, 0.7f, 1.0f); break;
+			}
+		}
 
-		// Create unique ID for this item using pointer address
 		ImGui::PushID(this);
-
-		// Start group for the item
 		ImGui::BeginGroup();
 
-		// Render icon as colored square (64x64)
 		ImGui::ColorButton("##icon", icon_color, ImGuiColorEditFlags_NoTooltip, ImVec2(64, 64));
 
-		// Render name
+		// Hint tooltip for unregistered files
+		if (m_type == ItemType::UnregisteredFile && ImGui::IsItemHovered())
+			ImGui::SetTooltip("Not imported\nRight-click to import");
+
+		// Render name or rename input
 		if (m_is_renaming)
 		{
 			ImGui::SetKeyboardFocusHere();
-			if (ImGui::InputText("##rename", m_rename_buffer, sizeof(m_rename_buffer), 
-			                     ImGuiInputTextFlags_EnterReturnsTrue))
+			if (ImGui::InputText("##rename", m_rename_buffer, sizeof(m_rename_buffer),
+				ImGuiInputTextFlags_EnterReturnsTrue))
 			{
 				Rename(m_rename_buffer);
 				StopRenaming();
 			}
-
-			// Cancel rename on Escape
 			if (ImGui::IsKeyPressed(ImGuiKey_Escape))
-			{
 				StopRenaming();
-			}
 		}
 		else
 		{
-			// Display name with selection highlight
 			bool is_selected = m_panel ? m_panel->IsItemSelected(this) : m_is_selected;
 			if (is_selected)
-			{
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f)); // Yellow for selected
-			}
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
 
 			ImGui::TextWrapped("%s", m_display_name.c_str());
 
 			if (is_selected)
-			{
 				ImGui::PopStyleColor();
-			}
 		}
 
 		ImGui::EndGroup();
 
-		// Handle double click on the entire group (avoid single click interference)
 		if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 		{
-			OnActivate();
+			if (m_panel)
+				m_panel->SetPendingActivation(this);
+			else
+				OnActivate();
 		}
-		// Handle single click selection
 		else if (ImGui::IsItemClicked())
 		{
 			if (m_panel)
-			{
-				// Simple single selection
 				m_panel->SetSelectedItem(this);
-			}
 			else
-			{
-				// Fallback if no panel
 				m_is_selected = true;
-			}
 		}
 
-		// Handle right-click context menu
+		// Context menu - delegates to virtual OnRenderContextMenu()
 		if (ImGui::BeginPopupContextItem("item_context"))
 		{
-			if (ImGui::MenuItem("Rename", "F2"))
-			{
-				StartRenaming();
-			}
-		
-			if (ImGui::MenuItem("Delete", "Del"))
-			{
-				Delete();
-			}
-		
-			if (ImGui::MenuItem("Show in Explorer"))
-			{
-				ShowInExplorer();
-			}
-		
+			OnRenderContextMenu();
 			ImGui::EndPopup();
 		}
 
 		ImGui::PopID();
+	}
+
+	void AssetBrowserItem::OnRenderContextMenu()
+	{
+		if (ImGui::MenuItem("Rename", "F2"))
+			StartRenaming();
+
+		if (ImGui::MenuItem("Delete", "Del"))
+			Delete();
+
+		if (ImGui::MenuItem("Show in Explorer"))
+			ShowInExplorer();
 	}
 
 	void AssetBrowserItem::StartRenaming()
@@ -143,32 +136,35 @@ namespace ignis {
 
 	void AssetBrowserItem::ShowInExplorer()
 	{
-		// Delegate to panel if available
-		if (m_panel)
+		if (!m_panel)
+			return;
+
+		std::filesystem::path full_path;
+
+		switch (m_type)
 		{
-			// Get full path from derived class
-			std::filesystem::path full_path;
-			if (m_type == ItemType::Directory)
-			{
-				auto* dir = dynamic_cast<AssetBrowserDirectory*>(this);
-				if (dir)
-					full_path = dir->GetDirectoryInfo()->file_path;
-			}
-			else
-			{
-				auto* asset = dynamic_cast<AssetBrowserAsset*>(this);
-				if (asset)
-				{
-					const AssetMetadata& metadata = asset->GetAssetInfo();
-					full_path = Project::GetActiveAssetDirectory() / metadata.FilePath;
-				}
-			}
-			
-			if (!full_path.empty())
-			{
-				m_panel->ShowInExplorer(full_path);
-			}
+		case ItemType::Directory:
+		{
+			auto* dir = static_cast<AssetBrowserDirectory*>(this);
+			full_path = dir->GetDirectoryInfo()->file_path;
+			break;
 		}
+		case ItemType::Asset:
+		{
+			auto* asset = static_cast<AssetBrowserAsset*>(this);
+			full_path = Project::GetActiveAssetDirectory() / asset->GetAssetInfo().FilePath;
+			break;
+		}
+		case ItemType::UnregisteredFile:
+		{
+			auto* unregistered = static_cast<AssetBrowserUnregisteredFile*>(this);
+			full_path = unregistered->GetFilePath();
+			break;
+		}
+		}
+
+		if (!full_path.empty())
+			m_panel->ShowInExplorer(full_path);
 	}
 
 	// AssetBrowserDirectory implementation
@@ -476,6 +472,29 @@ namespace ignis {
 		}
 	}
 
+	void AssetBrowserAsset::Unload()
+	{
+		AssetManager::RemoveAsset(m_asset_info.Handle);
+		AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
+
+		Log::Info("Unloaded asset from registry (file kept on disk): {}",
+			m_asset_info.FilePath);
+
+		if (m_panel)
+			m_panel->Refresh();
+	}
+
+	void AssetBrowserAsset::OnRenderContextMenu()
+	{
+		if (ImGui::MenuItem("Unload", nullptr))
+			Unload();
+
+		ImGui::Separator();
+
+		AssetBrowserItem::OnRenderContextMenu();
+	}
+
+
 	void AssetBrowserAsset::OnRenamed(const std::string& new_name)
 	{
 		if (new_name == m_file_name)
@@ -501,6 +520,162 @@ namespace ignis {
 		{
 			Log::Error("Failed to rename asset: {}", e.what());
 		}
+	}
+
+	AssetBrowserUnregisteredFile::AssetBrowserUnregisteredFile(const std::filesystem::path& file_path)
+		: AssetBrowserItem(ItemType::UnregisteredFile, AssetHandle(), file_path.filename().string())
+		, m_file_path(file_path)
+	{
+	}
+
+	void AssetBrowserUnregisteredFile::OnActivate()
+	{
+		if (!std::filesystem::exists(m_file_path))
+		{
+			Log::Error("File does not exist: {}", m_file_path.string());
+			return;
+		}
+
+#ifdef __APPLE__
+		std::string command = "open \"" + m_file_path.string() + "\"";
+		system(command.c_str());
+#elif _WIN32
+		std::string command = "start \"\" \"" + m_file_path.string() + "\"";
+		system(command.c_str());
+#else
+		std::string command = "xdg-open \"" + m_file_path.string() + "\"";
+		system(command.c_str());
+#endif
+
+		Log::Info("Opened unregistered file: {}", m_file_path.string());
+	}
+
+	void AssetBrowserUnregisteredFile::Delete()
+	{
+		if (!std::filesystem::exists(m_file_path))
+		{
+			Log::Error("File does not exist: {}", m_file_path.string());
+			return;
+		}
+
+		try
+		{
+			bool deleted_successfully = false;
+
+#ifdef __APPLE__
+			std::string command = "osascript -e 'tell application \"Finder\" to delete POSIX file \"" + m_file_path.string() + "\"'";
+			int result = system(command.c_str());
+			if (result == 0)
+			{
+				Log::Info("Moved file to Trash: {}", m_file_path.string());
+				deleted_successfully = true;
+			}
+			else
+			{
+				Log::Error("Failed to move file to Trash.");
+			}
+#elif _WIN32
+			std::string path_str = m_file_path.string();
+			std::vector<char> double_null_path(path_str.begin(), path_str.end());
+			double_null_path.push_back('\0');
+			double_null_path.push_back('\0');
+
+			SHFILEOPSTRUCTA file_op = {};
+			file_op.wFunc = FO_DELETE;
+			file_op.pFrom = double_null_path.data();
+			file_op.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+
+			int result = SHFileOperationA(&file_op);
+			if (result == 0 && !file_op.fAnyOperationsAborted)
+			{
+				Log::Info("Moved file to Recycle Bin: {}", m_file_path.string());
+				deleted_successfully = true;
+			}
+			else
+			{
+				Log::Error("Failed to move file to Recycle Bin. Error code: {}", result);
+			}
+#else
+			std::string command = "gio trash \"" + m_file_path.string() + "\" 2>/dev/null";
+			int result = system(command.c_str());
+			if (result == 0)
+			{
+				Log::Info("Moved file to trash: {}", m_file_path.string());
+				deleted_successfully = true;
+			}
+			else
+			{
+				command = "trash-put \"" + m_file_path.string() + "\" 2>/dev/null";
+				result = system(command.c_str());
+				if (result == 0)
+				{
+					Log::Info("Moved file to trash: {}", m_file_path.string());
+					deleted_successfully = true;
+				}
+				else
+				{
+					Log::Error("Cannot delete file: trash functionality not available. Install 'gio' or 'trash-cli'.");
+				}
+			}
+#endif
+
+			// No registry interaction needed - this file was never registered
+			if (deleted_successfully && m_panel)
+				m_panel->Refresh();
+		}
+		catch (const std::exception& e)
+		{
+			Log::Error("Failed to delete file: {}", e.what());
+		}
+	}
+
+	void AssetBrowserUnregisteredFile::Import()
+	{
+		AssetHandle handle = AssetManager::ImportAsset(m_file_path);
+		if (handle.IsValid())
+		{
+			AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
+			Log::Info("Imported asset: {}", m_file_path.string());
+
+			if (m_panel)
+				m_panel->Refresh();
+		}
+		else
+		{
+			Log::Warn("Could not import file (unsupported type?): {}", m_file_path.string());
+		}
+	}
+
+	void AssetBrowserUnregisteredFile::OnRenamed(const std::string& new_name)
+	{
+		if (new_name == m_file_name)
+			return;
+
+		std::filesystem::path old_path = m_file_path;
+		std::filesystem::path new_path = old_path.parent_path() / new_name;
+
+		try
+		{
+			std::filesystem::rename(old_path, new_path);
+			m_file_path = new_path;
+			m_file_name = new_name;
+			Log::Info("Renamed file: {} -> {}", old_path.string(), new_path.string());
+		}
+		catch (const std::exception& e)
+		{
+			Log::Error("Failed to rename file: {}", e.what());
+		}
+	}
+
+	void AssetBrowserUnregisteredFile::OnRenderContextMenu()
+	{
+		if (ImGui::MenuItem("Import"))
+			Import();
+
+		ImGui::Separator();
+
+		// Base: Rename, Delete, Show in Explorer
+		AssetBrowserItem::OnRenderContextMenu();
 	}
 
 } // namespace ignis
