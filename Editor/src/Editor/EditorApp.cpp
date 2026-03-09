@@ -9,6 +9,7 @@
 #include "Editor/Panels/EngineStatsPanel.h"
 #include "Editor/Panels/PhysicsDebugPanel.h"
 #include "Editor/Panels/ViewportPanel.h"
+#include "Editor/Panels/ControlPanel.h"
 #include "Editor/Core/EditorConsoleSink.h"
 #include "Editor/EditorSceneLayer.h"
 
@@ -82,14 +83,18 @@ EditorApp::EditorApp()
 	m_scene_layer = scene_layer.get();
 	PushLayer(std::move(scene_layer));
 	
-	// Add Viewport panel (center area) - needs renderer and scene layer for Play/Stop toolbar
+	// Add Viewport panel (center area)
 	m_viewport_panel = panel_manager.AddPanel<ViewportPanel>("Viewport", "Viewport", true, &GetRenderer(), m_scene_layer);
+	
+	// Add Control Panel (bottom-right area)
+	m_control_panel = panel_manager.AddPanel<ControlPanel>("ControlPanel", "Control Panel", true, m_scene_layer);
 	
 	// Add some test messages to the console
 	console_panel->AddMessage(ConsoleMessageLevel::Info, "Ignis Editor initialized");
 	console_panel->AddMessage(ConsoleMessageLevel::Info, "Console panel ready");
 	console_panel->AddMessage(ConsoleMessageLevel::Info, "Properties panel ready");
 	console_panel->AddMessage(ConsoleMessageLevel::Info, "Viewport panel ready");
+	console_panel->AddMessage(ConsoleMessageLevel::Info, "Control panel ready");
 	
 	Log::CoreInfo("Editor panels registered");
 }

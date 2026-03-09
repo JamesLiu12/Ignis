@@ -28,8 +28,6 @@ namespace ignis {
 		bool IsPointInViewport(float x, float y) const;
 
 	private:
-		void RenderToolbar();  // Render Play/Stop toolbar overlay
-
 		Renderer* m_renderer;
 		EditorSceneLayer* m_editor_scene_layer = nullptr;  // For accessing scene state and calling Play/Stop
 		ImVec2 m_viewport_size;
