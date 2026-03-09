@@ -256,6 +256,62 @@ namespace ignis
 			entity_data["AudioListener"] = listener_data;
 		}
 
+		if (entity.HasComponent<RigidBodyComponent>())
+		{
+			const auto& rb = entity.GetComponent<RigidBodyComponent>();
+			ordered_json rb_data;
+			rb_data["BodyType"] = static_cast<int>(rb.body_type);
+			rb_data["Mass"] = rb.mass;
+			rb_data["LinearDrag"] = rb.linear_drag;
+			rb_data["AngularDrag"] = rb.angular_drag;
+			rb_data["UseGravity"] = rb.use_gravity;
+			rb_data["IsKinematic"] = rb.is_kinematic;
+			rb_data["LockPositionX"] = rb.lock_position_x;
+			rb_data["LockPositionY"] = rb.lock_position_y;
+			rb_data["LockPositionZ"] = rb.lock_position_z;
+			rb_data["LockRotationX"] = rb.lock_rotation_x;
+			rb_data["LockRotationY"] = rb.lock_rotation_y;
+			rb_data["LockRotationZ"] = rb.lock_rotation_z;
+			entity_data["RigidBody"] = rb_data;
+		}
+
+		if (entity.HasComponent<BoxColliderComponent>())
+		{
+			const auto& box = entity.GetComponent<BoxColliderComponent>();
+			ordered_json box_data;
+			box_data["HalfSize"] = SerializeVec3(box.half_size);
+			box_data["Offset"] = SerializeVec3(box.offset);
+			box_data["Friction"] = box.material.friction;
+			box_data["Restitution"] = box.material.restitution;
+			box_data["IsTrigger"] = box.is_trigger;
+			entity_data["BoxCollider"] = box_data;
+		}
+
+		if (entity.HasComponent<SphereColliderComponent>())
+		{
+			const auto& sphere = entity.GetComponent<SphereColliderComponent>();
+			ordered_json sphere_data;
+			sphere_data["Radius"] = sphere.radius;
+			sphere_data["Offset"] = SerializeVec3(sphere.offset);
+			sphere_data["Friction"] = sphere.material.friction;
+			sphere_data["Restitution"] = sphere.material.restitution;
+			sphere_data["IsTrigger"] = sphere.is_trigger;
+			entity_data["SphereCollider"] = sphere_data;
+		}
+
+		if (entity.HasComponent<CapsuleColliderComponent>())
+		{
+			const auto& capsule = entity.GetComponent<CapsuleColliderComponent>();
+			ordered_json capsule_data;
+			capsule_data["Radius"] = capsule.radius;
+			capsule_data["HalfHeight"] = capsule.half_height;
+			capsule_data["Offset"] = SerializeVec3(capsule.offset);
+			capsule_data["Friction"] = capsule.material.friction;
+			capsule_data["Restitution"] = capsule.material.restitution;
+			capsule_data["IsTrigger"] = capsule.is_trigger;
+			entity_data["CapsuleCollider"] = capsule_data;
+		}
+
 		if (entity.HasComponent<RectTransformComponent>())
 		{
 			const auto& rect = entity.GetComponent<RectTransformComponent>();
@@ -538,6 +594,58 @@ namespace ignis
 			const auto& listener_data = entity_data["AudioListener"];
 			auto& listener = entity.AddComponent<AudioListenerComponent>();
 			listener.Primary = listener_data.value("Primary", true);
+		}
+
+		if (entity_data.contains("RigidBody"))
+		{
+			const auto& rb_data = entity_data["RigidBody"];
+			auto& rb = entity.AddComponent<RigidBodyComponent>();
+			rb.body_type = static_cast<BodyType>(rb_data.value("BodyType", 1));
+			rb.mass = rb_data.value("Mass", 1.0f);
+			rb.linear_drag = rb_data.value("LinearDrag", 0.0f);
+			rb.angular_drag = rb_data.value("AngularDrag", 0.05f);
+			rb.use_gravity = rb_data.value("UseGravity", true);
+			rb.is_kinematic = rb_data.value("IsKinematic", false);
+			rb.lock_position_x = rb_data.value("LockPositionX", false);
+			rb.lock_position_y = rb_data.value("LockPositionY", false);
+			rb.lock_position_z = rb_data.value("LockPositionZ", false);
+			rb.lock_rotation_x = rb_data.value("LockRotationX", false);
+			rb.lock_rotation_y = rb_data.value("LockRotationY", false);
+			rb.lock_rotation_z = rb_data.value("LockRotationZ", false);
+		}
+
+		if (entity_data.contains("BoxCollider"))
+		{
+			const auto& box_data = entity_data["BoxCollider"];
+			auto& box = entity.AddComponent<BoxColliderComponent>();
+			box.half_size = DeserializeVec3(box_data["HalfSize"]);
+			box.offset = DeserializeVec3(box_data["Offset"]);
+			box.material.friction = box_data.value("Friction", 0.5f);
+			box.material.restitution = box_data.value("Restitution", 0.3f);
+			box.is_trigger = box_data.value("IsTrigger", false);
+		}
+
+		if (entity_data.contains("SphereCollider"))
+		{
+			const auto& sphere_data = entity_data["SphereCollider"];
+			auto& sphere = entity.AddComponent<SphereColliderComponent>();
+			sphere.radius = sphere_data.value("Radius", 0.5f);
+			sphere.offset = DeserializeVec3(sphere_data["Offset"]);
+			sphere.material.friction = sphere_data.value("Friction", 0.5f);
+			sphere.material.restitution = sphere_data.value("Restitution", 0.3f);
+			sphere.is_trigger = sphere_data.value("IsTrigger", false);
+		}
+
+		if (entity_data.contains("CapsuleCollider"))
+		{
+			const auto& capsule_data = entity_data["CapsuleCollider"];
+			auto& capsule = entity.AddComponent<CapsuleColliderComponent>();
+			capsule.radius = capsule_data.value("Radius", 0.5f);
+			capsule.half_height = capsule_data.value("HalfHeight", 0.5f);
+			capsule.offset = DeserializeVec3(capsule_data["Offset"]);
+			capsule.material.friction = capsule_data.value("Friction", 0.5f);
+			capsule.material.restitution = capsule_data.value("Restitution", 0.3f);
+			capsule.is_trigger = capsule_data.value("IsTrigger", false);
 		}
 
 		if (entity_data.contains("RectTransform"))

@@ -457,6 +457,10 @@ namespace ignis
 		CopyComponent<ProgressBarComponent>(target->m_registry, m_registry, entt_map);
 		CopyComponent<AudioSourceComponent>(target->m_registry, m_registry, entt_map);
 		CopyComponent<AudioListenerComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<RigidBodyComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<BoxColliderComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<SphereColliderComponent>(target->m_registry, m_registry, entt_map);
+		CopyComponent<CapsuleColliderComponent>(target->m_registry, m_registry, entt_map);
 		
 		// Step 3: Deep copy camera instances (avoid shared camera between scenes)
 		auto cameras = m_registry.view<CameraComponent>();

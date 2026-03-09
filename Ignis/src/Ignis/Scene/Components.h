@@ -3,6 +3,7 @@
 #include "SceneCamera.h"
 #include "Ignis/Core/UUID.h"
 #include "Ignis/Renderer/MaterialData.h"
+#include "Ignis/Physics/PhysicsTypes.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -10,6 +11,9 @@
 
 namespace ignis
 {
+	// Forward declarations
+	class PhysicsBody;
+
 	struct Component
 	{
 		virtual ~Component() = 0;
@@ -174,5 +178,71 @@ namespace ignis
 
 		AudioListenerComponent() = default;
 		AudioListenerComponent(const AudioListenerComponent&) = default;
+	};
+
+	// ============================================================================
+	// Physics Components
+	// ============================================================================
+
+	struct ColliderMaterial
+	{
+		float friction = 0.5f;
+		float restitution = 0.3f;
+	};
+
+	struct RigidBodyComponent : Component
+	{
+		BodyType body_type = BodyType::Dynamic;
+		float mass = 1.0f;
+		float linear_drag = 0.0f;
+		float angular_drag = 0.05f;
+		bool use_gravity = true;
+		bool is_kinematic = false;
+
+		bool lock_position_x = false;
+		bool lock_position_y = false;
+		bool lock_position_z = false;
+		bool lock_rotation_x = false;
+		bool lock_rotation_y = false;
+		bool lock_rotation_z = false;
+
+		std::shared_ptr<PhysicsBody> runtime_body;
+
+		RigidBodyComponent() = default;
+		RigidBodyComponent(const RigidBodyComponent&) = default;
+	};
+
+	struct BoxColliderComponent : Component
+	{
+		glm::vec3 half_size = glm::vec3(0.5f);
+		glm::vec3 offset = glm::vec3(0.0f);
+		ColliderMaterial material;
+		bool is_trigger = false;
+
+		BoxColliderComponent() = default;
+		BoxColliderComponent(const BoxColliderComponent&) = default;
+	};
+
+	struct SphereColliderComponent : Component
+	{
+		float radius = 0.5f;
+		glm::vec3 offset = glm::vec3(0.0f);
+		ColliderMaterial material;
+		bool is_trigger = false;
+
+		SphereColliderComponent() = default;
+		SphereColliderComponent(const SphereColliderComponent&) = default;
+	};
+
+	struct CapsuleColliderComponent : Component
+	{
+		float radius = 0.5f;
+		float half_height = 0.5f;
+		glm::vec3 offset = glm::vec3(0.0f);
+		ColliderMaterial material;
+		bool is_trigger = false;
+
+		CapsuleColliderComponent() = default;
+		CapsuleColliderComponent(const CapsuleColliderComponent&) = default;
 	};
 }

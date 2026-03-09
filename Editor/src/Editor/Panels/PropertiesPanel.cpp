@@ -181,6 +181,34 @@ namespace ignis {
 					RenderAudioListenerComponent(listener);
 				}
 				
+				// Render RigidBody Component
+				if (entity->HasComponent<RigidBodyComponent>())
+				{
+					auto& rb = entity->GetComponent<RigidBodyComponent>();
+					RenderRigidBodyComponent(rb);
+				}
+				
+				// Render BoxCollider Component
+				if (entity->HasComponent<BoxColliderComponent>())
+				{
+					auto& box = entity->GetComponent<BoxColliderComponent>();
+					RenderBoxColliderComponent(box);
+				}
+				
+				// Render SphereCollider Component
+				if (entity->HasComponent<SphereColliderComponent>())
+				{
+					auto& sphere = entity->GetComponent<SphereColliderComponent>();
+					RenderSphereColliderComponent(sphere);
+				}
+				
+				// Render CapsuleCollider Component
+				if (entity->HasComponent<CapsuleColliderComponent>())
+				{
+					auto& capsule = entity->GetComponent<CapsuleColliderComponent>();
+					RenderCapsuleColliderComponent(capsule);
+				}
+				
 				// Add Component button at bottom
 				ImGui::Separator();
 				ImGui::Spacing();
@@ -1497,6 +1525,167 @@ namespace ignis {
 		ImGui::PopID();
 	}
 
+	void PropertiesPanel::RenderRigidBodyComponent(RigidBodyComponent& rb)
+	{
+		ImGui::PushID("RigidBodyComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Rigid Body", flags);
+		
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<RigidBodyComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			const char* body_types[] = { "Static", "Dynamic", "Kinematic" };
+			int current_type = static_cast<int>(rb.body_type);
+			if (ImGui::Combo("Body Type", &current_type, body_types, 3))
+			{
+				rb.body_type = static_cast<BodyType>(current_type);
+			}
+			
+			if (rb.body_type == BodyType::Dynamic)
+			{
+				ImGui::DragFloat("Mass", &rb.mass, 0.1f, 0.01f, FLT_MAX);
+			}
+			
+			ImGui::DragFloat("Linear Drag", &rb.linear_drag, 0.01f, 0.0f, FLT_MAX);
+			ImGui::DragFloat("Angular Drag", &rb.angular_drag, 0.01f, 0.0f, FLT_MAX);
+			
+			ImGui::Checkbox("Use Gravity", &rb.use_gravity);
+			ImGui::Checkbox("Is Kinematic", &rb.is_kinematic);
+			
+			ImGui::Separator();
+			ImGui::Text("Constraints:");
+			
+			ImGui::Checkbox("Lock Position X", &rb.lock_position_x);
+			ImGui::Checkbox("Lock Position Y", &rb.lock_position_y);
+			ImGui::Checkbox("Lock Position Z", &rb.lock_position_z);
+			
+			ImGui::Checkbox("Lock Rotation X", &rb.lock_rotation_x);
+			ImGui::Checkbox("Lock Rotation Y", &rb.lock_rotation_y);
+			ImGui::Checkbox("Lock Rotation Z", &rb.lock_rotation_z);
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
+	}
+
+	void PropertiesPanel::RenderBoxColliderComponent(BoxColliderComponent& box)
+	{
+		ImGui::PushID("BoxColliderComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Box Collider", flags);
+		
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<BoxColliderComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			ImGui::DragFloat3("Half Size", &box.half_size.x, 0.1f, 0.01f, FLT_MAX);
+			ImGui::DragFloat3("Offset", &box.offset.x, 0.1f);
+			
+			ImGui::Separator();
+			ImGui::Text("Material:");
+			ImGui::DragFloat("Friction", &box.material.friction, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Restitution", &box.material.restitution, 0.01f, 0.0f, 1.0f);
+			
+			ImGui::Separator();
+			ImGui::Checkbox("Is Trigger", &box.is_trigger);
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("Trigger volumes don't cause physical collision, only callbacks");
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
+	}
+
+	void PropertiesPanel::RenderSphereColliderComponent(SphereColliderComponent& sphere)
+	{
+		ImGui::PushID("SphereColliderComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Sphere Collider", flags);
+		
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<SphereColliderComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			ImGui::DragFloat("Radius", &sphere.radius, 0.1f, 0.01f, FLT_MAX);
+			ImGui::DragFloat3("Offset", &sphere.offset.x, 0.1f);
+			
+			ImGui::Separator();
+			ImGui::Text("Material:");
+			ImGui::DragFloat("Friction", &sphere.material.friction, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Restitution", &sphere.material.restitution, 0.01f, 0.0f, 1.0f);
+			
+			ImGui::Separator();
+			ImGui::Checkbox("Is Trigger", &sphere.is_trigger);
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
+	}
+
+	void PropertiesPanel::RenderCapsuleColliderComponent(CapsuleColliderComponent& capsule)
+	{
+		ImGui::PushID("CapsuleColliderComponent");
+		
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		bool open = ImGui::CollapsingHeader("Capsule Collider", flags);
+		
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
+		if (ImGui::Button("X", ImVec2(20, 20)))
+		{
+			if (auto entity = m_selected_entity.lock())
+			{
+				entity->RemoveComponent<CapsuleColliderComponent>();
+			}
+		}
+		
+		if (open)
+		{
+			ImGui::DragFloat("Radius", &capsule.radius, 0.1f, 0.01f, FLT_MAX);
+			ImGui::DragFloat("Half Height", &capsule.half_height, 0.1f, 0.01f, FLT_MAX);
+			ImGui::DragFloat3("Offset", &capsule.offset.x, 0.1f);
+			
+			ImGui::Separator();
+			ImGui::Text("Material:");
+			ImGui::DragFloat("Friction", &capsule.material.friction, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Restitution", &capsule.material.restitution, 0.01f, 0.0f, 1.0f);
+			
+			ImGui::Separator();
+			ImGui::Checkbox("Is Trigger", &capsule.is_trigger);
+			
+			ImGui::Spacing();
+		}
+		
+		ImGui::PopID();
+	}
+
 	void PropertiesPanel::RenderTextureMapSlot(const char* label, AssetHandle& texture_handle, MeshComponent& mesh_component, uint32_t slot_index, MaterialType type)
 	{
 		ImGui::PushID(label);
@@ -1660,6 +1849,15 @@ namespace ignis {
 		DrawAddComponentMenuItemImpl<UITextComponent>(entity, "  UI Text");
 		DrawAddComponentMenuItemImpl<ButtonComponent>(entity, "  Button");
 		DrawAddComponentMenuItemImpl<ProgressBarComponent>(entity, "  Progress Bar");
+		
+		ImGui::Separator();
+		
+		// Physics Components
+		ImGui::Text("Physics:");
+		DrawAddComponentMenuItemImpl<RigidBodyComponent>(entity, "  Rigid Body");
+		DrawAddComponentMenuItemImpl<BoxColliderComponent>(entity, "  Box Collider");
+		DrawAddComponentMenuItemImpl<SphereColliderComponent>(entity, "  Sphere Collider");
+		DrawAddComponentMenuItemImpl<CapsuleColliderComponent>(entity, "  Capsule Collider");
 		
 		ImGui::Separator();
 		
