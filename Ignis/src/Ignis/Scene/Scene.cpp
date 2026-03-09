@@ -351,10 +351,27 @@ namespace ignis
 				script.GetBehaviour().SetEntity(entity);
 				script.GetBehaviour().OnCreate();
 			});
+
+		// Initialize physics world
+		m_physics_world = std::make_unique<PhysicsWorld>();
+		m_physics_world->Init();
+		
+		// Create physics bodies for all entities with RigidBodyComponent
+		CreatePhysicsBodies();
 	}
 
 	void Scene::OnRuntimeUpdate(float dt)
 	{
+		// Sync entity transforms to physics (for kinematic bodies)
+		SyncTransformsToPhysics();
+		
+		// Step physics simulation
+		if (m_physics_world)
+			m_physics_world->Step(dt);
+		
+		// Sync physics transforms back to entities (for dynamic bodies)
+		SyncTransformsFromPhysics();
+
 		auto scripts = m_registry.group<ScriptComponent>(entt::get<IDComponent>);
 
 		scripts.each([&](entt::entity entity_handle, ScriptComponent& script_component, IDComponent& id_component)
@@ -382,6 +399,21 @@ namespace ignis
 
 	void Scene::OnRuntimeStop()
 	{
+		// Clear runtime_body pointers from components BEFORE shutting down physics
+		auto rb_view = m_registry.view<RigidBodyComponent>();
+		for (auto entity : rb_view)
+		{
+			auto& rb = rb_view.get<RigidBodyComponent>(entity);
+			rb.runtime_body.reset();
+		}
+		
+		// Cleanup physics
+		if (m_physics_world)
+		{
+			m_physics_world->Shutdown();
+			m_physics_world.reset();
+		}
+
 		if (m_audio_system)
 		{
 			m_audio_system->OnStop();
@@ -483,5 +515,105 @@ namespace ignis
 		auto it = m_runtime_scripts.find(entity_id);
 		if (it == m_runtime_scripts.end()) return nullptr;
 		return &it->second.GetBehaviour();
+	}
+
+	void Scene::CreatePhysicsBodies()
+	{
+		auto view = m_registry.view<RigidBodyComponent, TransformComponent>();
+		
+		for (auto entity_handle : view)
+		{
+			Entity entity(entity_handle, this);
+			auto& rb = view.get<RigidBodyComponent>(entity_handle);
+			auto& transform = view.get<TransformComponent>(entity_handle);
+			
+			// Build RigidBodyDesc from component data
+			RigidBodyDesc desc;
+			desc.type = rb.body_type;
+			desc.position = transform.Translation;
+			desc.rotation = glm::quat(glm::radians(transform.Rotation));
+			desc.mass = rb.mass;
+			
+			// Determine shape and size from collider components
+			bool has_collider = false;
+			
+			if (entity.HasComponent<BoxColliderComponent>())
+			{
+				auto& box = entity.GetComponent<BoxColliderComponent>();
+				desc.shape = ShapeType::Box;
+				desc.size = box.half_size * 2.0f;
+				desc.friction = box.material.friction;
+				desc.restitution = box.material.restitution;
+				has_collider = true;
+			}
+			else if (entity.HasComponent<SphereColliderComponent>())
+			{
+				auto& sphere = entity.GetComponent<SphereColliderComponent>();
+				desc.shape = ShapeType::Sphere;
+				desc.size = glm::vec3(sphere.radius * 2.0f);
+				desc.friction = sphere.material.friction;
+				desc.restitution = sphere.material.restitution;
+				has_collider = true;
+			}
+			else if (entity.HasComponent<CapsuleColliderComponent>())
+			{
+				auto& capsule = entity.GetComponent<CapsuleColliderComponent>();
+				desc.shape = ShapeType::Capsule;
+				desc.size = glm::vec3(capsule.radius * 2.0f, capsule.half_height * 2.0f, 0.0f);
+				desc.friction = capsule.material.friction;
+				desc.restitution = capsule.material.restitution;
+				has_collider = true;
+			}
+			
+			if (!has_collider)
+			{
+				if (entity.HasComponent<TagComponent>())
+				{
+					auto& tag = entity.GetComponent<TagComponent>();
+					Log::CoreWarn("Entity '{}' has RigidBody but no Collider component", tag.Tag);
+				}
+				continue;
+			}
+			
+			// Create physics body
+			rb.runtime_body = m_physics_world->CreateBody(desc);
+		}
+	}
+
+	void Scene::SyncTransformsToPhysics()
+	{
+		auto view = m_registry.view<RigidBodyComponent, TransformComponent>();
+		
+		for (auto entity_handle : view)
+		{
+			auto& rb = view.get<RigidBodyComponent>(entity_handle);
+			auto& transform = view.get<TransformComponent>(entity_handle);
+			
+			// Only sync kinematic bodies (dynamic bodies are controlled by physics)
+			if (rb.is_kinematic && rb.runtime_body)
+			{
+				rb.runtime_body->SetPosition(transform.Translation);
+				rb.runtime_body->SetRotation(glm::quat(glm::radians(transform.Rotation)));
+			}
+		}
+	}
+
+	void Scene::SyncTransformsFromPhysics()
+	{
+		auto view = m_registry.view<RigidBodyComponent, TransformComponent>();
+		
+		for (auto entity_handle : view)
+		{
+			auto& rb = view.get<RigidBodyComponent>(entity_handle);
+			auto& transform = view.get<TransformComponent>(entity_handle);
+			
+			// Only sync dynamic bodies (static/kinematic don't move via physics)
+			if (rb.body_type == BodyType::Dynamic && rb.runtime_body)
+			{
+				transform.Translation = rb.runtime_body->GetPosition();
+				glm::quat rotation = rb.runtime_body->GetRotation();
+				transform.Rotation = glm::degrees(glm::eulerAngles(rotation));
+			}
+		}
 	}
 }
