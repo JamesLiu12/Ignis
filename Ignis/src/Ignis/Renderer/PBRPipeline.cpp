@@ -17,21 +17,32 @@ namespace ignis
 	{
 		auto material = Material::Create(m_shader_library.Get("IgnisPBR"));
 
+		// --- Albedo ---
 		auto albedo = AssetManager::GetAsset<Texture2D>(data.AlbedoMap);
 		material->Set("material.albedoMap", albedo ? albedo : Renderer::GetWhiteTexture());
+		material->Set("material.albedoColor", data.AlbedoColor);
 
+		// --- Normal ---
 		auto normal = AssetManager::GetAsset<Texture2D>(data.NormalMap);
 		material->Set("material.normalMap", normal ? normal : Renderer::GetDefaultNormalTexture());
 
+		// --- Metalness ---
 		auto metalness = AssetManager::GetAsset<Texture2D>(data.MetalnessMap);
 		material->Set("material.metallicMap", metalness ? metalness : Renderer::GetBlackTexture());
+		material->Set("material.metallicValue", data.MetallicValue);
 
+		// --- Roughness ---
 		auto roughness = AssetManager::GetAsset<Texture2D>(data.RoughnessMap);
 		material->Set("material.roughnessMap", roughness ? roughness : Renderer::GetDefaultRoughnessTexture());
+		material->Set("material.roughnessValue", data.RoughnessValue);
 
+		// --- Emissive ---
 		auto emissive = AssetManager::GetAsset<Texture2D>(data.EmissiveMap);
 		material->Set("material.emissiveMap", emissive ? emissive : Renderer::GetBlackTexture());
+		material->Set("material.emissiveColor", data.EmissiveColor);
+		material->Set("material.emissiveIntensity", data.EmissiveIntensity);
 
+		// --- AO ---
 		auto ao = AssetManager::GetAsset<Texture2D>(data.AOMap);
 		material->Set("material.aoMap", ao ? ao : Renderer::GetWhiteTexture());
 

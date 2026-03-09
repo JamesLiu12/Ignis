@@ -50,6 +50,7 @@ namespace ignis
 	{
 		auto loadTexture = [&](const aiString& rel_path) -> AssetHandle
 		{
+			Log::Info("Loading texture: {}", rel_path.C_Str());
 			std::string tex_path = VFS::ConcatPath(model_dir, rel_path.C_Str());
 
 			// Normalize path separators: convert backslashes to forward slashes for cross-platform compatibility
@@ -64,19 +65,35 @@ namespace ignis
 			return AssetManager::ImportAsset(tex_path);
 		};
 
-		if (aimat->GetTextureCount(aiTextureType_DIFFUSE) > 0)
+		// Albedo Map
+		if (aimat->GetTextureCount(aiTextureType_BASE_COLOR) > 0)
+		{
+			aiString texture_path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_BASE_COLOR, 0, &texture_path))
+				out_material_data.AlbedoMap = loadTexture(texture_path);
+		}
+		else if (aimat->GetTextureCount(aiTextureType_DIFFUSE) > 0)
 		{
 			aiString texture_path;
 			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_DIFFUSE, 0, &texture_path))
+				out_material_data.AlbedoMap = loadTexture(texture_path);
+		}
+		// Albedo Color
+		{
+			aiColor4D base_color(1.0f, 1.0f, 1.0f, 1.0f);
+			if (AI_SUCCESS == aimat->Get(AI_MATKEY_BASE_COLOR, base_color))
 			{
-				AssetHandle texture_handle = loadTexture(texture_path);
-				if (texture_handle.IsValid())
-				{
-					out_material_data.AlbedoMap = texture_handle;
-				}
+				out_material_data.AlbedoColor = { base_color.r, base_color.g, base_color.b, base_color.a };
+			}
+			else
+			{
+				aiColor4D diffuse_color(1.0f, 1.0f, 1.0f, 1.0f);
+				if (AI_SUCCESS == aimat->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse_color))
+					out_material_data.AlbedoColor = { diffuse_color.r, diffuse_color.g, diffuse_color.b, diffuse_color.a };
 			}
 		}
 
+		// Normal map
 		if (aimat->GetTextureCount(aiTextureType_NORMALS) > 0)
 		{
 			aiString texture_path;
@@ -102,6 +119,7 @@ namespace ignis
 			}
 		}
 
+		// Metallic Map
 		if (aimat->GetTextureCount(aiTextureType_METALNESS) > 0)
 		{
 			aiString texture_path;
@@ -114,7 +132,14 @@ namespace ignis
 				}
 			}
 		}
+		// Metallic Value
+		{
+			float metallic_factor = out_material_data.MetalnessMap.IsValid() ? 1.0f : 0.0f;
+			aimat->Get(AI_MATKEY_METALLIC_FACTOR, metallic_factor);
+			out_material_data.MetallicValue = metallic_factor;
+		}
 
+		// Roughness Map
 		if (aimat->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0)
 		{
 			aiString texture_path;
@@ -128,6 +153,14 @@ namespace ignis
 			}
 		}
 
+		// Roughness Value
+		{
+			float roughness_factor = out_material_data.RoughnessMap.IsValid() ? 1.0f : 0.5f;
+			aimat->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness_factor);
+			out_material_data.RoughnessValue = roughness_factor;
+		}
+
+		// Emissive Map
 		if (aimat->GetTextureCount(aiTextureType_EMISSIVE) > 0)
 		{
 			aiString texture_path;
@@ -140,7 +173,24 @@ namespace ignis
 				}
 			}
 		}
+		// Emissive Color and Intensity
+		{
+			aiColor3D emissive_color(0.0f, 0.0f, 0.0f);
+			if (AI_SUCCESS == aimat->Get(AI_MATKEY_COLOR_EMISSIVE, emissive_color))
+			{
+				out_material_data.EmissiveColor = { emissive_color.r, emissive_color.g, emissive_color.b };
+			}
+			else if (out_material_data.EmissiveMap.IsValid())
+			{
+				out_material_data.EmissiveColor = glm::vec3(1.0f);
+			}
 
+			float emissive_intensity = 1.0f;
+			aimat->Get(AI_MATKEY_EMISSIVE_INTENSITY, emissive_intensity);
+			out_material_data.EmissiveIntensity = emissive_intensity;
+		}
+
+		// AO Map
 		if (aimat->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION) > 0)
 		{
 			aiString texture_path;
@@ -148,9 +198,17 @@ namespace ignis
 			{
 				AssetHandle texture_handle = loadTexture(texture_path);
 				if (texture_handle.IsValid())
-				{
 					out_material_data.AOMap = texture_handle;
-				}
+			}
+		}
+		else if (aimat->GetTextureCount(aiTextureType_LIGHTMAP) > 0)
+		{
+			aiString texture_path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_LIGHTMAP, 0, &texture_path))
+			{
+				AssetHandle texture_handle = loadTexture(texture_path);
+				if (texture_handle.IsValid())
+					out_material_data.AOMap = texture_handle;
 			}
 		}
 	}
@@ -168,13 +226,16 @@ namespace ignis
 		auto resolved = VFS::Resolve(metadata.FilePath);
 		std::filesystem::path model_path = resolved;
 
-		const aiScene* scene = importer.ReadFile(
-			model_path.string(),
-			aiProcess_Triangulate
+		std::string ext = model_path.extension().string();
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+		uint32_t flags = aiProcess_Triangulate
 			| aiProcess_GenSmoothNormals
-			| aiProcess_CalcTangentSpace
+			| aiProcess_CalcTangentSpace;
 
-		);
+		if (ext == ".gltf" || ext == ".glb")
+			flags |= aiProcess_PreTransformVertices;
+
+		const aiScene* scene = importer.ReadFile(model_path.string(), flags);
 
 		if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode)
 		{
