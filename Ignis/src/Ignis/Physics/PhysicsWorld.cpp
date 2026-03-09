@@ -162,4 +162,61 @@ namespace ignis {
 		return nullptr;
 	}
 
+	void PhysicsWorld::DetectCollisions()
+	{
+		if (!m_initialized || !m_dynamics_world || !m_dispatcher)
+			return;
+
+		std::unordered_set<CollisionPair, CollisionPairHash> current_collisions;
+		std::unordered_set<CollisionPair, CollisionPairHash> current_triggers;
+
+		// Iterate through all contact manifolds
+		int num_manifolds = m_dispatcher->getNumManifolds();
+		for (int i = 0; i < num_manifolds; i++)
+		{
+			btPersistentManifold* contact_manifold = m_dispatcher->getManifoldByIndexInternal(i);
+			
+			const btCollisionObject* obj_a = contact_manifold->getBody0();
+			const btCollisionObject* obj_b = contact_manifold->getBody1();
+			
+			// Check if there are actual contact points
+			int num_contacts = contact_manifold->getNumContacts();
+			if (num_contacts == 0)
+				continue;
+			
+			// Map Bullet bodies to entities
+			btRigidBody* body_a = btRigidBody::upcast(const_cast<btCollisionObject*>(obj_a));
+			btRigidBody* body_b = btRigidBody::upcast(const_cast<btCollisionObject*>(obj_b));
+			
+			if (!body_a || !body_b)
+				continue;
+			
+			auto it_a = m_body_to_entity.find(body_a);
+			auto it_b = m_body_to_entity.find(body_b);
+			
+			if (it_a == m_body_to_entity.end() || it_b == m_body_to_entity.end())
+				continue;
+			
+			CollisionPair pair{it_a->second, it_b->second};
+			
+			// Check if either collider is a trigger
+			bool is_trigger = (obj_a->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE) ||
+			                 (obj_b->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE);
+			
+			if (is_trigger)
+				current_triggers.insert(pair);
+			else
+				current_collisions.insert(pair);
+		}
+		
+		// Store for next frame comparison
+		m_active_collisions = current_collisions;
+		m_active_triggers = current_triggers;
+	}
+
+	void PhysicsWorld::SetEntityMapping(const std::unordered_map<btRigidBody*, entt::entity>& mapping)
+	{
+		m_body_to_entity = mapping;
+	}
+
 }

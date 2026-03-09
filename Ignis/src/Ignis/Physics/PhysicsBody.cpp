@@ -43,6 +43,12 @@ namespace ignis {
 			m_rigid_body->setActivationState(DISABLE_DEACTIVATION);
 		}
 
+		// Set trigger flag if needed
+		if (desc.is_trigger)
+		{
+			m_rigid_body->setCollisionFlags(m_rigid_body->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+		}
+
 		// Add to world
 		if (m_world)
 		{

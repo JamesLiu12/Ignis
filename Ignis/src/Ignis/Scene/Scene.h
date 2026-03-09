@@ -117,6 +117,17 @@ namespace ignis
 		void SyncTransformsToPhysics();
 		void SyncTransformsFromPhysics();
 
+		// Collision callback helpers
+		void ProcessCollisionCallbacks();
+		void InvokeCollisionEnter(Entity entity_a, Entity entity_b);
+		void InvokeCollisionExit(Entity entity_a, Entity entity_b);
+		void InvokeTriggerEnter(Entity entity_a, Entity entity_b);
+		void InvokeTriggerExit(Entity entity_a, Entity entity_b);
+
+		// Collision tracking
+		std::unordered_set<PhysicsWorld::CollisionPair, PhysicsWorld::CollisionPairHash> m_previous_collisions;
+		std::unordered_set<PhysicsWorld::CollisionPair, PhysicsWorld::CollisionPairHash> m_previous_triggers;
+
 		friend class Entity;
 		friend class SceneSerializer;
 		friend class SceneRenderer;

@@ -54,6 +54,9 @@ namespace ignis {
 		bool IsDynamic() const { return m_type == BodyType::Dynamic; }
 		bool IsKinematic() const { return m_type == BodyType::Kinematic; }
 
+		// Bullet body accessor (for collision detection)
+		btRigidBody* GetBulletBody() const { return m_rigid_body; }
+
 	private:
 		btRigidBody* m_rigid_body;
 		btCollisionShape* m_shape;

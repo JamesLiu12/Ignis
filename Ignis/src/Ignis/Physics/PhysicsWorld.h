@@ -3,8 +3,7 @@
 #include "Ignis/Core/API.h"
 #include "PhysicsTypes.h"
 #include "PhysicsBody.h"
-#include <memory>
-#include <vector>
+#include <entt.hpp>
 
 class btDefaultCollisionConfiguration;
 class btCollisionDispatcher;
@@ -73,6 +72,54 @@ namespace ignis {
 		 */
 		std::shared_ptr<PhysicsBody> GetBody(size_t index) const;
 
+		/**
+		 * @brief Detect collisions and update collision tracking
+		 */
+		void DetectCollisions();
+
+		/**
+		 * @brief Set entity mapping for collision callbacks
+		 */
+		void SetEntityMapping(const std::unordered_map<btRigidBody*, entt::entity>& mapping);
+
+		/**
+		 * @brief Collision pair structure
+		 */
+		struct CollisionPair
+		{
+			entt::entity entity_a;
+			entt::entity entity_b;
+			
+			bool operator==(const CollisionPair& other) const
+			{
+				return (entity_a == other.entity_a && entity_b == other.entity_b) ||
+					   (entity_a == other.entity_b && entity_b == other.entity_a);
+			}
+		};
+
+		/**
+		 * @brief Hash function for CollisionPair
+		 */
+		struct CollisionPairHash
+		{
+			size_t operator()(const CollisionPair& pair) const
+			{
+				size_t h1 = std::hash<uint32_t>{}(static_cast<uint32_t>(pair.entity_a));
+				size_t h2 = std::hash<uint32_t>{}(static_cast<uint32_t>(pair.entity_b));
+				return h1 ^ (h2 << 1);
+			}
+		};
+
+		/**
+		 * @brief Get active collisions
+		 */
+		const std::unordered_set<CollisionPair, CollisionPairHash>& GetActiveCollisions() const { return m_active_collisions; }
+
+		/**
+		 * @brief Get active triggers
+		 */
+		const std::unordered_set<CollisionPair, CollisionPairHash>& GetActiveTriggers() const { return m_active_triggers; }
+
 	private:
 		// Bullet Physics components
 		btDefaultCollisionConfiguration* m_collision_configuration;
@@ -85,6 +132,11 @@ namespace ignis {
 		std::vector<std::shared_ptr<PhysicsBody>> m_bodies;
 
 		bool m_initialized;
+
+		// Collision tracking
+		std::unordered_set<CollisionPair, CollisionPairHash> m_active_collisions;
+		std::unordered_set<CollisionPair, CollisionPairHash> m_active_triggers;
+		std::unordered_map<btRigidBody*, entt::entity> m_body_to_entity;
 	};
 
 }

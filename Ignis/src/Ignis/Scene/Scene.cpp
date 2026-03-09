@@ -367,10 +367,16 @@ namespace ignis
 		
 		// Step physics simulation
 		if (m_physics_world)
+		{
 			m_physics_world->Step(dt);
+			m_physics_world->DetectCollisions();
+		}
 		
 		// Sync physics transforms back to entities (for dynamic bodies)
 		SyncTransformsFromPhysics();
+		
+		// Process collision callbacks
+		ProcessCollisionCallbacks();
 
 		auto scripts = m_registry.group<ScriptComponent>(entt::get<IDComponent>);
 
@@ -399,6 +405,10 @@ namespace ignis
 
 	void Scene::OnRuntimeStop()
 	{
+		// Clear collision tracking
+		m_previous_collisions.clear();
+		m_previous_triggers.clear();
+		
 		// Clear runtime_body pointers from components BEFORE shutting down physics
 		auto rb_view = m_registry.view<RigidBodyComponent>();
 		for (auto entity : rb_view)
@@ -544,6 +554,7 @@ namespace ignis
 				desc.size = box.half_size * 2.0f;
 				desc.friction = box.material.friction;
 				desc.restitution = box.material.restitution;
+				desc.is_trigger = box.is_trigger;
 				has_collider = true;
 			}
 			else if (entity.HasComponent<SphereColliderComponent>())
@@ -553,6 +564,7 @@ namespace ignis
 				desc.size = glm::vec3(sphere.radius * 2.0f);
 				desc.friction = sphere.material.friction;
 				desc.restitution = sphere.material.restitution;
+				desc.is_trigger = sphere.is_trigger;
 				has_collider = true;
 			}
 			else if (entity.HasComponent<CapsuleColliderComponent>())
@@ -562,6 +574,7 @@ namespace ignis
 				desc.size = glm::vec3(capsule.radius * 2.0f, capsule.half_height * 2.0f, 0.0f);
 				desc.friction = capsule.material.friction;
 				desc.restitution = capsule.material.restitution;
+				desc.is_trigger = capsule.is_trigger;
 				has_collider = true;
 			}
 			
@@ -578,6 +591,18 @@ namespace ignis
 			// Create physics body
 			rb.runtime_body = m_physics_world->CreateBody(desc);
 		}
+		
+		// Build entity mapping for collision detection
+		std::unordered_map<btRigidBody*, entt::entity> body_to_entity;
+		for (auto entity_handle : view)
+		{
+			auto& rb = view.get<RigidBodyComponent>(entity_handle);
+			if (rb.runtime_body && rb.runtime_body->GetBulletBody())
+			{
+				body_to_entity[rb.runtime_body->GetBulletBody()] = entity_handle;
+			}
+		}
+		m_physics_world->SetEntityMapping(body_to_entity);
 	}
 
 	void Scene::SyncTransformsToPhysics()
@@ -614,6 +639,138 @@ namespace ignis
 				glm::quat rotation = rb.runtime_body->GetRotation();
 				transform.Rotation = glm::degrees(glm::eulerAngles(rotation));
 			}
+		}
+	}
+
+	void Scene::ProcessCollisionCallbacks()
+	{
+		if (!m_physics_world)
+			return;
+		
+		auto current_collisions = m_physics_world->GetActiveCollisions();
+		auto current_triggers = m_physics_world->GetActiveTriggers();
+		
+		// Detect new collisions (Enter events)
+		for (const auto& pair : current_collisions)
+		{
+			if (m_previous_collisions.find(pair) == m_previous_collisions.end())
+			{
+				Entity entity_a(pair.entity_a, this);
+				Entity entity_b(pair.entity_b, this);
+				InvokeCollisionEnter(entity_a, entity_b);
+			}
+		}
+		
+		// Detect ended collisions (Exit events)
+		for (const auto& pair : m_previous_collisions)
+		{
+			if (current_collisions.find(pair) == current_collisions.end())
+			{
+				Entity entity_a(pair.entity_a, this);
+				Entity entity_b(pair.entity_b, this);
+				InvokeCollisionExit(entity_a, entity_b);
+			}
+		}
+		
+		// Detect new triggers (Enter events)
+		for (const auto& pair : current_triggers)
+		{
+			if (m_previous_triggers.find(pair) == m_previous_triggers.end())
+			{
+				Entity entity_a(pair.entity_a, this);
+				Entity entity_b(pair.entity_b, this);
+				InvokeTriggerEnter(entity_a, entity_b);
+			}
+		}
+		
+		// Detect ended triggers (Exit events)
+		for (const auto& pair : m_previous_triggers)
+		{
+			if (current_triggers.find(pair) == current_triggers.end())
+			{
+				Entity entity_a(pair.entity_a, this);
+				Entity entity_b(pair.entity_b, this);
+				InvokeTriggerExit(entity_a, entity_b);
+			}
+		}
+		
+		m_previous_collisions = current_collisions;
+		m_previous_triggers = current_triggers;
+	}
+
+	void Scene::InvokeCollisionEnter(Entity entity_a, Entity entity_b)
+	{
+		// Call OnCollisionEnter for entity A's scripts
+		if (entity_a.HasComponent<ScriptComponent>())
+		{
+			auto* script = GetRuntimeScript(entity_a.GetID());
+			if (script)
+				script->OnCollisionEnter(entity_b);
+		}
+		
+		// Call OnCollisionEnter for entity B's scripts
+		if (entity_b.HasComponent<ScriptComponent>())
+		{
+			auto* script = GetRuntimeScript(entity_b.GetID());
+			if (script)
+				script->OnCollisionEnter(entity_a);
+		}
+	}
+
+	void Scene::InvokeCollisionExit(Entity entity_a, Entity entity_b)
+	{
+		// Call OnCollisionExit for entity A's scripts
+		if (entity_a.HasComponent<ScriptComponent>())
+		{
+			auto* script = GetRuntimeScript(entity_a.GetID());
+			if (script)
+				script->OnCollisionExit(entity_b);
+		}
+		
+		// Call OnCollisionExit for entity B's scripts
+		if (entity_b.HasComponent<ScriptComponent>())
+		{
+			auto* script = GetRuntimeScript(entity_b.GetID());
+			if (script)
+				script->OnCollisionExit(entity_a);
+		}
+	}
+
+	void Scene::InvokeTriggerEnter(Entity entity_a, Entity entity_b)
+	{
+		// Call OnTriggerEnter for entity A's scripts
+		if (entity_a.HasComponent<ScriptComponent>())
+		{
+			auto* script = GetRuntimeScript(entity_a.GetID());
+			if (script)
+				script->OnTriggerEnter(entity_b);
+		}
+		
+		// Call OnTriggerEnter for entity B's scripts
+		if (entity_b.HasComponent<ScriptComponent>())
+		{
+			auto* script = GetRuntimeScript(entity_b.GetID());
+			if (script)
+				script->OnTriggerEnter(entity_a);
+		}
+	}
+
+	void Scene::InvokeTriggerExit(Entity entity_a, Entity entity_b)
+	{
+		// Call OnTriggerExit for entity A's scripts
+		if (entity_a.HasComponent<ScriptComponent>())
+		{
+			auto* script = GetRuntimeScript(entity_a.GetID());
+			if (script)
+				script->OnTriggerExit(entity_b);
+		}
+		
+		// Call OnTriggerExit for entity B's scripts
+		if (entity_b.HasComponent<ScriptComponent>())
+		{
+			auto* script = GetRuntimeScript(entity_b.GetID());
+			if (script)
+				script->OnTriggerExit(entity_a);
 		}
 	}
 }
