@@ -58,64 +58,45 @@ namespace ignis {
 		auto scene_state = m_editor_scene_layer->GetSceneState();
 		bool is_edit_mode = (scene_state == EditorSceneLayer::SceneState::Edit);
 
-		// Center buttons
-		const float button_width = 80.0f;
-		const float button_height = 30.0f;
-		const float spacing = 10.0f;
-		const float total_width = button_width * 2 + spacing;
+		// Center button
+		const float button_width = 100.0f;
+		const float button_height = 35.0f;
 		
-		ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - total_width) * 0.5f);
+		ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - button_width) * 0.5f);
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 20.0f);
 
-		// Play button
-		if (is_edit_mode)
+		// Single toggle button - changes label and color based on state
+		const char* button_label = is_edit_mode ? "Play" : "Stop";
+		const char* tooltip_text = is_edit_mode ? "Enter Play Mode (Run Scripts)" : "Return to Edit Mode";
+		
+		ImVec4 button_color = is_edit_mode ? 
+			ImVec4(0.3f, 0.8f, 0.3f, 1.0f) :  // Green for Play
+			ImVec4(0.9f, 0.5f, 0.2f, 1.0f);   // Orange for Stop
+		
+		ImVec4 button_hover = is_edit_mode ?
+			ImVec4(0.4f, 0.9f, 0.4f, 1.0f) :
+			ImVec4(1.0f, 0.6f, 0.3f, 1.0f);
+		
+		ImVec4 button_active = is_edit_mode ?
+			ImVec4(0.2f, 0.7f, 0.2f, 1.0f) :
+			ImVec4(0.8f, 0.4f, 0.1f, 1.0f);
+		
+		ImGui::PushStyleColor(ImGuiCol_Button, button_color);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_hover);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, button_active);
+		
+		if (ImGui::Button(button_label, ImVec2(button_width, button_height)))
 		{
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.8f, 0.3f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.9f, 0.4f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
-			
-			if (ImGui::Button("Play", ImVec2(button_width, button_height)))
-			{
+			if (is_edit_mode)
 				m_editor_scene_layer->OnScenePlay();
-			}
-			
-			ImGui::PopStyleColor(3);
-			
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Enter Play Mode (Run Scripts)");
-		}
-		else
-		{
-			ImGui::BeginDisabled();
-			ImGui::Button("Play", ImVec2(button_width, button_height));
-			ImGui::EndDisabled();
-		}
-
-		ImGui::SameLine(0.0f, spacing);
-
-		// Stop button
-		if (!is_edit_mode)
-		{
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.9f, 0.5f, 0.2f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 0.6f, 0.3f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.8f, 0.4f, 0.1f, 1.0f));
-			
-			if (ImGui::Button("Stop", ImVec2(button_width, button_height)))
-			{
+			else
 				m_editor_scene_layer->OnSceneStop();
-			}
-			
-			ImGui::PopStyleColor(3);
-			
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Return to Edit Mode");
 		}
-		else
-		{
-			ImGui::BeginDisabled();
-			ImGui::Button("Stop", ImVec2(button_width, button_height));
-			ImGui::EndDisabled();
-		}
+		
+		ImGui::PopStyleColor(3);
+		
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("%s", tooltip_text);
 	}
 
 	void ControlPanel::OnEvent(EventBase& event)

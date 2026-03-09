@@ -12,6 +12,7 @@ class PropertiesPanel;
 class SceneHierarchyPanel;
 class ViewportPanel;
 class AssetBrowserPanel;
+class ControlPanel;
 
 class EditorApp : public Application
 {
@@ -37,6 +38,7 @@ private:
 	std::shared_ptr<SceneHierarchyPanel> m_scene_hierarchy_panel;
 	std::shared_ptr<ViewportPanel> m_viewport_panel;
 	std::shared_ptr<AssetBrowserPanel> m_asset_browser_panel;
+	std::shared_ptr<ControlPanel> m_control_panel;
 	
 	// Physics system for editor (with test scene)
 	std::unique_ptr<PhysicsWorld> m_physics_world;

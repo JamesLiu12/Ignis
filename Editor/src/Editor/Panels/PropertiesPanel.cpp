@@ -15,10 +15,11 @@ namespace ignis {
 		ImVec2 work_size = viewport->WorkSize;
 
 		float panel_width = 300.0f;
+		float console_height = 200.0f;
 		
-		// Position: right side, full height
+		// Position: right side, height reduced to make room for Control Panel below
 		ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x - panel_width, work_pos.y));
-		ImGui::SetNextWindowSize(ImVec2(panel_width, work_size.y));
+		ImGui::SetNextWindowSize(ImVec2(panel_width, work_size.y - console_height));
 
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse;
 
