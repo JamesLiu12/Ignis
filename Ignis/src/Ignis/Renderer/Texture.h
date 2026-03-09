@@ -4,6 +4,8 @@
 #include "TextureTypes.h"
 #include "Image.h"
 
+#include <glm/glm.hpp>
+
 namespace ignis
 {
 	class Texture : public Asset
@@ -25,6 +27,7 @@ namespace ignis
 	public:
 		static std::shared_ptr<Texture2D> Create(const TextureSpecs& specs, ImageFormat source_format, std::span<const std::byte> data);
 		static std::shared_ptr<Texture2D> Create(const TextureSpecs& specs);
+		static std::shared_ptr<Texture2D> Create(const glm::vec4 color);
 	};
 
 	class TextureCube : public Texture
