@@ -186,27 +186,27 @@ namespace ignis
 
 	struct ColliderMaterial
 	{
-		float friction = 0.5f;
-		float restitution = 0.3f;
+		float Friction = 0.5f;
+		float Restitution = 0.3f;
 	};
 
 	struct RigidBodyComponent : Component
 	{
-		BodyType body_type = BodyType::Dynamic;
-		float mass = 1.0f;
-		float linear_drag = 0.0f;
-		float angular_drag = 0.05f;
-		bool use_gravity = true;
-		bool is_kinematic = false;
+		BodyType BodyType = BodyType::Dynamic;
+		float Mass = 1.0f;
+		float LinearDrag = 0.0f;
+		float AngularDrag = 0.05f;
+		bool UseGravity = true;
+		bool IsKinematic = false;
 
-		bool lock_position_x = false;
-		bool lock_position_y = false;
-		bool lock_position_z = false;
-		bool lock_rotation_x = false;
-		bool lock_rotation_y = false;
-		bool lock_rotation_z = false;
+		bool LockPositionX = false;
+		bool LockPositionY = false;
+		bool LockPositionZ = false;
+		bool LockRotationX = false;
+		bool LockRotationY = false;
+		bool LockRotationZ = false;
 
-		std::shared_ptr<PhysicsBody> runtime_body;
+		std::shared_ptr<PhysicsBody> RuntimeBody;
 
 		RigidBodyComponent() = default;
 		RigidBodyComponent(const RigidBodyComponent&) = default;
@@ -214,10 +214,10 @@ namespace ignis
 
 	struct BoxColliderComponent : Component
 	{
-		glm::vec3 half_size = glm::vec3(0.5f);
-		glm::vec3 offset = glm::vec3(0.0f);
-		ColliderMaterial material;
-		bool is_trigger = false;
+		glm::vec3 HalfSize = glm::vec3(0.5f);
+		glm::vec3 Offset = glm::vec3(0.0f);
+		ColliderMaterial Material;
+		bool IsTrigger = false;
 
 		BoxColliderComponent() = default;
 		BoxColliderComponent(const BoxColliderComponent&) = default;
@@ -225,10 +225,10 @@ namespace ignis
 
 	struct SphereColliderComponent : Component
 	{
-		float radius = 0.5f;
-		glm::vec3 offset = glm::vec3(0.0f);
-		ColliderMaterial material;
-		bool is_trigger = false;
+		float Radius = 0.5f;
+		glm::vec3 Offset = glm::vec3(0.0f);
+		ColliderMaterial Material;
+		bool IsTrigger = false;
 
 		SphereColliderComponent() = default;
 		SphereColliderComponent(const SphereColliderComponent&) = default;
@@ -236,11 +236,11 @@ namespace ignis
 
 	struct CapsuleColliderComponent : Component
 	{
-		float radius = 0.5f;
-		float half_height = 0.5f;
-		glm::vec3 offset = glm::vec3(0.0f);
-		ColliderMaterial material;
-		bool is_trigger = false;
+		float Radius = 0.5f;
+		float HalfHeight = 0.5f;
+		glm::vec3 Offset = glm::vec3(0.0f);
+		ColliderMaterial Material;
+		bool IsTrigger = false;
 
 		CapsuleColliderComponent() = default;
 		CapsuleColliderComponent(const CapsuleColliderComponent&) = default;

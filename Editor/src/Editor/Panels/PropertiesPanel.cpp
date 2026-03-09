@@ -1544,33 +1544,33 @@ namespace ignis {
 		if (open)
 		{
 			const char* body_types[] = { "Static", "Dynamic", "Kinematic" };
-			int current_type = static_cast<int>(rb.body_type);
+			int current_type = static_cast<int>(rb.BodyType);
 			if (ImGui::Combo("Body Type", &current_type, body_types, 3))
 			{
-				rb.body_type = static_cast<BodyType>(current_type);
+				rb.BodyType = static_cast<BodyType>(current_type);
 			}
 			
-			if (rb.body_type == BodyType::Dynamic)
+			if (rb.BodyType == BodyType::Dynamic)
 			{
-				ImGui::DragFloat("Mass", &rb.mass, 0.1f, 0.01f, FLT_MAX);
+				ImGui::DragFloat("Mass", &rb.Mass, 0.1f, 0.01f, FLT_MAX);
 			}
 			
-			ImGui::DragFloat("Linear Drag", &rb.linear_drag, 0.01f, 0.0f, FLT_MAX);
-			ImGui::DragFloat("Angular Drag", &rb.angular_drag, 0.01f, 0.0f, FLT_MAX);
+			ImGui::DragFloat("Linear Drag", &rb.LinearDrag, 0.01f, 0.0f, FLT_MAX);
+			ImGui::DragFloat("Angular Drag", &rb.AngularDrag, 0.01f, 0.0f, FLT_MAX);
 			
-			ImGui::Checkbox("Use Gravity", &rb.use_gravity);
-			ImGui::Checkbox("Is Kinematic", &rb.is_kinematic);
+			ImGui::Checkbox("Use Gravity", &rb.UseGravity);
+			ImGui::Checkbox("Is Kinematic", &rb.IsKinematic);
 			
 			ImGui::Separator();
 			ImGui::Text("Constraints:");
 			
-			ImGui::Checkbox("Lock Position X", &rb.lock_position_x);
-			ImGui::Checkbox("Lock Position Y", &rb.lock_position_y);
-			ImGui::Checkbox("Lock Position Z", &rb.lock_position_z);
+			ImGui::Checkbox("Lock Position X", &rb.LockPositionX);
+			ImGui::Checkbox("Lock Position Y", &rb.LockPositionY);
+			ImGui::Checkbox("Lock Position Z", &rb.LockPositionZ);
 			
-			ImGui::Checkbox("Lock Rotation X", &rb.lock_rotation_x);
-			ImGui::Checkbox("Lock Rotation Y", &rb.lock_rotation_y);
-			ImGui::Checkbox("Lock Rotation Z", &rb.lock_rotation_z);
+			ImGui::Checkbox("Lock Rotation X", &rb.LockRotationX);
+			ImGui::Checkbox("Lock Rotation Y", &rb.LockRotationY);
+			ImGui::Checkbox("Lock Rotation Z", &rb.LockRotationZ);
 			
 			ImGui::Spacing();
 		}
@@ -1596,16 +1596,16 @@ namespace ignis {
 		
 		if (open)
 		{
-			ImGui::DragFloat3("Half Size", &box.half_size.x, 0.1f, 0.01f, FLT_MAX);
-			ImGui::DragFloat3("Offset", &box.offset.x, 0.1f);
+			ImGui::DragFloat3("Half Size", &box.HalfSize.x, 0.1f, 0.01f, FLT_MAX);
+			ImGui::DragFloat3("Offset", &box.Offset.x, 0.1f);
 			
 			ImGui::Separator();
 			ImGui::Text("Material:");
-			ImGui::DragFloat("Friction", &box.material.friction, 0.01f, 0.0f, 1.0f);
-			ImGui::DragFloat("Restitution", &box.material.restitution, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Friction", &box.Material.Friction, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Restitution", &box.Material.Restitution, 0.01f, 0.0f, 1.0f);
 			
 			ImGui::Separator();
-			ImGui::Checkbox("Is Trigger", &box.is_trigger);
+			ImGui::Checkbox("Is Trigger", &box.IsTrigger);
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Trigger volumes don't cause physical collision, only callbacks");
 			
@@ -1633,16 +1633,16 @@ namespace ignis {
 		
 		if (open)
 		{
-			ImGui::DragFloat("Radius", &sphere.radius, 0.1f, 0.01f, FLT_MAX);
-			ImGui::DragFloat3("Offset", &sphere.offset.x, 0.1f);
+			ImGui::DragFloat("Radius", &sphere.Radius, 0.1f, 0.01f, FLT_MAX);
+			ImGui::DragFloat3("Offset", &sphere.Offset.x, 0.1f);
 			
 			ImGui::Separator();
 			ImGui::Text("Material:");
-			ImGui::DragFloat("Friction", &sphere.material.friction, 0.01f, 0.0f, 1.0f);
-			ImGui::DragFloat("Restitution", &sphere.material.restitution, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Friction", &sphere.Material.Friction, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Restitution", &sphere.Material.Restitution, 0.01f, 0.0f, 1.0f);
 			
 			ImGui::Separator();
-			ImGui::Checkbox("Is Trigger", &sphere.is_trigger);
+			ImGui::Checkbox("Is Trigger", &sphere.IsTrigger);
 			
 			ImGui::Spacing();
 		}
@@ -1668,17 +1668,17 @@ namespace ignis {
 		
 		if (open)
 		{
-			ImGui::DragFloat("Radius", &capsule.radius, 0.1f, 0.01f, FLT_MAX);
-			ImGui::DragFloat("Half Height", &capsule.half_height, 0.1f, 0.01f, FLT_MAX);
-			ImGui::DragFloat3("Offset", &capsule.offset.x, 0.1f);
+			ImGui::DragFloat("Radius", &capsule.Radius, 0.1f, 0.01f, FLT_MAX);
+			ImGui::DragFloat("Half Height", &capsule.HalfHeight, 0.1f, 0.01f, FLT_MAX);
+			ImGui::DragFloat3("Offset", &capsule.Offset.x, 0.1f);
 			
 			ImGui::Separator();
 			ImGui::Text("Material:");
-			ImGui::DragFloat("Friction", &capsule.material.friction, 0.01f, 0.0f, 1.0f);
-			ImGui::DragFloat("Restitution", &capsule.material.restitution, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Friction", &capsule.Material.Friction, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Restitution", &capsule.Material.Restitution, 0.01f, 0.0f, 1.0f);
 			
 			ImGui::Separator();
-			ImGui::Checkbox("Is Trigger", &capsule.is_trigger);
+			ImGui::Checkbox("Is Trigger", &capsule.IsTrigger);
 			
 			ImGui::Spacing();
 		}

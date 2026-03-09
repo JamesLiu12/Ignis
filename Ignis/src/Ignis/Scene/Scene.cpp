@@ -409,12 +409,12 @@ namespace ignis
 		m_previous_collisions.clear();
 		m_previous_triggers.clear();
 		
-		// Clear runtime_body pointers from components BEFORE shutting down physics
+		// Clear RuntimeBody pointers from components BEFORE shutting down physics
 		auto rb_view = m_registry.view<RigidBodyComponent>();
 		for (auto entity : rb_view)
 		{
 			auto& rb = rb_view.get<RigidBodyComponent>(entity);
-			rb.runtime_body.reset();
+			rb.RuntimeBody.reset();
 		}
 		
 		// Cleanup physics
@@ -539,10 +539,10 @@ namespace ignis
 			
 			// Build RigidBodyDesc from component data
 			RigidBodyDesc desc;
-			desc.type = rb.body_type;
+			desc.type = rb.BodyType;
 			desc.position = transform.Translation;
 			desc.rotation = glm::quat(glm::radians(transform.Rotation));
-			desc.mass = rb.mass;
+			desc.mass = rb.Mass;
 			
 			// Determine shape and size from collider components
 			bool has_collider = false;
@@ -551,30 +551,30 @@ namespace ignis
 			{
 				auto& box = entity.GetComponent<BoxColliderComponent>();
 				desc.shape = ShapeType::Box;
-				desc.size = box.half_size * 2.0f;
-				desc.friction = box.material.friction;
-				desc.restitution = box.material.restitution;
-				desc.is_trigger = box.is_trigger;
+				desc.size = box.HalfSize * 2.0f;
+				desc.friction = box.Material.Friction;
+				desc.restitution = box.Material.Restitution;
+				desc.is_trigger = box.IsTrigger;
 				has_collider = true;
 			}
 			else if (entity.HasComponent<SphereColliderComponent>())
 			{
 				auto& sphere = entity.GetComponent<SphereColliderComponent>();
 				desc.shape = ShapeType::Sphere;
-				desc.size = glm::vec3(sphere.radius * 2.0f);
-				desc.friction = sphere.material.friction;
-				desc.restitution = sphere.material.restitution;
-				desc.is_trigger = sphere.is_trigger;
+				desc.size = glm::vec3(sphere.Radius * 2.0f);
+				desc.friction = sphere.Material.Friction;
+				desc.restitution = sphere.Material.Restitution;
+				desc.is_trigger = sphere.IsTrigger;
 				has_collider = true;
 			}
 			else if (entity.HasComponent<CapsuleColliderComponent>())
 			{
 				auto& capsule = entity.GetComponent<CapsuleColliderComponent>();
 				desc.shape = ShapeType::Capsule;
-				desc.size = glm::vec3(capsule.radius * 2.0f, capsule.half_height * 2.0f, 0.0f);
-				desc.friction = capsule.material.friction;
-				desc.restitution = capsule.material.restitution;
-				desc.is_trigger = capsule.is_trigger;
+				desc.size = glm::vec3(capsule.Radius * 2.0f, capsule.HalfHeight * 2.0f, 0.0f);
+				desc.friction = capsule.Material.Friction;
+				desc.restitution = capsule.Material.Restitution;
+				desc.is_trigger = capsule.IsTrigger;
 				has_collider = true;
 			}
 			
@@ -589,7 +589,7 @@ namespace ignis
 			}
 			
 			// Create physics body
-			rb.runtime_body = m_physics_world->CreateBody(desc);
+			rb.RuntimeBody = m_physics_world->CreateBody(desc);
 		}
 		
 		// Build entity mapping for collision detection
@@ -597,9 +597,9 @@ namespace ignis
 		for (auto entity_handle : view)
 		{
 			auto& rb = view.get<RigidBodyComponent>(entity_handle);
-			if (rb.runtime_body && rb.runtime_body->GetBulletBody())
+			if (rb.RuntimeBody && rb.RuntimeBody->GetBulletBody())
 			{
-				body_to_entity[rb.runtime_body->GetBulletBody()] = entity_handle;
+				body_to_entity[rb.RuntimeBody->GetBulletBody()] = entity_handle;
 			}
 		}
 		m_physics_world->SetEntityMapping(body_to_entity);
@@ -615,10 +615,10 @@ namespace ignis
 			auto& transform = view.get<TransformComponent>(entity_handle);
 			
 			// Only sync kinematic bodies (dynamic bodies are controlled by physics)
-			if (rb.is_kinematic && rb.runtime_body)
+			if (rb.IsKinematic && rb.RuntimeBody)
 			{
-				rb.runtime_body->SetPosition(transform.Translation);
-				rb.runtime_body->SetRotation(glm::quat(glm::radians(transform.Rotation)));
+				rb.RuntimeBody->SetPosition(transform.Translation);
+				rb.RuntimeBody->SetRotation(glm::quat(glm::radians(transform.Rotation)));
 			}
 		}
 	}
@@ -633,10 +633,10 @@ namespace ignis
 			auto& transform = view.get<TransformComponent>(entity_handle);
 			
 			// Only sync dynamic bodies (static/kinematic don't move via physics)
-			if (rb.body_type == BodyType::Dynamic && rb.runtime_body)
+			if (rb.BodyType == BodyType::Dynamic && rb.RuntimeBody)
 			{
-				transform.Translation = rb.runtime_body->GetPosition();
-				glm::quat rotation = rb.runtime_body->GetRotation();
+				transform.Translation = rb.RuntimeBody->GetPosition();
+				glm::quat rotation = rb.RuntimeBody->GetRotation();
 				transform.Rotation = glm::degrees(glm::eulerAngles(rotation));
 			}
 		}
