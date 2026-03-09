@@ -56,6 +56,10 @@ namespace ignis {
 		void RenderProgressBarComponent(ProgressBarComponent& bar);
 		void RenderAudioSourceComponent(AudioSourceComponent& audio);
 		void RenderAudioListenerComponent(AudioListenerComponent& listener);
+		void RenderRigidBodyComponent(RigidBodyComponent& rb);
+		void RenderBoxColliderComponent(BoxColliderComponent& box);
+		void RenderSphereColliderComponent(SphereColliderComponent& sphere);
+		void RenderCapsuleColliderComponent(CapsuleColliderComponent& capsule);
 		
 		// Mesh editing UI
 		void RenderMeshEditor();

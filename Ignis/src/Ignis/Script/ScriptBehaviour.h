@@ -22,6 +22,12 @@ namespace ignis
 		virtual void OnPointerUp(int btn) {}
 		virtual void OnPointerClick(int btn) {}
 
+		// Physics collision events
+		virtual void OnCollisionEnter(Entity other) {}
+		virtual void OnCollisionExit(Entity other) {}
+		virtual void OnTriggerEnter(Entity other) {}
+		virtual void OnTriggerExit(Entity other) {}
+
 		void SetEntity(Entity e) { m_entity = e; }
 		Entity GetEntity() const { return m_entity; }
 		Scene* GetScene() const { return m_entity.GetScene(); }

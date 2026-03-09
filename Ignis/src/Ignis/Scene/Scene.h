@@ -5,6 +5,7 @@
 #include "Ignis/Renderer/Environment.h"
 #include "Ignis/Script/Script.h"
 #include "Ignis/Audio/AudioSystem.h"
+#include "Ignis/Physics/PhysicsWorld.h"
 
 #include <entt.hpp>
 #include <glm/glm.hpp>
@@ -98,6 +99,7 @@ namespace ignis
 
 		ScriptBehaviour* GetRuntimeScript(UUID entity_id);
 		AudioSystem* GetAudioSystem() { return m_audio_system.get(); }
+		PhysicsWorld* GetPhysicsWorld() { return m_physics_world.get(); }
 
 	private:
 		entt::registry m_registry;
@@ -108,6 +110,23 @@ namespace ignis
 		std::string m_name;
 		std::unordered_map<UUID, Script> m_runtime_scripts;
 		std::unique_ptr<AudioSystem> m_audio_system;
+		std::unique_ptr<PhysicsWorld> m_physics_world;
+
+		// Physics helper functions
+		void CreatePhysicsBodies();
+		void SyncTransformsToPhysics();
+		void SyncTransformsFromPhysics();
+
+		// Collision callback helpers
+		void ProcessCollisionCallbacks();
+		void InvokeCollisionEnter(Entity entity_a, Entity entity_b);
+		void InvokeCollisionExit(Entity entity_a, Entity entity_b);
+		void InvokeTriggerEnter(Entity entity_a, Entity entity_b);
+		void InvokeTriggerExit(Entity entity_a, Entity entity_b);
+
+		// Collision tracking
+		std::unordered_set<PhysicsWorld::CollisionPair, PhysicsWorld::CollisionPairHash> m_previous_collisions;
+		std::unordered_set<PhysicsWorld::CollisionPair, PhysicsWorld::CollisionPairHash> m_previous_triggers;
 
 		friend class Entity;
 		friend class SceneSerializer;
