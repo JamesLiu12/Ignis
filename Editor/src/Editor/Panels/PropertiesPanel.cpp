@@ -52,160 +52,160 @@ namespace ignis {
 				}
 			}
 			// Section 3: Show selected entity controls if no asset selected
-			else if (auto entity = m_selected_entity.lock())
+			else if (auto entity = m_selected_entity)
 			{
 				// Render entity name
-				if (entity->HasComponent<TagComponent>())
+				if (entity.HasComponent<TagComponent>())
 				{
-					auto& tag = entity->GetComponent<TagComponent>();
+					auto& tag = entity.GetComponent<TagComponent>();
 					ImGui::Text("Entity: %s", tag.Tag.c_str());
 					ImGui::Separator();
 				}
 				
 				// Render Transform Component
-				if (entity->HasComponent<TransformComponent>())
+				if (entity.HasComponent<TransformComponent>())
 				{
-					auto& transform = entity->GetComponent<TransformComponent>();
+					auto& transform = entity.GetComponent<TransformComponent>();
 					RenderTransformComponent(transform);
 				}
 				
 				// Render Camera Component
-				if (entity->HasComponent<CameraComponent>())
+				if (entity.HasComponent<CameraComponent>())
 				{
-					auto& camera = entity->GetComponent<CameraComponent>();
+					auto& camera = entity.GetComponent<CameraComponent>();
 					RenderCameraComponent(camera);
 				}
 				
 				// Render Directional Light Component
-				if (entity->HasComponent<DirectionalLightComponent>())
+				if (entity.HasComponent<DirectionalLightComponent>())
 				{
-					auto& light = entity->GetComponent<DirectionalLightComponent>();
+					auto& light = entity.GetComponent<DirectionalLightComponent>();
 					RenderDirectionalLightComponent(light);
 				}
 				
 				// Render Point Light Component
-				if (entity->HasComponent<PointLightComponent>())
+				if (entity.HasComponent<PointLightComponent>())
 				{
-					auto& light = entity->GetComponent<PointLightComponent>();
+					auto& light = entity.GetComponent<PointLightComponent>();
 					RenderPointLightComponent(light);
 				}
 				
 				// Render Spot Light Component
-				if (entity->HasComponent<SpotLightComponent>())
+				if (entity.HasComponent<SpotLightComponent>())
 				{
-					auto& light = entity->GetComponent<SpotLightComponent>();
+					auto& light = entity.GetComponent<SpotLightComponent>();
 					RenderSpotLightComponent(light);
 				}
 				
 				// Render Sky Light Component
-				if (entity->HasComponent<SkyLightComponent>())
+				if (entity.HasComponent<SkyLightComponent>())
 				{
-					auto& light = entity->GetComponent<SkyLightComponent>();
+					auto& light = entity.GetComponent<SkyLightComponent>();
 					RenderSkyLightComponent(light);
 				}
 				
 				// Render Mesh Component
-				if (entity->HasComponent<MeshComponent>())
+				if (entity.HasComponent<MeshComponent>())
 				{
-					auto& mesh = entity->GetComponent<MeshComponent>();
+					auto& mesh = entity.GetComponent<MeshComponent>();
 					RenderMeshComponent(mesh);
 				}
 				
 				// Render Script Component
-				if (entity->HasComponent<ScriptComponent>())
+				if (entity.HasComponent<ScriptComponent>())
 				{
-					auto& script = entity->GetComponent<ScriptComponent>();
+					auto& script = entity.GetComponent<ScriptComponent>();
 					RenderScriptComponent(script);
 				}
 				
 				// Render Text Component
-				if (entity->HasComponent<TextComponent>())
+				if (entity.HasComponent<TextComponent>())
 				{
-					auto& text = entity->GetComponent<TextComponent>();
+					auto& text = entity.GetComponent<TextComponent>();
 					RenderTextComponent(text);
 				}
 				
 				// Render RectTransform Component
-				if (entity->HasComponent<RectTransformComponent>())
+				if (entity.HasComponent<RectTransformComponent>())
 				{
-					auto& rect = entity->GetComponent<RectTransformComponent>();
+					auto& rect = entity.GetComponent<RectTransformComponent>();
 					RenderRectTransformComponent(rect);
 				}
 				
 				// Render Canvas Component
-				if (entity->HasComponent<CanvasComponent>())
+				if (entity.HasComponent<CanvasComponent>())
 				{
-					auto& canvas = entity->GetComponent<CanvasComponent>();
+					auto& canvas = entity.GetComponent<CanvasComponent>();
 					RenderCanvasComponent(canvas);
 				}
 				
 				// Render Image Component
-				if (entity->HasComponent<ImageComponent>())
+				if (entity.HasComponent<ImageComponent>())
 				{
-					auto& image = entity->GetComponent<ImageComponent>();
+					auto& image = entity.GetComponent<ImageComponent>();
 					RenderImageComponent(image);
 				}
 				
 				// Render UIText Component
-				if (entity->HasComponent<UITextComponent>())
+				if (entity.HasComponent<UITextComponent>())
 				{
-					auto& ui_text = entity->GetComponent<UITextComponent>();
+					auto& ui_text = entity.GetComponent<UITextComponent>();
 					RenderUITextComponent(ui_text);
 				}
 				
 				// Render Button Component
-				if (entity->HasComponent<ButtonComponent>())
+				if (entity.HasComponent<ButtonComponent>())
 				{
-					auto& button = entity->GetComponent<ButtonComponent>();
+					auto& button = entity.GetComponent<ButtonComponent>();
 					RenderButtonComponent(button);
 				}
 				
 				// Render ProgressBar Component
-				if (entity->HasComponent<ProgressBarComponent>())
+				if (entity.HasComponent<ProgressBarComponent>())
 				{
-					auto& bar = entity->GetComponent<ProgressBarComponent>();
+					auto& bar = entity.GetComponent<ProgressBarComponent>();
 					RenderProgressBarComponent(bar);
 				}
 				
 				// Render AudioSource Component
-				if (entity->HasComponent<AudioSourceComponent>())
+				if (entity.HasComponent<AudioSourceComponent>())
 				{
-					auto& audio = entity->GetComponent<AudioSourceComponent>();
+					auto& audio = entity.GetComponent<AudioSourceComponent>();
 					RenderAudioSourceComponent(audio);
 				}
 				
 				// Render AudioListener Component
-				if (entity->HasComponent<AudioListenerComponent>())
+				if (entity.HasComponent<AudioListenerComponent>())
 				{
-					auto& listener = entity->GetComponent<AudioListenerComponent>();
+					auto& listener = entity.GetComponent<AudioListenerComponent>();
 					RenderAudioListenerComponent(listener);
 				}
 				
 				// Render RigidBody Component
-				if (entity->HasComponent<RigidBodyComponent>())
+				if (entity.HasComponent<RigidBodyComponent>())
 				{
-					auto& rb = entity->GetComponent<RigidBodyComponent>();
+					auto& rb = entity.GetComponent<RigidBodyComponent>();
 					RenderRigidBodyComponent(rb);
 				}
 				
 				// Render BoxCollider Component
-				if (entity->HasComponent<BoxColliderComponent>())
+				if (entity.HasComponent<BoxColliderComponent>())
 				{
-					auto& box = entity->GetComponent<BoxColliderComponent>();
+					auto& box = entity.GetComponent<BoxColliderComponent>();
 					RenderBoxColliderComponent(box);
 				}
 				
 				// Render SphereCollider Component
-				if (entity->HasComponent<SphereColliderComponent>())
+				if (entity.HasComponent<SphereColliderComponent>())
 				{
-					auto& sphere = entity->GetComponent<SphereColliderComponent>();
+					auto& sphere = entity.GetComponent<SphereColliderComponent>();
 					RenderSphereColliderComponent(sphere);
 				}
 				
 				// Render CapsuleCollider Component
-				if (entity->HasComponent<CapsuleColliderComponent>())
+				if (entity.HasComponent<CapsuleColliderComponent>())
 				{
-					auto& capsule = entity->GetComponent<CapsuleColliderComponent>();
+					auto& capsule = entity.GetComponent<CapsuleColliderComponent>();
 					RenderCapsuleColliderComponent(capsule);
 				}
 				
@@ -452,9 +452,9 @@ namespace ignis {
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
 		if (ImGui::Button("X", ImVec2(20, 20)))
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<CameraComponent>();
+				entity.RemoveComponent<CameraComponent>();
 			}
 		}
 		
@@ -545,9 +545,9 @@ namespace ignis {
 		
 		if (remove)
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<DirectionalLightComponent>();
+				entity.RemoveComponent<DirectionalLightComponent>();
 			}
 		}
 		
@@ -574,9 +574,9 @@ namespace ignis {
 		
 		if (remove)
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<PointLightComponent>();
+				entity.RemoveComponent<PointLightComponent>();
 			}
 		}
 		
@@ -605,9 +605,9 @@ namespace ignis {
 		
 		if (remove)
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<SpotLightComponent>();
+				entity.RemoveComponent<SpotLightComponent>();
 			}
 		}
 		
@@ -691,9 +691,9 @@ namespace ignis {
 		
 		if (remove)
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<SkyLightComponent>();
+				entity.RemoveComponent<SkyLightComponent>();
 			}
 		}
 		
@@ -845,9 +845,9 @@ namespace ignis {
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
 		if (ImGui::Button("X", ImVec2(20, 20)))
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<MeshComponent>();
+				entity.RemoveComponent<MeshComponent>();
 			}
 		}
 		
@@ -928,9 +928,9 @@ namespace ignis {
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
 		if (ImGui::Button("X", ImVec2(20, 20)))
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<ScriptComponent>();
+				entity.RemoveComponent<ScriptComponent>();
 			}
 		}
 		
@@ -966,9 +966,9 @@ namespace ignis {
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
 		if (ImGui::Button("X", ImVec2(20, 20)))
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<TextComponent>();
+				entity.RemoveComponent<TextComponent>();
 			}
 		}
 		
@@ -1047,9 +1047,9 @@ namespace ignis {
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
 		if (ImGui::Button("X", ImVec2(20, 20)))
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<RectTransformComponent>();
+				entity.RemoveComponent<RectTransformComponent>();
 			}
 		}
 		
@@ -1091,9 +1091,9 @@ namespace ignis {
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
 		if (ImGui::Button("X", ImVec2(20, 20)))
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<CanvasComponent>();
+				entity.RemoveComponent<CanvasComponent>();
 			}
 		}
 		
@@ -1131,9 +1131,9 @@ namespace ignis {
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
 		if (ImGui::Button("X", ImVec2(20, 20)))
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<ImageComponent>();
+				entity.RemoveComponent<ImageComponent>();
 			}
 		}
 		
@@ -1211,9 +1211,9 @@ namespace ignis {
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
 		if (ImGui::Button("X", ImVec2(20, 20)))
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<UITextComponent>();
+				entity.RemoveComponent<UITextComponent>();
 			}
 		}
 		
@@ -1308,9 +1308,9 @@ namespace ignis {
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
 		if (ImGui::Button("X", ImVec2(20, 20)))
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<ButtonComponent>();
+				entity.RemoveComponent<ButtonComponent>();
 			}
 		}
 		
@@ -1357,9 +1357,9 @@ namespace ignis {
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
 		if (ImGui::Button("X", ImVec2(20, 20)))
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<ProgressBarComponent>();
+				entity.RemoveComponent<ProgressBarComponent>();
 			}
 		}
 		
@@ -1411,9 +1411,9 @@ namespace ignis {
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
 		if (ImGui::Button("X", ImVec2(20, 20)))
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<AudioSourceComponent>();
+				entity.RemoveComponent<AudioSourceComponent>();
 			}
 		}
 		
@@ -1507,9 +1507,9 @@ namespace ignis {
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
 		if (ImGui::Button("X", ImVec2(20, 20)))
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<AudioListenerComponent>();
+				entity.RemoveComponent<AudioListenerComponent>();
 			}
 		}
 		
@@ -1535,9 +1535,9 @@ namespace ignis {
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
 		if (ImGui::Button("X", ImVec2(20, 20)))
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<RigidBodyComponent>();
+				entity.RemoveComponent<RigidBodyComponent>();
 			}
 		}
 		
@@ -1588,9 +1588,9 @@ namespace ignis {
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
 		if (ImGui::Button("X", ImVec2(20, 20)))
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<BoxColliderComponent>();
+				entity.RemoveComponent<BoxColliderComponent>();
 			}
 		}
 		
@@ -1625,9 +1625,9 @@ namespace ignis {
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
 		if (ImGui::Button("X", ImVec2(20, 20)))
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<SphereColliderComponent>();
+				entity.RemoveComponent<SphereColliderComponent>();
 			}
 		}
 		
@@ -1660,9 +1660,9 @@ namespace ignis {
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
 		if (ImGui::Button("X", ImVec2(20, 20)))
 		{
-			if (auto entity = m_selected_entity.lock())
+			if (auto entity = m_selected_entity)
 			{
-				entity->RemoveComponent<CapsuleColliderComponent>();
+				entity.RemoveComponent<CapsuleColliderComponent>();
 			}
 		}
 		
@@ -1790,31 +1790,31 @@ namespace ignis {
 		if (mesh_component.MaterialSlots.empty())
 			Log::CoreWarn("Mesh has no materials, MaterialSlots is empty");
 
-		if (auto entity = m_selected_entity.lock())
+		if (auto entity = m_selected_entity)
 			Log::CoreInfo("PropertiesPanel: Loaded mesh '{}' ({} slot(s)) into entity '{}'",
 				path.filename().string(), mesh_component.MaterialSlots.size(),
-				entity->GetComponent<TagComponent>().Tag);
+				entity.GetComponent<TagComponent>().Tag);
 	}
 
 	// Template helper function for drawing add component menu items
 	template<typename T>
-	static void DrawAddComponentMenuItemImpl(std::shared_ptr<Entity> entity, const char* name)
+	static void DrawAddComponentMenuItemImpl(Entity entity, const char* name)
 	{
 		// Don't show if entity already has this component
-		if (entity->HasComponent<T>())
+		if (entity.HasComponent<T>())
 			return;
 		
 		if (ImGui::MenuItem(name))
 		{
-			entity->AddComponent<T>();
+			entity.AddComponent<T>();
 			Log::CoreInfo("PropertiesPanel: Added {} to entity '{}'", 
 						  name, 
-						  entity->GetComponent<TagComponent>().Tag);
+						  entity.GetComponent<TagComponent>().Tag);
 			ImGui::CloseCurrentPopup();
 		}
 	}
 
-	void PropertiesPanel::DrawAddComponentMenu(std::shared_ptr<Entity> entity)
+	void PropertiesPanel::DrawAddComponentMenu(Entity entity)
 	{
 		ImGui::TextDisabled("Select Component to Add:");
 		ImGui::Separator();

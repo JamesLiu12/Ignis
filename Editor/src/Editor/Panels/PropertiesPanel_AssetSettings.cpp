@@ -64,7 +64,7 @@ namespace ignis {
 		}
 	}
 
-	void PropertiesPanel::SetSelectedEntity(std::shared_ptr<Entity> entity)
+	void PropertiesPanel::SetSelectedEntity(Entity entity)
 	{
 		m_selected_entity = entity;
 		m_selected_asset = AssetHandle::Invalid;
@@ -75,7 +75,7 @@ namespace ignis {
 	void PropertiesPanel::SetSelectedAsset(AssetHandle handle)
 	{
 		m_selected_asset = handle;
-		m_selected_entity.reset();
+		m_selected_entity = {};
 		m_selected_unregistered_file.clear();
 		m_asset_settings_modified = false;
 
@@ -90,7 +90,7 @@ namespace ignis {
 	{
 		m_selected_unregistered_file = path;
 		m_selected_asset = AssetHandle::Invalid;
-		m_selected_entity.reset();
+		m_selected_entity = {};
 		m_asset_settings_modified = false;
 
 		const AssetType inferred_type = AssetManager::DetermineTypeFromExtension(path);

@@ -18,8 +18,8 @@ namespace ignis {
 		std::string_view GetID() const override { return "Properties"; }
 		
 		// Set the entity to display properties for
-		void SetSelectedEntity(std::shared_ptr<Entity> entity);
-		std::shared_ptr<Entity> GetSelectedEntity() const { return m_selected_entity.lock(); }
+		void SetSelectedEntity(Entity entity);
+		Entity GetSelectedEntity() const { return m_selected_entity; }
 		
 		// Set the asset to display import settings for
 		void SetSelectedAsset(AssetHandle handle);
@@ -70,7 +70,7 @@ namespace ignis {
 		void RenderTextureMapSlot(const char* label, AssetHandle& texture_handle, MeshComponent& mesh_component, uint32_t slot_index, MaterialType type);
 		
 		// Add Component UI
-		void DrawAddComponentMenu(std::shared_ptr<Entity> entity);
+		void DrawAddComponentMenu(Entity entity);
 
 		// Asset import settings rendering
 		void RenderAssetProperties(AssetHandle handle);
@@ -85,9 +85,7 @@ namespace ignis {
 		void RenderUnregisteredFileProperties();
 		
 	private:
-		// TODO: Replace weak_ptr with EntityHandle + Scene* for safer entity management
-		// Current approach uses weak_ptr to avoid dangling pointers, but handle-based
-		std::weak_ptr<Entity> m_selected_entity;
+		Entity m_selected_entity;
 		
 		// Current mesh editing (demo approach - not ECS)
 		std::shared_ptr<Mesh>* m_current_mesh_ptr = nullptr;

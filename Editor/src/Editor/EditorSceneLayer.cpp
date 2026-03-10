@@ -97,7 +97,7 @@ void EditorSceneLayer::OnAttach()
 	// Set directional light as initially selected in properties panel
 	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
 	{
-		properties_panel->SetSelectedEntity(std::make_shared<Entity>(m_light_entity));
+		properties_panel->SetSelectedEntity(m_light_entity);
 		Log::CoreInfo("Directional light entity set as selected in properties panel");
 	}
 	else
@@ -355,7 +355,7 @@ void EditorSceneLayer::ReloadProject()
 	// Clear panels Before destroying old scene to prevent accessing stale entities
 	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
 	{
-		properties_panel->SetSelectedEntity(nullptr);
+		properties_panel->SetSelectedEntity({});
 		properties_panel->SetCurrentMesh(nullptr, nullptr);
 	}
 
@@ -440,7 +440,7 @@ void EditorSceneLayer::OnSceneStop()
 	// This prevents accessing components on entities from destroyed registry
 	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
 	{
-		properties_panel->SetSelectedEntity(nullptr);
+		properties_panel->SetSelectedEntity({});
 	}
 	
 	// Stop runtime (calls OnDestroy, clears scripts)
@@ -492,7 +492,7 @@ void EditorSceneLayer::ClearProject()
 	
 	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
 	{
-		properties_panel->SetSelectedEntity(nullptr);
+		properties_panel->SetSelectedEntity({});
 		properties_panel->SetCurrentMesh(nullptr, nullptr);
 	}
 	
