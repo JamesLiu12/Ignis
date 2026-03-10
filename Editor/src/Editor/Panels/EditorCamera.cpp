@@ -55,6 +55,8 @@ namespace ignis
 
 	void EditorCamera::ProcessKeyboardInput(float dt)
 	{
+		if (!m_right_mouse_pressed) return;
+
 		glm::vec3 forward = GetForwardDirection();
 		glm::vec3 right = GetRightDirection();
 		glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);

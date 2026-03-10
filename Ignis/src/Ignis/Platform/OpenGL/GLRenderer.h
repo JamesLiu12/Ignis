@@ -25,6 +25,8 @@ namespace ignis
 		void SetViewport(const glm::ivec4& viewport) override;
 
 		void DrawIndexed(VertexArray& va) override;
+		void DrawLines(VertexArray& va, uint32_t vertex_count) override;
+
 		void RenderMesh(const Mesh& mesh, const glm::mat4& model,
 			const Environment& scene_environment, const EnvironmentSettings& environment_settings, const LightEnvironment& light_environment) override;
 		void RenderSkybox(const Environment& environment) override;
@@ -46,6 +48,9 @@ namespace ignis
 
 		void RenderSprite(const glm::vec2& min, const glm::vec2& max) override;
 		void RenderUIText(const Font& font, const std::string& text, const glm::mat4& projection, const glm::mat4& model, const glm::vec4& color, float scale) override;
+
+		void SetRenderState(const RenderState& state) override;
+		void ResetRenderState() override;
 
 	private:
 		std::shared_ptr<VertexArray> m_cube_vao;

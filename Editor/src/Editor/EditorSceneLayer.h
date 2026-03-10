@@ -6,6 +6,8 @@
 
 #include "Ignis/Script/ScriptModule.h"
 #include "Ignis/Asset/AssetSerializer.h"
+#include "Ignis/Renderer/DebugRenderer.h" 
+#include "Ignis/Renderer/EditorOverlayRenderer.h"
 
 #include "Ignis/UI/UISystem.h"
 #include "Ignis/UI/UIRenderer.h"
@@ -50,6 +52,15 @@ public:
 	std::shared_ptr<Mesh> GetCurrentMesh() const { return m_mesh; }
 	TransformComponent& GetMeshTransform() { return m_mesh_transform_component; }
 
+	GizmoMode GetGizmoMode() const { return m_gizmo_mode; }
+	void      SetGizmoMode(GizmoMode mode) { m_gizmo_mode = mode; }
+
+	std::shared_ptr<EditorCamera> GetEditorCamera() const { return m_editor_camera; }
+	Entity GetSelectedEntity() const;
+
+private:
+	void RenderEditorOverlay();
+
 private:
 	Renderer& m_renderer;
 	EditorApp* m_editor_app;
@@ -70,17 +81,20 @@ private:
 
 	TransformComponent m_mesh_transform_component;
 
+	std::unique_ptr<DebugRenderer>          m_debug_renderer;
+	std::unique_ptr<EditorOverlayRenderer>  m_overlay_renderer;
+	GizmoMode m_gizmo_mode = GizmoMode::Translate;
+
 	float m_camera_speed = 10.0f;
-	
-	// Camera input gate for tracking if drag started in viewport
-	bool m_started_camera_drag_in_viewport = false;
+	bool  m_started_camera_drag_in_viewport = false;
 
-	SceneState m_scene_state = SceneState::Edit;
-
+	SceneState   m_scene_state = SceneState::Edit;
 	ScriptModule m_script_module;
 
 	UISystem m_ui_system;
 	UIRenderer m_ui_renderer{ Application::Get().GetRenderer() };
+
+	bool m_right_pressed = false;
 };
 
 } // namespace ignis

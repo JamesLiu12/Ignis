@@ -39,11 +39,11 @@ namespace ignis {
 				// Click on blank space to deselect and exit rename mode
 				if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 				{
-					m_selected_entity = nullptr;
-					m_renaming_entity = nullptr;
+					m_selected_entity = {};
+					m_renaming_entity = {};
 					if (m_properties_panel)
 					{
-						m_properties_panel->SetSelectedEntity(nullptr);
+						m_properties_panel->SetSelectedEntity({});
 					}
 				}
 
@@ -75,7 +75,7 @@ namespace ignis {
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 		
 		// Highlight if selected
-		if (m_selected_entity && *m_selected_entity == entity)
+		if (m_selected_entity && m_selected_entity == entity)
 		{
 			flags |= ImGuiTreeNodeFlags_Selected;
 		}
@@ -88,7 +88,7 @@ namespace ignis {
 		}
 
 		// Check if this entity is being renamed
-		bool is_renaming = m_renaming_entity && *m_renaming_entity == entity;
+		bool is_renaming = m_renaming_entity && m_renaming_entity == entity;
 		
 		bool opened = false;
 		if (is_renaming)
@@ -110,13 +110,13 @@ namespace ignis {
 				{
 					entity.GetComponent<TagComponent>().Tag = m_rename_buffer;
 				}
-				m_renaming_entity = nullptr;
+				m_renaming_entity = {};
 			}
 			
 			// Exit rename mode on Escape or when input is deactivated (clicked outside)
 			if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsItemDeactivated())
 			{
-				m_renaming_entity = nullptr;
+				m_renaming_entity = {};
 			}
 		}
 		else
@@ -128,7 +128,7 @@ namespace ignis {
 		if (ImGui::IsItemClicked())
 		{
 			// Store as shared_ptr to keep entity alive
-			m_selected_entity = std::make_shared<Entity>(entity);
+			m_selected_entity = entity;
 			
 			// Update properties panel
 			if (m_properties_panel)
@@ -144,7 +144,7 @@ namespace ignis {
 			// Rename entity option
 			if (ImGui::MenuItem("Rename Entity"))
 			{
-				m_renaming_entity = std::make_shared<Entity>(entity);
+				m_renaming_entity = entity;
 				strncpy(m_rename_buffer, name.c_str(), sizeof(m_rename_buffer) - 1);
 				m_rename_buffer[sizeof(m_rename_buffer) - 1] = '\0';
 			}
@@ -157,7 +157,7 @@ namespace ignis {
 				Entity new_child = m_scene->CreateEntity(entity, "Entity");
 				
 				// Select the newly created child
-				m_selected_entity = std::make_shared<Entity>(new_child);
+				m_selected_entity = new_child;
 				if (m_properties_panel)
 				{
 					m_properties_panel->SetSelectedEntity(m_selected_entity);
@@ -174,12 +174,12 @@ namespace ignis {
 			if (ImGui::MenuItem("Delete Entity"))
 			{
 				// Clear selection if deleting selected entity
-				if (m_selected_entity && *m_selected_entity == entity)
+				if (m_selected_entity && m_selected_entity == entity)
 				{
-					m_selected_entity = nullptr;
+					m_selected_entity = {};
 					if (m_properties_panel)
 					{
-						m_properties_panel->SetSelectedEntity(nullptr);
+						m_properties_panel->SetSelectedEntity({});
 					}
 				}
 				
@@ -223,7 +223,7 @@ namespace ignis {
 			}
 			
 			// Select the newly created entity
-			m_selected_entity = std::make_shared<Entity>(new_entity);
+			m_selected_entity = new_entity;
 			if (m_properties_panel)
 			{
 				m_properties_panel->SetSelectedEntity(m_selected_entity);

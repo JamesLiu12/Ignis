@@ -2,6 +2,11 @@
 #include "Editor/EditorSceneLayer.h"
 #include "Ignis/Project/Project.h"
 
+#include <glm/gtc/type_ptr.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/matrix_decompose.hpp>
+#include <ImGuizmo.h>
+
 namespace ignis {
 
 	ViewportPanel::ViewportPanel(Renderer* renderer, EditorSceneLayer* editor_scene_layer)
@@ -61,6 +66,80 @@ namespace ignis {
 				if (color_texture)
 				{
 					m_imgui_texture_helper->RenderTexture(color_texture, content_size);
+				}
+			}
+
+			if (m_editor_scene_layer &&
+				m_editor_scene_layer->GetSceneState() == EditorSceneLayer::SceneState::Edit)
+			{
+				Entity    selected = m_editor_scene_layer->GetSelectedEntity();
+				GizmoMode mode = m_editor_scene_layer->GetGizmoMode();
+
+				if (selected && selected.IsValid() && mode != GizmoMode::None)
+				{
+					ImGuizmo::OPERATION operation = ImGuizmo::TRANSLATE;
+					switch (mode)
+					{
+					case GizmoMode::Translate: operation = ImGuizmo::TRANSLATE; break;
+					case GizmoMode::Rotate:    operation = ImGuizmo::ROTATE;    break;
+					case GizmoMode::Scale:     operation = ImGuizmo::SCALE;     break;
+					default: break;
+					}
+
+					ImGuizmo::SetOrthographic(false);
+					ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
+					ImGuizmo::SetRect(m_viewport_min_bound.x, m_viewport_min_bound.y,
+						m_viewport_size.x, m_viewport_size.y);
+
+					auto      camera = m_editor_scene_layer->GetEditorCamera();
+					glm::mat4 view = camera->GetView();
+					glm::mat4 proj = camera->GetProjection();
+
+					glm::mat4 world_transform = selected.GetWorldTransform();
+
+					bool manipulated = ImGuizmo::Manipulate(
+						glm::value_ptr(view),
+						glm::value_ptr(proj),
+						operation,
+						ImGuizmo::LOCAL,
+						glm::value_ptr(world_transform));
+
+					if (manipulated)
+					{
+						glm::mat4 local_transform = world_transform;
+						Entity parent = selected.GetParent();
+						if (parent && parent.IsValid())
+						{
+							local_transform =
+								glm::inverse(parent.GetWorldTransform()) * world_transform;
+						}
+
+						glm::vec3 translation, skew, scale;
+						glm::vec4 perspective;
+						glm::quat rotation_quat;
+						glm::decompose(local_transform,
+							scale, rotation_quat,
+							translation, skew, perspective);
+
+						auto& tc = selected.GetComponent<TransformComponent>();
+
+						switch (mode)
+						{
+						case GizmoMode::Translate:
+							tc.Translation = translation;
+							break;
+
+						case GizmoMode::Rotate:
+							tc.Rotation = glm::eulerAngles(glm::normalize(rotation_quat));
+							break;
+
+						case GizmoMode::Scale:
+							tc.Scale = scale;
+							break;
+
+						default: break;
+						}
+					}
 				}
 			}
 		}

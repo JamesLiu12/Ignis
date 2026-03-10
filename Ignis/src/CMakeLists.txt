@@ -26,6 +26,7 @@ target_link_libraries(Ignis
         stduuid
         imgui
         entt
+        imguizmo
         
     PRIVATE
         glad

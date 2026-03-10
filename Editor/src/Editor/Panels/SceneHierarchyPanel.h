@@ -21,6 +21,8 @@ namespace ignis {
 		void SetScene(std::shared_ptr<Scene> scene) { m_scene = scene; }
 		void SetPropertiesPanel(PropertiesPanel* properties_panel) { m_properties_panel = properties_panel; }
 
+		Entity GetSelectedEntity() { return m_selected_entity; }
+
 	private:
 		void DrawEntityNode(Entity entity);
 		void DrawEntityCreateMenu(Entity parent = Entity());
@@ -28,8 +30,8 @@ namespace ignis {
 	private:
 		std::shared_ptr<Scene> m_scene;
 		PropertiesPanel* m_properties_panel = nullptr;
-		std::shared_ptr<Entity> m_selected_entity;
-		std::shared_ptr<Entity> m_renaming_entity;
+		Entity m_selected_entity;
+		Entity m_renaming_entity;
 		char m_rename_buffer[256] = "";
 	};
 

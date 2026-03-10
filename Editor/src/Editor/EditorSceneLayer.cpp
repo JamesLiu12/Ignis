@@ -8,7 +8,9 @@
 #include "Ignis/Core/Events/MouseEvents.h"
 #include "Ignis/Core/Events/KeyEvents.h"
 #include "Ignis/Audio/AudioEngine.h"
+
 #include <glm/gtc/matrix_transform.hpp>
+#include <ImGuizmo.h>
 
 namespace ignis {
 
@@ -56,6 +58,10 @@ void EditorSceneLayer::OnAttach()
 	specs.Attachments = { TextureFormat::RGBA8, TextureFormat::Depth24Stencil8 };
 	auto framebuffer = Framebuffer::Create(specs);
 	m_renderer.SetFramebuffer(framebuffer);
+
+	m_debug_renderer = std::make_unique<DebugRenderer>(m_renderer);
+	m_debug_renderer->Init();
+	m_overlay_renderer = std::make_unique<EditorOverlayRenderer>(*m_debug_renderer);
 	
 	// Get viewport panel reference for camera aspect ratio updates
 	m_viewport_panel = m_editor_app->GetViewportPanel();
@@ -93,7 +99,7 @@ void EditorSceneLayer::OnAttach()
 	// Set directional light as initially selected in properties panel
 	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
 	{
-		properties_panel->SetSelectedEntity(std::make_shared<Entity>(m_light_entity));
+		properties_panel->SetSelectedEntity(m_light_entity);
 		Log::CoreInfo("Directional light entity set as selected in properties panel");
 	}
 	else
@@ -171,8 +177,9 @@ void EditorSceneLayer::OnUpdate(float dt)
 		}
 		
 		// Allow camera control if mouse in viewport OR drag started in viewport
-		allow_camera_control = (mouse_in_viewport && viewport_focused) || 
-		                       m_started_camera_drag_in_viewport;
+		allow_camera_control = ((mouse_in_viewport && viewport_focused) ||
+			m_started_camera_drag_in_viewport)
+			&& !ImGuizmo::IsUsing();
 	}
 	
 	// Edit mode: Update EditorCamera with input gating
@@ -214,28 +221,45 @@ void EditorSceneLayer::OnUpdate(float dt)
 		}
 		return;
 	}
-	else
-	{
-		// In Edit mode, use EditorCamera; in Play mode (Phase 4), use scene camera
-		std::shared_ptr<Camera> render_camera = (m_scene_state == SceneState::Edit) 
-			? m_editor_camera 
-			: m_current_scene->GetPrimaryCamera();
+
+	// In Edit mode, use EditorCamera; in Play mode (Phase 4), use scene camera
+	std::shared_ptr<Camera> render_camera = (m_scene_state == SceneState::Edit) 
+		? m_editor_camera 
+		: m_current_scene->GetPrimaryCamera();
 		
-		m_ui_system.OnUpdate(*m_current_scene, framebuffer->GetWidth(), framebuffer->GetHeight());
+	m_ui_system.OnUpdate(*m_current_scene, framebuffer->GetWidth(), framebuffer->GetHeight());
 
-		m_renderer.BeginFrame();
+	m_renderer.BeginFrame();
 
-		scene_renderer.BeginScene({ m_current_scene, render_camera, m_pipeline});
-		m_current_scene->OnRender(scene_renderer);
-		scene_renderer.EndScene();
+	scene_renderer.BeginScene({ m_current_scene, render_camera, m_pipeline});
+	m_current_scene->OnRender(scene_renderer);
+	scene_renderer.EndScene();
 
-		m_ui_renderer.BeginUI(framebuffer->GetWidth(), framebuffer->GetHeight());
-		m_ui_system.OnRender(*m_current_scene, m_ui_renderer, framebuffer->GetWidth(), framebuffer->GetHeight());
-		m_ui_renderer.EndUI();
+	if (m_scene_state == SceneState::Edit)
+		RenderEditorOverlay();
 
-		m_renderer.EndFrame();
-	}
+	m_ui_renderer.BeginUI(framebuffer->GetWidth(), framebuffer->GetHeight());
+	m_ui_system.OnRender(*m_current_scene, m_ui_renderer, framebuffer->GetWidth(), framebuffer->GetHeight());
+	m_ui_renderer.EndUI();
+
+	m_renderer.EndFrame();
 	
+}
+
+void EditorSceneLayer::RenderEditorOverlay()
+{
+	Entity selected_entity;
+	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+		selected_entity = hierarchy_panel->GetSelectedEntity();
+
+	m_overlay_renderer->BeginScene(m_editor_camera);
+
+	if (selected_entity)
+	{
+		m_overlay_renderer->DrawColliders(selected_entity);
+	}
+
+	m_overlay_renderer->Flush();
 }
 
 void EditorSceneLayer::OnEvent(EventBase& event)
@@ -251,36 +275,63 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 			m_current_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
 		}
 	}
-	else if (m_viewport_panel && m_viewport_panel->IsFocused())
-	{
-		int mouse_x = Input::GetMouseX();
-		int mouse_y = Input::GetMouseY();
-		
-		if (auto* e = dynamic_cast<KeyTypedEvent*>(&event))
-		{
-			if (m_current_scene)
-				m_ui_system.OnKeyTyped(*m_current_scene, e->GetKeyCode());
-		}
-		else if (m_viewport_panel->IsPointInViewport(mouse_x, mouse_y))
-		{
-			ImVec2 min_bound = m_viewport_panel->GetViewportMinBound();
-            float local_x = mouse_x - min_bound.x;
-            float local_y = mouse_y - min_bound.y;
+	if (!m_viewport_panel || !m_viewport_panel->IsFocused())
+		return;
 
-			if (auto* e = dynamic_cast<MouseMovedEvent*>(&event))
+	int mouse_x = Input::GetMouseX();
+	int mouse_y = Input::GetMouseY();
+
+	static bool right_pressed = false;
+
+	if (auto* e = dynamic_cast<KeyTypedEvent*>(&event))
+	{
+		if (m_current_scene)
+			m_ui_system.OnKeyTyped(*m_current_scene, e->GetKeyCode());
+		return;
+	}
+
+	if (!m_viewport_panel->IsPointInViewport(mouse_x, mouse_y))
+		return;
+
+	ImVec2 min_bound = m_viewport_panel->GetViewportMinBound();
+
+	if (auto* e = dynamic_cast<MouseMovedEvent*>(&event))
+	{
+		if (m_current_scene)
+			m_ui_system.OnMouseMoved(*m_current_scene,
+				e->GetX() - min_bound.x, e->GetY() - min_bound.y);
+	}
+	else if (auto* e = dynamic_cast<MouseButtonPressedEvent*>(&event))
+	{
+		if (e->GetMouseButton() == 1)
+			right_pressed = true;
+
+		if (m_current_scene)
+			m_ui_system.OnMouseButtonPressed(*m_current_scene, e->GetMouseButton());
+	}
+	else if (auto* e = dynamic_cast<MouseButtonReleasedEvent*>(&event))
+	{
+		if (e->GetMouseButton() == 1)
+			right_pressed = false;
+
+		if (m_current_scene)
+			m_ui_system.OnMouseButtonReleased(*m_current_scene, e->GetMouseButton());
+	}
+
+	if (!right_pressed)
+	{
+		if (auto* e = dynamic_cast<KeyPressedEvent*>(&event))
+		{
+			if (m_scene_state == SceneState::Edit)
 			{
-				if (m_current_scene)
-					m_ui_system.OnMouseMoved(*m_current_scene, e->GetX() - min_bound.x, e->GetY() - min_bound.y);
-			}
-			else if (auto* e = dynamic_cast<MouseButtonPressedEvent*>(&event))
-			{
-				if (m_current_scene)
-					m_ui_system.OnMouseButtonPressed(*m_current_scene, e->GetMouseButton());
-			}
-			else if (auto* e = dynamic_cast<MouseButtonReleasedEvent*>(&event))
-			{
-				if (m_current_scene)
-					m_ui_system.OnMouseButtonReleased(*m_current_scene, e->GetMouseButton());
+				switch (e->GetKeyCode())
+				{
+				case 'Q': m_gizmo_mode = GizmoMode::None;      return;
+				case 'W': m_gizmo_mode = GizmoMode::Translate; return;
+				case 'E': m_gizmo_mode = GizmoMode::Rotate;    return;
+				case 'R': m_gizmo_mode = GizmoMode::Scale;     return;
+				default: break;
+				}
 			}
 		}
 	}
@@ -306,7 +357,7 @@ void EditorSceneLayer::ReloadProject()
 	// Clear panels Before destroying old scene to prevent accessing stale entities
 	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
 	{
-		properties_panel->SetSelectedEntity(nullptr);
+		properties_panel->SetSelectedEntity({});
 		properties_panel->SetCurrentMesh(nullptr, nullptr);
 	}
 
@@ -391,7 +442,7 @@ void EditorSceneLayer::OnSceneStop()
 	// This prevents accessing components on entities from destroyed registry
 	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
 	{
-		properties_panel->SetSelectedEntity(nullptr);
+		properties_panel->SetSelectedEntity({});
 	}
 	
 	// Stop runtime (calls OnDestroy, clears scripts)
@@ -422,6 +473,13 @@ void EditorSceneLayer::OnSceneStop()
 	Log::CoreInfo("OnSceneStop() - Edit mode restored");
 }
 
+Entity EditorSceneLayer::GetSelectedEntity() const
+{
+	if (auto* hierarchy = m_editor_app->GetSceneHierarchyPanel())
+		return hierarchy->GetSelectedEntity();
+	return {};
+}
+
 void EditorSceneLayer::ClearProject()
 {
 	if (m_editor_scene)
@@ -443,7 +501,7 @@ void EditorSceneLayer::ClearProject()
 	
 	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
 	{
-		properties_panel->SetSelectedEntity(nullptr);
+		properties_panel->SetSelectedEntity({});
 		properties_panel->SetCurrentMesh(nullptr, nullptr);
 	}
 	
