@@ -276,18 +276,14 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 		}
 	}
 
-	static bool right_pressed = false;
-	static bool is_locked = false;
-	static bool is_visible = true;
-
 	if (auto* e = dynamic_cast<KeyPressedEvent*>(&event))
 	{
 		if (e->GetKeyCode() == (int)KeyCode::Escape)
 		{
 			if (m_is_in_scene && m_scene_state == SceneState::Play)
 			{
-				is_locked = Input::IsCursorLocked();
-				is_visible = Input::IsCursorVisible();
+				m_is_locked = Input::IsCursorLocked();
+				m_is_visible = Input::IsCursorVisible();
 				Input::ShowCursor();
 			}
 		}
@@ -318,11 +314,11 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 	{
 		if (e->GetMouseButton() == 0 && m_scene_state == SceneState::Play)
 		{
-			if (is_locked)
+			if (m_is_locked)
 			{
 				Input::LockCursor();
 			}
-			else if (!is_visible)
+			else if (!m_is_visible)
 			{
 				Input::HideCursor();
 			}
@@ -330,7 +326,7 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 		}
 
 		if (e->GetMouseButton() == 1)
-			right_pressed = true;
+			m_right_pressed = true;
 
 		if (m_current_scene)
 			m_ui_system.OnMouseButtonPressed(*m_current_scene, e->GetMouseButton());
@@ -338,13 +334,13 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 	else if (auto* e = dynamic_cast<MouseButtonReleasedEvent*>(&event))
 	{
 		if (e->GetMouseButton() == 1)
-			right_pressed = false;
+			m_right_pressed = false;
 
 		if (m_current_scene)
 			m_ui_system.OnMouseButtonReleased(*m_current_scene, e->GetMouseButton());
 	}
 
-	if (!right_pressed)
+	if (!m_right_pressed)
 	{
 		if (auto* e = dynamic_cast<KeyPressedEvent*>(&event))
 		{

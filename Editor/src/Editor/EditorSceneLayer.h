@@ -94,6 +94,9 @@ private:
 	UISystem m_ui_system;
 	UIRenderer m_ui_renderer{ Application::Get().GetRenderer() };
 
+	bool m_right_pressed = false;
+	bool m_is_locked = false;
+	bool m_is_visible = true;
 	bool m_is_in_scene = false;
 };
 
