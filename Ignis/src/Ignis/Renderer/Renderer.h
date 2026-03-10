@@ -8,6 +8,7 @@
 #include "Framebuffer.h"
 #include "ShaderLibrary.h"
 #include "Font.h"
+#include "RenderState.h"
 
 #include <glm/glm.hpp>
 
@@ -53,6 +54,9 @@ namespace ignis
 
 		virtual void RenderSprite(const glm::vec2& min, const glm::vec2& max) = 0;
 		virtual void RenderUIText(const Font& font, const std::string& text, const glm::mat4& projection, const glm::mat4& model, const glm::vec4& color, float scale) = 0;
+
+		virtual void SetRenderState(const RenderState& state) = 0;
+		virtual void ResetRenderState() = 0;
 
 		static std::unique_ptr<Renderer> Create();
 

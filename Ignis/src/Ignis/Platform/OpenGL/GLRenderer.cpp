@@ -40,6 +40,33 @@ namespace ignis
 
 		static constexpr uint32_t kMaxTextQuads = 4096;
 		static constexpr uint32_t kMaxTextVertices = kMaxTextQuads * 4;
+
+		static GLenum ToGL(RenderState::DepthFunc f)
+		{
+			switch (f)
+			{
+			case RenderState::DepthFunc::Less:        return GL_LESS;
+			case RenderState::DepthFunc::LessOrEqual: return GL_LEQUAL;
+			case RenderState::DepthFunc::Equal:       return GL_EQUAL;
+			case RenderState::DepthFunc::Always:      return GL_ALWAYS;
+			case RenderState::DepthFunc::Never:       return GL_NEVER;
+			}
+			return GL_LESS;
+		}
+
+		static GLenum ToGL(RenderState::BlendFactor f)
+		{
+			switch (f)
+			{
+			case RenderState::BlendFactor::Zero:             return GL_ZERO;
+			case RenderState::BlendFactor::One:              return GL_ONE;
+			case RenderState::BlendFactor::SrcAlpha:         return GL_SRC_ALPHA;
+			case RenderState::BlendFactor::OneMinusSrcAlpha: return GL_ONE_MINUS_SRC_ALPHA;
+			case RenderState::BlendFactor::SrcColor:         return GL_SRC_COLOR;
+			case RenderState::BlendFactor::OneMinusSrcColor: return GL_ONE_MINUS_SRC_COLOR;
+			}
+			return GL_ONE;
+		}
 	}
 
 	GLRenderer::GLRenderer()
@@ -195,10 +222,9 @@ namespace ignis
 
 	void GLRenderer::RenderSkybox(const Environment& environment)
 	{
-		auto material = m_pipeline->CreateSkyboxMaterial(environment);
+		SetRenderState(RenderState::Skybox());
 
-		glDepthFunc(GL_LEQUAL);
-		glDisable(GL_CULL_FACE);
+		auto material = m_pipeline->CreateSkyboxMaterial(environment);
 
 		glm::mat4 view = glm::mat4(glm::mat3(m_camera->GetView()));
 		material->Set("view", view);
@@ -207,8 +233,7 @@ namespace ignis
 		material->Bind();
 		RenderCube();
 
-		glDepthFunc(GL_LESS);
-		glEnable(GL_CULL_FACE);
+		ResetRenderState();
 	}
 
 	void GLRenderer::RenderText(const Font& font, const std::string& text, const glm::mat4& transform, const glm::vec4& color, float scale)
@@ -284,19 +309,12 @@ namespace ignis
 		mat->Set("u_Atlas", font.GetAtlas());
 		font.GetAtlas()->Bind(0);
 
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDepthMask(GL_FALSE);
+		SetRenderState(RenderState::Transparent());
 
 		mat->Bind();
 		DrawIndexed(*m_text_vao);
 
-		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
-		glDisable(GL_BLEND);
-		glEnable(GL_CULL_FACE);
+		ResetRenderState();
 	}
 
 	void GLRenderer::Clear()
@@ -335,18 +353,11 @@ namespace ignis
 		};
 		m_sprite_vbo->SetData(verts, sizeof(verts));
 
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDepthMask(GL_FALSE);
+		SetRenderState(RenderState::Transparent());
 
 		DrawIndexed(*m_sprite_vao);
 
-		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
-		glDisable(GL_BLEND);
-		glEnable(GL_CULL_FACE);
+		ResetRenderState();
 	}
 
 	void GLRenderer::RenderUIText(const Font& font, const std::string& text,
@@ -423,18 +434,38 @@ namespace ignis
 		mat->Set("u_Atlas", font.GetAtlas());
 		font.GetAtlas()->Bind(0);
 
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDepthMask(GL_FALSE);
+		SetRenderState(RenderState::Transparent());
 
 		mat->Bind();
 		DrawIndexed(*m_text_vao);
 
-		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
-		glDisable(GL_BLEND);
-		glEnable(GL_CULL_FACE);
+		ResetRenderState();
+	}
+
+	void GLRenderer::SetRenderState(const RenderState& state)
+	{
+		// Depth test
+		state.DepthTest ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+		glDepthFunc(ToGL(state.Depth));
+		glDepthMask(state.DepthWrite ? GL_TRUE : GL_FALSE);
+
+		// Culling
+		state.CullFace ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
+
+		// Blend
+		if (state.Blend)
+		{
+			glEnable(GL_BLEND);
+			glBlendFunc(ToGL(state.BlendSrc), ToGL(state.BlendDst));
+		}
+		else
+		{
+			glDisable(GL_BLEND);
+		}
+	}
+
+	void GLRenderer::ResetRenderState()
+	{
+		SetRenderState(RenderState::Default());
 	}
 }

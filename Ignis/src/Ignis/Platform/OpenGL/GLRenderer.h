@@ -49,6 +49,9 @@ namespace ignis
 		void RenderSprite(const glm::vec2& min, const glm::vec2& max) override;
 		void RenderUIText(const Font& font, const std::string& text, const glm::mat4& projection, const glm::mat4& model, const glm::vec4& color, float scale) override;
 
+		void SetRenderState(const RenderState& state) override;
+		void ResetRenderState() override;
+
 	private:
 		std::shared_ptr<VertexArray> m_cube_vao;
 		std::shared_ptr<VertexArray> m_quad_vao;

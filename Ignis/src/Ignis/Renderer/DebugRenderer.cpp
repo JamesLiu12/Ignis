@@ -55,7 +55,9 @@ namespace ignis
 		mat->Set("u_ViewProjection", view_proj);
 		mat->Bind();
 
+		m_renderer.SetRenderState(RenderState::Overlay());
 		m_renderer.DrawLines(*m_line_vao, static_cast<uint32_t>(m_vertices.size()));
+		m_renderer.ResetRenderState();
 
 		m_vertices.clear();
 	}
