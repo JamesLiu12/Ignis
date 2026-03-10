@@ -55,6 +55,9 @@ public:
 	GizmoMode GetGizmoMode() const { return m_gizmo_mode; }
 	void      SetGizmoMode(GizmoMode mode) { m_gizmo_mode = mode; }
 
+	std::shared_ptr<EditorCamera> GetEditorCamera() const { return m_editor_camera; }
+	Entity GetSelectedEntity() const;
+
 private:
 	void RenderEditorOverlay();
 

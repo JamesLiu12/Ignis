@@ -8,7 +8,9 @@
 #include "Ignis/Core/Events/MouseEvents.h"
 #include "Ignis/Core/Events/KeyEvents.h"
 #include "Ignis/Audio/AudioEngine.h"
+
 #include <glm/gtc/matrix_transform.hpp>
+#include <ImGuizmo.h>
 
 namespace ignis {
 
@@ -175,8 +177,9 @@ void EditorSceneLayer::OnUpdate(float dt)
 		}
 		
 		// Allow camera control if mouse in viewport OR drag started in viewport
-		allow_camera_control = (mouse_in_viewport && viewport_focused) || 
-		                       m_started_camera_drag_in_viewport;
+		allow_camera_control = ((mouse_in_viewport && viewport_focused) ||
+			m_started_camera_drag_in_viewport)
+			&& !ImGuizmo::IsUsing();
 	}
 	
 	// Edit mode: Update EditorCamera with input gating
@@ -254,7 +257,6 @@ void EditorSceneLayer::RenderEditorOverlay()
 	if (selected_entity)
 	{
 		m_overlay_renderer->DrawColliders(selected_entity);
-		m_overlay_renderer->DrawTransformGizmo(selected_entity, m_gizmo_mode);
 	}
 
 	m_overlay_renderer->Flush();
@@ -469,6 +471,13 @@ void EditorSceneLayer::OnSceneStop()
 	}
 	
 	Log::CoreInfo("OnSceneStop() - Edit mode restored");
+}
+
+Entity EditorSceneLayer::GetSelectedEntity() const
+{
+	if (auto* hierarchy = m_editor_app->GetSceneHierarchyPanel())
+		return hierarchy->GetSelectedEntity();
+	return {};
 }
 
 void EditorSceneLayer::ClearProject()
