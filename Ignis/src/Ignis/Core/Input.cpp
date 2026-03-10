@@ -62,6 +62,7 @@ namespace ignis
 	void Input::LockCursor()
 	{
 		Application::Get().GetWindow().SetCursorMode(GLFW_CURSOR_DISABLED);
+		s_cursor_just_locked = true;
 	}
 
 	bool Input::IsCursorLocked()
@@ -72,5 +73,15 @@ namespace ignis
 	bool Input::IsCursorVisible()
 	{
 		return Application::Get().GetWindow().GetCursorMode() == GLFW_CURSOR_NORMAL;
+	}
+
+	bool Input::ConsumeCursorJustLocked()
+	{
+		if (s_cursor_just_locked)
+		{
+			s_cursor_just_locked = false;
+			return true;
+		}
+		return false;
 	}
 }

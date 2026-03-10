@@ -24,7 +24,11 @@ namespace ignis
 		static void LockCursor();
 		static bool IsCursorLocked();
 		static bool IsCursorVisible();
+
+		static bool ConsumeCursorJustLocked();
 	private:
 		Input();
+
+		inline static bool s_cursor_just_locked = false;
 	};
 }
