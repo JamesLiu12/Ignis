@@ -896,15 +896,78 @@ namespace ignis {
 				{
 					ImGui::PushID((int)i);
 					std::string header = "Material Slot " + std::to_string(i);
-					if (ImGui::TreeNodeEx(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+					if (ImGui::TreeNodeEx(header.c_str(), ImGuiTreeNodeFlags_None))
 					{
 						auto& slot = mesh_component.MaterialSlots[i];
+						
+						// Albedo
 						RenderTextureMapSlot("Albedo Map", slot.AlbedoMap, mesh_component, i, MaterialType::Albedo);
+						if (ImGui::ColorEdit4("Albedo Color", &slot.AlbedoColor.x))
+						{
+							if (mesh_component.Mesh.IsValid())
+							{
+								auto mesh = AssetManager::GetAsset<Mesh>(mesh_component.Mesh);
+								if (mesh && i < mesh->GetMaterialsData().size())
+									mesh->SetMaterialData(i, slot);
+							}
+						}
+						ImGui::Separator();
+						
+						// Normal
 						RenderTextureMapSlot("Normal Map", slot.NormalMap, mesh_component, i, MaterialType::Normal);
+						ImGui::Separator();
+						
+						// Metalness
 						RenderTextureMapSlot("Metalness Map", slot.MetalnessMap, mesh_component, i, MaterialType::Metal);
+						if (ImGui::DragFloat("Metallic Value", &slot.MetallicValue, 0.01f, 0.0f, FLT_MAX))
+						{
+							if (mesh_component.Mesh.IsValid())
+							{
+								auto mesh = AssetManager::GetAsset<Mesh>(mesh_component.Mesh);
+								if (mesh && i < mesh->GetMaterialsData().size())
+									mesh->SetMaterialData(i, slot);
+							}
+						}
+						ImGui::Separator();
+						
+						// Roughness
 						RenderTextureMapSlot("Roughness Map", slot.RoughnessMap, mesh_component, i, MaterialType::Roughness);
+						if (ImGui::DragFloat("Roughness Value", &slot.RoughnessValue, 0.01f, 0.0f, FLT_MAX))
+						{
+							if (mesh_component.Mesh.IsValid())
+							{
+								auto mesh = AssetManager::GetAsset<Mesh>(mesh_component.Mesh);
+								if (mesh && i < mesh->GetMaterialsData().size())
+									mesh->SetMaterialData(i, slot);
+							}
+						}
+						ImGui::Separator();
+						
+						// Emissive
 						RenderTextureMapSlot("Emissive Map", slot.EmissiveMap, mesh_component, i, MaterialType::Emissive);
+						if (ImGui::ColorEdit3("Emissive Color", &slot.EmissiveColor.x))
+						{
+							if (mesh_component.Mesh.IsValid())
+							{
+								auto mesh = AssetManager::GetAsset<Mesh>(mesh_component.Mesh);
+								if (mesh && i < mesh->GetMaterialsData().size())
+									mesh->SetMaterialData(i, slot);
+							}
+						}
+						if (ImGui::DragFloat("Emissive Intensity", &slot.EmissiveIntensity, 0.1f, 0.0f, FLT_MAX))
+						{
+							if (mesh_component.Mesh.IsValid())
+							{
+								auto mesh = AssetManager::GetAsset<Mesh>(mesh_component.Mesh);
+								if (mesh && i < mesh->GetMaterialsData().size())
+									mesh->SetMaterialData(i, slot);
+							}
+						}
+						ImGui::Separator();
+						
+						// AO
 						RenderTextureMapSlot("AO Map", slot.AOMap, mesh_component, i, MaterialType::AO);
+						
 						ImGui::TreePop();
 					}
 					ImGui::PopID();
