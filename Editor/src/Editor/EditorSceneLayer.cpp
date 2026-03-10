@@ -276,23 +276,10 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 	if (!m_viewport_panel || !m_viewport_panel->IsFocused())
 		return;
 
-	if (auto* e = dynamic_cast<KeyPressedEvent*>(&event))
-	{
-		if (m_scene_state == SceneState::Edit)
-		{
-			switch (e->GetKeyCode())
-			{
-			case 'Q': m_gizmo_mode = GizmoMode::None;      return;
-			case 'W': m_gizmo_mode = GizmoMode::Translate; return;
-			case 'E': m_gizmo_mode = GizmoMode::Rotate;    return;
-			case 'R': m_gizmo_mode = GizmoMode::Scale;     return;
-			default: break;
-			}
-		}
-	}
-
 	int mouse_x = Input::GetMouseX();
 	int mouse_y = Input::GetMouseY();
+
+	static bool right_pressed = false;
 
 	if (auto* e = dynamic_cast<KeyTypedEvent*>(&event))
 	{
@@ -314,13 +301,37 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 	}
 	else if (auto* e = dynamic_cast<MouseButtonPressedEvent*>(&event))
 	{
+		if (e->GetMouseButton() == 1)
+			right_pressed = true;
+
 		if (m_current_scene)
 			m_ui_system.OnMouseButtonPressed(*m_current_scene, e->GetMouseButton());
 	}
 	else if (auto* e = dynamic_cast<MouseButtonReleasedEvent*>(&event))
 	{
+		if (e->GetMouseButton() == 1)
+			right_pressed = false;
+
 		if (m_current_scene)
 			m_ui_system.OnMouseButtonReleased(*m_current_scene, e->GetMouseButton());
+	}
+
+	if (!right_pressed)
+	{
+		if (auto* e = dynamic_cast<KeyPressedEvent*>(&event))
+		{
+			if (m_scene_state == SceneState::Edit)
+			{
+				switch (e->GetKeyCode())
+				{
+				case 'Q': m_gizmo_mode = GizmoMode::None;      return;
+				case 'W': m_gizmo_mode = GizmoMode::Translate; return;
+				case 'E': m_gizmo_mode = GizmoMode::Rotate;    return;
+				case 'R': m_gizmo_mode = GizmoMode::Scale;     return;
+				default: break;
+				}
+			}
+		}
 	}
 }
 

@@ -90,6 +90,8 @@ private:
 
 	UISystem m_ui_system;
 	UIRenderer m_ui_renderer{ Application::Get().GetRenderer() };
+
+	bool m_right_pressed = false;
 };
 
 } // namespace ignis
