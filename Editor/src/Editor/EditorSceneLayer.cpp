@@ -275,13 +275,31 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 			m_current_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
 		}
 	}
-	if (!m_viewport_panel || !m_viewport_panel->IsFocused())
-		return;
+
+	static bool right_pressed = false;
+	static bool is_locked = false;
+	static bool is_visible = true;
+
+	if (auto* e = dynamic_cast<KeyPressedEvent*>(&event))
+	{
+		if (e->GetKeyCode() == (int)KeyCode::Escape)
+		{
+			if (m_is_in_scene && m_scene_state == SceneState::Play)
+			{
+				is_locked = Input::IsCursorLocked();
+				is_visible = Input::IsCursorVisible();
+				Input::ShowCursor();
+			}
+		}
+	}
 
 	int mouse_x = Input::GetMouseX();
 	int mouse_y = Input::GetMouseY();
 
-	static bool right_pressed = false;
+	if (!m_viewport_panel->IsPointInViewport(mouse_x, mouse_y))
+		return;
+
+	ImVec2 min_bound = m_viewport_panel->GetViewportMinBound();
 
 	if (auto* e = dynamic_cast<KeyTypedEvent*>(&event))
 	{
@@ -289,11 +307,6 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 			m_ui_system.OnKeyTyped(*m_current_scene, e->GetKeyCode());
 		return;
 	}
-
-	if (!m_viewport_panel->IsPointInViewport(mouse_x, mouse_y))
-		return;
-
-	ImVec2 min_bound = m_viewport_panel->GetViewportMinBound();
 
 	if (auto* e = dynamic_cast<MouseMovedEvent*>(&event))
 	{
@@ -303,6 +316,19 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 	}
 	else if (auto* e = dynamic_cast<MouseButtonPressedEvent*>(&event))
 	{
+		if (e->GetMouseButton() == 0 && m_scene_state == SceneState::Play)
+		{
+			if (is_locked)
+			{
+				Input::LockCursor();
+			}
+			else if (!is_visible)
+			{
+				Input::HideCursor();
+			}
+			m_is_in_scene = true;
+		}
+
 		if (e->GetMouseButton() == 1)
 			right_pressed = true;
 
@@ -424,6 +450,8 @@ void EditorSceneLayer::OnScenePlay()
 	
 	// Switch to runtime scene
 	m_current_scene = m_runtime_scene;
+
+	m_is_in_scene = true;
 	
 	// Update hierarchy panel to use runtime scene
 	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
