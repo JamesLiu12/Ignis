@@ -18,6 +18,12 @@ namespace ignis
 		static std::pair<double, double> GetMousePosition();
 		static double GetMouseX();
 		static double GetMouseY();
+
+		static void ShowCursor();
+		static void HideCursor();
+		static void LockCursor();
+		static bool IsCursorLocked();
+		static bool IsCursorVisible();
 	private:
 		Input();
 	};

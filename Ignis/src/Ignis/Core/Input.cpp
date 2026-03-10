@@ -48,4 +48,29 @@ namespace ignis
 	{
 		return GetMousePosition().second;
 	}
+
+	void Input::ShowCursor()
+	{
+		Application::Get().GetWindow().SetCursorMode(GLFW_CURSOR_NORMAL);
+	}
+
+	void Input::HideCursor()
+	{
+		Application::Get().GetWindow().SetCursorMode(GLFW_CURSOR_HIDDEN);
+	}
+
+	void Input::LockCursor()
+	{
+		Application::Get().GetWindow().SetCursorMode(GLFW_CURSOR_DISABLED);
+	}
+
+	bool Input::IsCursorLocked()
+	{
+		return Application::Get().GetWindow().GetCursorMode() == GLFW_CURSOR_DISABLED;
+	}
+
+	bool Input::IsCursorVisible()
+	{
+		return Application::Get().GetWindow().GetCursorMode() == GLFW_CURSOR_NORMAL;
+	}
 }

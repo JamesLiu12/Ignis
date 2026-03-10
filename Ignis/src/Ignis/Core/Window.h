@@ -43,6 +43,9 @@ namespace ignis
 		void SetVSync(bool enabled);
 		bool IsVSync() const { return m_data.VSync; }
 
+		void SetCursorMode(int mode);
+		int GetCursorMode() const { return m_cursor_mode; }
+
 		GLFWwindow* GetNativeWindow() const { return m_window; }
 
 		static std::unique_ptr<Window> Create(const WindowSpecs& specs = WindowSpecs());
@@ -54,6 +57,8 @@ namespace ignis
 		void SetUpCallbacks();
 
 		GLFWwindow* m_window = nullptr;
+
+		int m_cursor_mode = GLFW_CURSOR_NORMAL;
 
 		struct WindowData
 		{
