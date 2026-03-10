@@ -76,3 +76,5 @@ add_subdirectory(stduuid)
 add_subdirectory(json)
 
 add_subdirectory(miniaudio)
+
+add_subdirectory(imguizmo)
