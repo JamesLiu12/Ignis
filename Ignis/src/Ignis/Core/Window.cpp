@@ -66,6 +66,12 @@ namespace ignis
 	{
 		m_cursor_mode = mode;
 		glfwSetInputMode(m_window, GLFW_CURSOR, mode);
+
+		if (glfwRawMouseMotionSupported())
+		{
+			bool raw = (mode == GLFW_CURSOR_DISABLED);
+			glfwSetInputMode(m_window, GLFW_RAW_MOUSE_MOTION, raw ? GLFW_TRUE : GLFW_FALSE);
+		}
 	}
 
 	uint32_t Window::GetFramebufferWidth() const
