@@ -151,6 +151,13 @@ namespace ignis
 		va.UnBind();
 	}
 
+	void GLRenderer::DrawLines(VertexArray& va, uint32_t vertex_count)
+	{
+		va.Bind();
+		glDrawArrays(GL_LINES, 0, vertex_count);
+		va.UnBind();
+	}
+
 	void GLRenderer::RenderMesh(const Mesh& mesh, const glm::mat4& model, 
 		const Environment& scene_environment, const EnvironmentSettings& environment_settings, const LightEnvironment& light_environment)
 	{

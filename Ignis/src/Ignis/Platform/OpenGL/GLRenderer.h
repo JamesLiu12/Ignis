@@ -25,6 +25,8 @@ namespace ignis
 		void SetViewport(const glm::ivec4& viewport) override;
 
 		void DrawIndexed(VertexArray& va) override;
+		void DrawLines(VertexArray& va, uint32_t vertex_count) override;
+
 		void RenderMesh(const Mesh& mesh, const glm::mat4& model,
 			const Environment& scene_environment, const EnvironmentSettings& environment_settings, const LightEnvironment& light_environment) override;
 		void RenderSkybox(const Environment& environment) override;
