@@ -1,15 +1,6 @@
 #include "RuntimeApp.h"
 #include "RuntimeSceneLayer.h"
 
-// Platform-specific headers for executable path detection
-#if defined(__APPLE__)
-	#include <mach-o/dyld.h>
-#elif defined(_WIN32)
-	#include <windows.h>
-#elif defined(__linux__)
-	#include <unistd.h>
-#endif
-
 namespace ignis {
 
 RuntimeApp::RuntimeApp(const std::string& project_path)
