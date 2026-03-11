@@ -211,6 +211,60 @@ namespace ignis
 					out_material_data.AOMap = texture_handle;
 			}
 		}
+
+		// Clearcoat Factor
+		{
+			float clearcoat_factor = 0.0f;
+			aimat->Get(AI_MATKEY_CLEARCOAT_FACTOR, clearcoat_factor);
+			out_material_data.ClearcoatFactor = clearcoat_factor;
+		}
+		// Clearcoat Roughness Factor
+		{
+			float clearcoat_roughness = 0.0f;
+			aimat->Get(AI_MATKEY_CLEARCOAT_ROUGHNESS_FACTOR, clearcoat_roughness);
+			out_material_data.ClearcoatRoughnessFactor = clearcoat_roughness;
+		}
+		// Clearcoat Map (aiTextureType_CLEARCOAT, index 0 - R channel = factor)
+		{
+			aiString texture_path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_CLEARCOAT, 0, &texture_path))
+			{
+				AssetHandle texture_handle = loadTexture(texture_path);
+				if (texture_handle.IsValid())
+					out_material_data.ClearcoatMap = texture_handle;
+			}
+		}
+		// Clearcoat Roughness Map (aiTextureType_CLEARCOAT, index 1 - G channel = roughness)
+		{
+			aiString texture_path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_CLEARCOAT, 1, &texture_path))
+			{
+				AssetHandle texture_handle = loadTexture(texture_path);
+				if (texture_handle.IsValid())
+					out_material_data.ClearcoatRoughnessMap = texture_handle;
+			}
+		}
+		// Clearcoat Normal Map (aiTextureType_NORMALS, index 1)
+		{
+			aiString texture_path;
+			bool found = false;
+
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_NORMALS, 1, &texture_path))
+			{
+				found = true;
+			}
+			else if (AI_SUCCESS == aimat->GetTexture(aiTextureType_CLEARCOAT, 2, &texture_path))
+			{
+				found = true;
+			}
+
+			if (found)
+			{
+				AssetHandle texture_handle = loadTexture(texture_path);
+				if (texture_handle.IsValid())
+					out_material_data.ClearcoatNormalMap = texture_handle;
+			}
+		}
 	}
 
 	AssetType MeshImporter::GetType() const

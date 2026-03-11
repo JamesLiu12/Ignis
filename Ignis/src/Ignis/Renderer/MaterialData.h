@@ -32,5 +32,11 @@ namespace ignis
 		float       EmissiveIntensity = 1.0f;
 
 		AssetHandle AOMap = AssetHandle::Invalid;
+
+		float ClearcoatFactor = 0.0f;
+		float ClearcoatRoughnessFactor = 0.0f;
+		AssetHandle ClearcoatMap = AssetHandle::Invalid;
+		AssetHandle ClearcoatRoughnessMap = AssetHandle::Invalid;
+		AssetHandle ClearcoatNormalMap = AssetHandle::Invalid;
 	};
 }
