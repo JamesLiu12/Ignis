@@ -14,9 +14,4 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory(Ignis)
 add_subdirectory(Editor)
-
-# Runtime builds by default for export workflow
-option(BUILD_RUNTIME "Build runtime executable" ON)
-if(BUILD_RUNTIME)
-	add_subdirectory(Runtime)
-endif()
+add_subdirectory(Runtime)
