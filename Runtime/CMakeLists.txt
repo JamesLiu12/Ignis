@@ -25,15 +25,9 @@ target_include_directories(IgnisRuntime PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-# Get the root project name (IgnisExampleProject) for the output executable name
-get_directory_property(ROOT_PROJECT_NAME DIRECTORY ${CMAKE_SOURCE_DIR} DEFINITION CMAKE_PROJECT_NAME)
-
 # Set output directory to match Editor (same as CMAKE_RUNTIME_OUTPUT_DIRECTORY from root)
 set_target_properties(IgnisRuntime PROPERTIES
-	# Use root project name for executable (e.g., IgnisExampleProject.exe or IgnisExampleProject)
-	OUTPUT_NAME "${ROOT_PROJECT_NAME}"
-	
-	# Use same output directory as Editor
+	# Keep default name "IgnisRuntime" - export will rename to project name
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
 )
 

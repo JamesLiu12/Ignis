@@ -373,14 +373,14 @@ void EditorLayer::ExportGame()
 	auto build_dir = project_dir / build_dir_str;
 	auto runtime_bin_dir = build_dir / "bin";
 	
-	// Construct runtime executable name using tokens
-	std::string runtime_exe_pattern;
+	// Runtime executable is always named "IgnisRuntime"
+	// Export will copy and rename it to project name
+	std::string runtime_exe_name;
 	#if defined(_WIN32)
-		runtime_exe_pattern = "{Name}.exe";
+		runtime_exe_name = "IgnisRuntime.exe";
 	#else
-		runtime_exe_pattern = "{Name}";
+		runtime_exe_name = "IgnisRuntime";
 	#endif
-	std::string runtime_exe_name = ReplaceTokens(runtime_exe_pattern, platform, config, project_name);
 	
 	// Validate that Runtime executable exists (should be pre-built)
 	auto runtime_exe = runtime_bin_dir / runtime_exe_name;
@@ -388,8 +388,21 @@ void EditorLayer::ExportGame()
 	{
 		Log::CoreError("Runtime executable not found: {}", runtime_exe.string());
 		Log::CoreError("Please build the project first before exporting.");
-		std::string build_cmd = "cmake --build " + build_dir_str + " --config " + config;
-		Log::CoreError("Run: {}", build_cmd);
+		#if defined(_WIN32)
+			if (config == "Debug")
+				Log::CoreError("Run: cmake --build --preset x64-debug");
+			else
+				Log::CoreError("Run: cmake --build --preset x64-release");
+		#elif defined(__APPLE__)
+			if (config == "Debug")
+				Log::CoreError("Run: cmake --build --preset arm64-debug");
+			else
+				Log::CoreError("Run: cmake --build --preset arm64-release");
+		#else
+			// Linux or fallback
+			std::string build_cmd = "cmake --build " + build_dir_str + " --config " + config;
+			Log::CoreError("Run: {}", build_cmd);
+		#endif
 		return;
 	}
 	
@@ -413,8 +426,21 @@ void EditorLayer::ExportGame()
 	{
 		Log::CoreError("Script module not found: {}", script_module_path.string());
 		Log::CoreError("Please build the project first before exporting.");
-		std::string build_cmd = "cmake --build " + build_dir_str + " --config " + config;
-		Log::CoreError("Run: {}", build_cmd);
+		#if defined(_WIN32)
+			if (config == "Debug")
+				Log::CoreError("Run: cmake --build --preset x64-debug");
+			else
+				Log::CoreError("Run: cmake --build --preset x64-release");
+		#elif defined(__APPLE__)
+			if (config == "Debug")
+				Log::CoreError("Run: cmake --build --preset arm64-debug");
+			else
+				Log::CoreError("Run: cmake --build --preset arm64-release");
+		#else
+			// Linux or fallback
+			std::string build_cmd = "cmake --build " + build_dir_str + " --config " + config;
+			Log::CoreError("Run: {}", build_cmd);
+		#endif
 		return;
 	}
 	
@@ -431,10 +457,17 @@ void EditorLayer::ExportGame()
 
 	try
 	{
-		// Copy runtime executable
-		std::filesystem::copy_file(runtime_exe, dist_dir / runtime_exe_name,
+		// Copy runtime executable and rename to project name
+		std::string dist_exe_name;
+		#if defined(_WIN32)
+			dist_exe_name = project_name + ".exe";
+		#else
+			dist_exe_name = project_name;
+		#endif
+		
+		std::filesystem::copy_file(runtime_exe, dist_dir / dist_exe_name,
 			std::filesystem::copy_options::overwrite_existing);
-		Log::CoreInfo("Copied runtime executable: {}", runtime_exe_name);
+		Log::CoreInfo("Copied runtime executable: {} -> {}", runtime_exe_name, dist_exe_name);
 		
 		// Copy engine and dependency DLLs
 		for (const auto& entry : std::filesystem::directory_iterator(runtime_bin_dir))
