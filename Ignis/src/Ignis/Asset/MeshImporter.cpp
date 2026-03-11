@@ -233,7 +233,8 @@ namespace ignis
 			| aiProcess_CalcTangentSpace;
 
 		if (ext == ".gltf" || ext == ".glb")
-			flags |= aiProcess_PreTransformVertices;
+			flags |= aiProcess_PreTransformVertices
+			| aiProcess_TransformUVCoords;
 
 		const aiScene* scene = importer.ReadFile(model_path.string(), flags);
 
