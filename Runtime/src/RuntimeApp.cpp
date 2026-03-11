@@ -71,34 +71,27 @@ static std::filesystem::path GetExecutableDirectory()
 // Factory method implementation for Runtime
 std::unique_ptr<ignis::Application> ignis::Application::Create()
 {
-	// Auto-detect project path from executable location
 	auto exe_dir = GetExecutableDirectory();
 	
-	// For development: executable is in out/build/arm64-debug/bin/
-	// Project root is 4 levels up
-	auto project_root = exe_dir.parent_path().parent_path().parent_path().parent_path();
-	
-	// Check if .igproj exists in project root
+	// Look for .igproj in same directory as executable (distribution case)
 	std::string project_path;
-	bool found_project = false;
-	for (const auto& entry : std::filesystem::directory_iterator(project_root))
+	for (const auto& entry : std::filesystem::directory_iterator(exe_dir))
 	{
 		if (entry.path().extension() == ".igproj")
 		{
-			found_project = true;
-			break;
+			project_path = exe_dir.string();
+			Log::CoreInfo("Found project: {}", entry.path().filename().string());
+			return std::make_unique<ignis::RuntimeApp>(project_path);
 		}
 	}
 	
-	if (found_project)
-	{
-		project_path = project_root.string();
-	}
-	else
-	{
-		// Fallback: assume project is in same directory as executable (distribution)
-		project_path = exe_dir.string();
-	}
+	// Not found - show error and exit gracefully
+	Log::CoreError("=== Runtime Error ===");
+	Log::CoreError("No .igproj file found in: {}", exe_dir.string());
+	Log::CoreError("Runtime must be in same directory as project file");
+	Log::CoreError("Please use 'Export Game' from Editor to create distribution");
+	Log::CoreError("====================");
 	
-	return std::make_unique<ignis::RuntimeApp>(project_path);
+	// Return nullptr to trigger graceful shutdown
+	return nullptr;
 }

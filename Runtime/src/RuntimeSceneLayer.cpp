@@ -68,8 +68,19 @@ void RuntimeSceneLayer::OnAttach()
 	// Create pipeline
 	m_pipeline = std::make_shared<PBRPipeline>(m_renderer.GetShaderLibrary());
 	
+	// Check if start scene is configured
+	auto start_scene = Project::GetActiveStartScene();
+	if (start_scene.empty())
+	{
+		Log::CoreError("=== Configuration Error ===");
+		Log::CoreError("No start scene configured in project");
+		Log::CoreError("Please set a start scene in the Editor before exporting");
+		Log::CoreError("==========================");
+		return;
+	}
+	
 	// Load start scene
-	LoadScene(Project::GetActiveStartScene());
+	LoadScene(start_scene);
 	
 	Log::CoreInfo("Runtime scene layer attached");
 }
