@@ -54,6 +54,11 @@ Ignis (Latin for "fire") is a custom game engine built from scratch to understan
 
 - **CMake** 3.20 or higher
 - **C++20** compatible compiler
+  - Windows: Visual Studio 2022 or later (with C++ desktop development workload)
+  - macOS: Xcode Command Line Tools
+- **Ninja** build system
+  - Windows: Visual Studio 2022 has Ninja by default, or install via Visual Studio installer
+  - macOS: `brew install ninja`
 - **Git** for version control
 
 ### Building on Windows
@@ -63,14 +68,27 @@ Ignis (Latin for "fire") is a custom game engine built from scratch to understan
 git clone https://github.com/your-username/Ignis.git
 cd Ignis
 
-# Configure and build
+# Configure with preset
 cmake --preset x64-debug
-cmake --build out/build/x64-debug
+or
+cmake --preset x64-release
+
+# Build using preset (builds Editor, Runtime, and script module)
+cmake --build --preset x64-debug
+or
+cmake --build --preset x64-release
 
 # Run the editor
-cd Editor
-../out/build/x64-debug/Editor/Editor.exe
+out\build\x64-debug\bin\Editor.exe
+or
+out\build\x64-release\bin\Editor.exe
 ```
+
+**Note:** The build process automatically compiles:
+
+- **Editor** - The main editor application
+- **Runtime** - Standalone game runtime executable
+- **Script Module** - Project-specific game code (DLL)
 
 ### Building on macOS
 
@@ -82,56 +100,83 @@ brew install cmake ninja
 git clone https://github.com/your-username/Ignis.git
 cd Ignis
 
-# Configure and build
+# Configure with preset
 cmake --preset arm64-debug
-cmake --build out/build/arm64-debug
+or
+cmake --preset arm64-release
+
+# Build using preset (builds Editor, Runtime, and script module)
+cmake --build --preset arm64-debug
+or
+cmake --build --preset arm64-release
 
 # Run the editor
-cd Editor
-../out/build/arm64-debug/Editor/Editor
+out/build/arm64-debug/bin/Editor
+or
+out/build/arm64-release/bin/Editor
 ```
+
+**Note:** The build process automatically compiles:
+
+- **Editor** - The main editor application
+- **Runtime** - Standalone game runtime executable
+- **Script Module** - Project-specific game code (dylib)
 
 ## 📁 Project Structure
 
 ```
 Ignis/
-├── Ignis/                    # Core engine library
+├── Ignis/                    # Core engine library (shared DLL)
 │   └── src/
 │       ├── Ignis/
-│       │   ├── Core/         # Application, events, entry point, logging
-│       │   ├── Renderer/     # Graphics pipeline, PBR rendering
-│       │   ├── Scene/        # ECS, entities, components
+│       │   ├── Core/         # Application, events, entry point, logging, file system
+│       │   ├── Renderer/     # Graphics pipeline, PBR rendering, shaders
+│       │   ├── Scene/        # ECS, entities, components, serialization
 │       │   ├── Physics/      # Bullet Physics integration
+│       │   ├── Audio/        # 3D audio system (miniaudio)
 │       │   ├── Asset/        # VFS, asset loading, importers
+│       │   ├── Project/      # Project management, script module loading
+│       │   ├── Script/       # Scripting system, native script interface
+│       │   ├── UI/           # UI system, text rendering
+│       │   ├── Platform/     # Platform-specific implementations (Windows, macOS)
 │       │   └── ImGui/        # ImGui integration layer
+│       ├── Ignis.h           # Main engine header
 │       └── pch.h             # Precompiled headers
 ├── Editor/                   # Editor application
 │   ├── src/
-│   │   ├── Editor/           # Editor-specific code
-│   │   │   ├── EditorApp.h/cpp        # Main editor application
-│   │   │   ├── EditorLayer.h/cpp      # Editor UI layer
-│   │   │   ├── PanelManager.h/cpp     # Panel management system
-│   │   │   ├── Panels/                # Editor panels
-│   │   │   │   ├── PropertiesPanel    # Component inspector
+│   │   ├── Editor/
+│   │   │   ├── EditorApp.h/cpp         # Main editor application
+│   │   │   ├── EditorLayer.h/cpp       # Editor UI, project management, export
+│   │   │   ├── EditorSceneLayer.h/cpp  # Scene editing, play mode
+│   │   │   ├── PanelManager.h/cpp      # Panel management system
+│   │   │   ├── Panels/                 # Editor panels
+│   │   │   │   ├── AssetBrowserPanel   # Asset management
+│   │   │   │   ├── PropertiesPanel     # Component inspector
 │   │   │   │   ├── SceneHierarchyPanel # Entity tree view
 │   │   │   │   ├── EditorConsolePanel  # Debug console
 │   │   │   │   ├── EngineStatsPanel    # Performance metrics
 │   │   │   │   ├── PhysicsDebugPanel   # Physics visualization
-│   │   │   │   └── EditorCamera        # Scene camera controller
-│   │   │   └── Core/                  # Editor utilities
-│   │   └── EditorSceneLayer.h/cpp     # Test scene with 3D content
-│   └── assets/               # Editor assets (models, textures, shaders)
-└── CMakeLists.txt
+│   │   │   │   └── MaterialEditorPanel # PBR material editor
+│   │   │   └── Core/                   # Editor utilities
+│   │   └── pch.h
+│   └── resources/            # Editor resources (shaders, fonts, icons)
+├── Runtime/                  # Standalone runtime executable
+│   └── src/
+│       ├── RuntimeApp.h/cpp         # Runtime application
+│       └── RuntimeSceneLayer.h/cpp  # Game scene layer
+├── CMakeLists.txt            # Root build configuration
+├── CMakePresets.json         # CMake presets for different platforms
+└── README.md
 ```
 
 ## 🗓️ Development Timeline
 
 | Phase       | Duration     | Focus                           |
 | ----------- | ------------ | ------------------------------- |
-| **Phase 1** | Sep-Oct 2025 | Foundation & Core Systems       |
+| **Phase 1** | Sep-Oct 2025 | Foundation, Core Systems        |
 | **Phase 2** | Nov-Dec 2025 | Rendering System                |
-| **Phase 3** | Jan-Feb 2026 | ECS & Asset Pipeline            |
-| **Phase 4** | Mar 2026     | Audio & Tools                   |
+| **Phase 3** | Jan-Feb 2026 | ECS, Asset Pipeline             |
+| **Phase 4** | Mar 2026     | Audio, tools, runtime           |
 | **Phase 5** | Apr 2026     | Game Development & Finalization |
 
 ## 👥 Team
