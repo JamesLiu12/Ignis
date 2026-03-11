@@ -98,7 +98,7 @@ namespace ignis {
 		m_collision_configuration = nullptr;
 
 		m_initialized = false;
-		Log::CoreInfo("PhysicsWorld shutdown complete");
+		// Note: Don't log here - logger may already be destroyed during shutdown
 	}
 
 	void PhysicsWorld::Step(float delta_time)
