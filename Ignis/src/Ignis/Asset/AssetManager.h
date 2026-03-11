@@ -6,6 +6,14 @@
 
 namespace ignis
 {
+	class AssetPack;
+	class Scene;
+
+	enum class AssetLoadMode
+	{
+		Editor,   // Load from filesystem via asset registry
+		Runtime   // Load from asset pack
+	};
 	class IGNIS_API AssetManager
 	{
 	public:
@@ -23,14 +31,25 @@ namespace ignis
 				return std::static_pointer_cast<T>(s_memory_assets.at(handle));
 			}
 
-			const AssetMetadata* metadata = GetMetadata(handle);
+			std::shared_ptr<Asset> asset = nullptr;
 
-			if (!metadata)
+			// Load based on mode
+			if (s_load_mode == AssetLoadMode::Runtime)
 			{
-				return nullptr;
+				// Runtime: Load from asset pack
+				asset = LoadAssetFromPack(handle);
 			}
-
-			std::shared_ptr<Asset> asset = LoadAssetFromFile(*metadata);
+			else
+			{
+				// Editor: Load from filesystem
+				const AssetMetadata* metadata = GetMetadata(handle);
+				if (!metadata)
+				{
+					return nullptr;
+				}
+				
+				asset = LoadAssetFromFile(*metadata);
+			}
 
 			if (asset)
 			{
@@ -73,13 +92,35 @@ namespace ignis
 
 		static AssetType DetermineTypeFromExtension(const std::filesystem::path& path);
 
+		// Runtime mode control
+		static void SetLoadMode(AssetLoadMode mode);
+		static AssetLoadMode GetLoadMode() { return s_load_mode; }
+
+		static void SetAssetPack(std::shared_ptr<AssetPack> pack);
+		static std::shared_ptr<AssetPack> GetAssetPack() { return s_asset_pack; }
+
+		static void SetActiveScene(AssetHandle scene_handle);
+		static AssetHandle GetActiveScene() { return s_active_scene; }
+
+		// Scene loading (runtime only)
+		static std::shared_ptr<Scene> LoadScene(AssetHandle scene_handle);
+
+		// Validate asset handle (mode-aware)
+		static bool IsAssetHandleValid(AssetHandle handle);
+
 	private:
 		static std::shared_ptr<Asset> LoadAssetFromFile(const AssetMetadata& metadata);
+		static std::shared_ptr<Asset> LoadAssetFromPack(AssetHandle handle);
 		static AssetImportOptions     DefaultImportOptions(AssetType type);
 
 		inline static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_loaded_assets;
 		inline static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_memory_assets;
 		inline static std::unordered_map<AssetHandle, AssetMetadata> s_asset_registry;
 		inline static AssetLoadContext s_load_context;
+
+		// Runtime mode state
+		inline static AssetLoadMode s_load_mode = AssetLoadMode::Editor;
+		inline static std::shared_ptr<AssetPack> s_asset_pack = nullptr;
+		inline static AssetHandle s_active_scene = AssetHandle::Invalid;
 	};
 }

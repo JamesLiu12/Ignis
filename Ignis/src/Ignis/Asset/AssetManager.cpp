@@ -4,6 +4,8 @@
 #include "FontImporter.h"
 #include "AssetSerializer.h"
 #include "AudioImporter.h"
+#include "Ignis/Serialization/AssetPack.h"
+#include "Ignis/Scene/Scene.h"
 
 namespace ignis
 {
@@ -92,6 +94,13 @@ namespace ignis
 
 	bool AssetManager::LoadAssetRegistry(const std::filesystem::path& path)
 	{
+		// Only load registry in editor mode
+		if (s_load_mode == AssetLoadMode::Runtime)
+		{
+			Log::CoreWarn("Asset registry not used in runtime mode");
+			return true; // Not an error
+		}
+
 		AssetSerializer asset_serializer;
 		if (auto registry = asset_serializer.Deserialize(path))
 		{
@@ -197,6 +206,119 @@ namespace ignis
 		default:
 			Log::CoreError("Unknown asset type for file: {}", metadata.FilePath);
 			return nullptr;
+		}
+	}
+
+	std::shared_ptr<Asset> AssetManager::LoadAssetFromPack(AssetHandle handle)
+	{
+		if (!s_asset_pack)
+		{
+			Log::CoreError("No asset pack set for runtime mode");
+			return nullptr;
+		}
+
+		if (s_active_scene == AssetHandle::Invalid)
+		{
+			Log::CoreError("No active scene set for runtime asset loading");
+			return nullptr;
+		}
+
+		// Load asset from pack
+		auto asset = s_asset_pack->LoadAsset(s_active_scene, handle);
+		
+		if (!asset)
+		{
+			Log::CoreWarn("Failed to load asset from pack: {}", handle.ToString());
+		}
+
+		return asset;
+	}
+
+	void AssetManager::SetLoadMode(AssetLoadMode mode)
+	{
+		if (s_load_mode == mode)
+			return;
+
+		Log::CoreInfo("AssetManager switching to {} mode", 
+			mode == AssetLoadMode::Runtime ? "Runtime" : "Editor");
+
+		s_load_mode = mode;
+
+		// Clear loaded assets when switching modes
+		// Memory assets persist across modes
+		s_loaded_assets.clear();
+	}
+
+	void AssetManager::SetAssetPack(std::shared_ptr<AssetPack> pack)
+	{
+		s_asset_pack = pack;
+		
+		if (pack)
+		{
+			Log::CoreInfo("Asset pack set: {}", pack->GetPath().string());
+		}
+	}
+
+	void AssetManager::SetActiveScene(AssetHandle scene_handle)
+	{
+		if (s_active_scene == scene_handle)
+			return;
+
+		s_active_scene = scene_handle;
+		
+		Log::CoreInfo("Active scene set: {}", scene_handle.ToString());
+	}
+
+	std::shared_ptr<Scene> AssetManager::LoadScene(AssetHandle scene_handle)
+	{
+		if (s_load_mode != AssetLoadMode::Runtime)
+		{
+			Log::CoreError("LoadScene only available in runtime mode");
+			return nullptr;
+		}
+
+		if (!s_asset_pack)
+		{
+			Log::CoreError("No asset pack set");
+			return nullptr;
+		}
+
+		auto scene = s_asset_pack->LoadScene(scene_handle);
+		
+		if (scene)
+		{
+			// Set as active scene for asset loading
+			SetActiveScene(scene_handle);
+			Log::CoreInfo("Scene loaded from pack: {}", scene_handle.ToString());
+		}
+		else
+		{
+			Log::CoreError("Failed to load scene from pack: {}", scene_handle.ToString());
+		}
+
+		return scene;
+	}
+
+	bool AssetManager::IsAssetHandleValid(AssetHandle handle)
+	{
+		// Check memory assets (always valid)
+		if (IsMemoryAsset(handle))
+			return true;
+
+		// Check loaded assets
+		if (IsAssetLoaded(handle))
+			return true;
+
+		// Mode-specific validation
+		if (s_load_mode == AssetLoadMode::Runtime)
+		{
+			// Runtime: Check if handle exists in asset pack
+			return s_asset_pack && s_asset_pack->IsAssetHandleValid(handle);
+		}
+		else
+		{
+			// Editor: Check if metadata exists
+			return GetMetadata(handle) != nullptr;
 		}
 	}
 
