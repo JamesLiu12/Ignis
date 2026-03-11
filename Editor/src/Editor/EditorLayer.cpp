@@ -322,42 +322,43 @@ void EditorLayer::ExportGame()
 	Log::CoreInfo("=== Starting Game Export ===");
 	Log::CoreInfo("Project: {}", project_name);
 
-	// Step 2: Configure CMake for Debug build with Runtime enabled
-	auto build_dir = project_dir / "out" / "build" / "arm64-debug";
-	
-	// Always reconfigure to ensure BUILD_RUNTIME=ON is set
-	Log::CoreInfo("Configuring CMake for Debug build with Runtime...");
-	std::string configure_cmd = "cmake -B \"" + build_dir.string() + 
-	                           "\" -S \"" + project_dir.string() + 
-	                           "\" -DCMAKE_BUILD_TYPE=Debug -DBUILD_RUNTIME=ON";
-	int result = std::system(configure_cmd.c_str());
-	if (result != 0)
-	{
-		Log::CoreError("CMake configuration failed");
-		return;
-	}
-	
-	// Step 3: Build Runtime and Script Module in Debug mode
-	Log::CoreInfo("Building runtime and script module in Debug mode...");
-	std::string build_cmd = "cmake --build \"" + build_dir.string() + 
-	                       "\" --config Debug -j8";
-	
-	Log::CoreInfo("Executing: {}", build_cmd);
-	int build_result = std::system(build_cmd.c_str());
-	
-	if (build_result != 0)
-	{
-		Log::CoreError("Build failed. Check console output.");
-		return;
-	}
-	
-	Log::CoreInfo("Build completed successfully");
-
-	// Step 4: Determine platform and bin directory
+	// Determine platform and locate pre-built binaries
 	std::string platform = FileDialog::GetPlatform();
+	auto build_dir = project_dir / "out" / "build" / "arm64-debug";
 	auto runtime_bin_dir = build_dir / "bin";
+	
+	// Validate that Runtime executable exists (should be pre-built)
+	auto runtime_exe = runtime_bin_dir / project_name;
+	if (!std::filesystem::exists(runtime_exe))
+	{
+		Log::CoreError("Runtime executable not found: {}", runtime_exe.string());
+		Log::CoreError("Please build the project first before exporting.");
+		Log::CoreError("Run: cmake --build out/build/arm64-debug --config Debug");
+		return;
+	}
+	
+	// Validate that script module exists
+	std::string script_module_name = "lib" + project_name;
+	#ifdef _WIN32
+		script_module_name += ".dll";
+	#elif defined(__APPLE__)
+		script_module_name += ".dylib";
+	#else
+		script_module_name += ".so";
+	#endif
+	
+	auto script_module_path = project_dir / "bin" / platform / "Debug" / script_module_name;
+	if (!std::filesystem::exists(script_module_path))
+	{
+		Log::CoreError("Script module not found: {}", script_module_path.string());
+		Log::CoreError("Please build the project first before exporting.");
+		Log::CoreError("Run: cmake --build out/build/arm64-debug --config Debug");
+		return;
+	}
+	
+	Log::CoreInfo("Pre-built binaries validated successfully");
 
-	// Step 5: Create distribution folder
+	// Create distribution folder
 	auto export_dir = project_dir / "Exports";
 	auto dist_dir = export_dir / (project_name + "_Distribution");
 	
@@ -368,21 +369,12 @@ void EditorLayer::ExportGame()
 
 	try
 	{
-		// Step 6: Copy runtime executable (already named as project)
-		auto runtime_exe = runtime_bin_dir / project_name;
-		if (std::filesystem::exists(runtime_exe))
-		{
-			std::filesystem::copy_file(runtime_exe, dist_dir / project_name,
-				std::filesystem::copy_options::overwrite_existing);
-			Log::CoreInfo("Copied runtime executable: {}", project_name);
-		}
-		else
-		{
-			Log::CoreError("Runtime executable not found: {}", runtime_exe.string());
-			return;
-		}
+		// Copy runtime executable
+		std::filesystem::copy_file(runtime_exe, dist_dir / project_name,
+			std::filesystem::copy_options::overwrite_existing);
+		Log::CoreInfo("Copied runtime executable: {}", project_name);
 		
-		// Step 7: Copy engine and dependency DLLs
+		// Copy engine and dependency DLLs
 		for (const auto& entry : std::filesystem::directory_iterator(runtime_bin_dir))
 		{
 			if (!entry.is_regular_file()) continue;
@@ -404,32 +396,13 @@ void EditorLayer::ExportGame()
 			}
 		}
 		
-		// Step 7b: Copy script module DLL from project bin directory
-		std::string script_module_name = "lib" + project_name;
-		#ifdef _WIN32
-			script_module_name += ".dll";
-		#elif defined(__APPLE__)
-			script_module_name += ".dylib";
-		#else
-			script_module_name += ".so";
-		#endif
+		// Copy script module DLL from project bin directory
+		std::filesystem::copy_file(script_module_path,
+			dist_dir / "scripts" / script_module_name,
+			std::filesystem::copy_options::overwrite_existing);
+		Log::CoreInfo("Copied to scripts/: {}", script_module_name);
 		
-		// Script module is built to bin/Platform/Config at project root
-		auto script_module_path = project_dir / "bin" / platform / "Debug" / script_module_name;
-		if (std::filesystem::exists(script_module_path))
-		{
-			std::filesystem::copy_file(script_module_path,
-				dist_dir / "scripts" / script_module_name,
-				std::filesystem::copy_options::overwrite_existing);
-			Log::CoreInfo("Copied to scripts/: {}", script_module_name);
-		}
-		else
-		{
-			Log::CoreWarn("Script module not found at: {}", script_module_path.string());
-			Log::CoreWarn("Runtime may not be able to load game scripts");
-		}
-		
-		// Step 8: Copy and update project file for distribution
+		// Copy and update project file for distribution
 		auto project_file = project_dir / (project_name + ".igproj");
 		auto dist_project_file = dist_dir / (project_name + ".igproj");
 		
@@ -451,7 +424,7 @@ void EditorLayer::ExportGame()
 			Log::CoreWarn("Could not update project file, copied as-is: {}.igproj", project_name);
 		}
 		
-		// Step 9: Copy assets
+		// Copy assets
 		auto assets_src = Project::GetActiveAssetDirectory();
 		auto assets_dst = dist_dir / "assets";
 		
@@ -460,7 +433,7 @@ void EditorLayer::ExportGame()
 			std::filesystem::copy_options::overwrite_existing);
 		Log::CoreInfo("Copied: assets/");
 		
-		// Step 10: Copy resources (shaders, etc.)
+		// Copy resources (shaders, etc.)
 		auto resources_src = runtime_bin_dir / "resources";
 		auto resources_dst = dist_dir / "resources";
 		
