@@ -15,6 +15,11 @@ add_executable(IgnisRuntime
 # Link against engine
 target_link_libraries(IgnisRuntime PRIVATE Ignis::Ignis)
 
+# Define _DEBUG for Debug builds
+target_compile_definitions(IgnisRuntime PRIVATE
+	$<$<CONFIG:Debug>:_DEBUG>
+)
+
 # Include directories
 target_include_directories(IgnisRuntime PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/src

@@ -322,37 +322,99 @@ void EditorLayer::ExportGame()
 	Log::CoreInfo("=== Starting Game Export ===");
 	Log::CoreInfo("Project: {}", project_name);
 
-	// Determine platform and locate pre-built binaries
-	std::string platform = FileDialog::GetPlatform();
-	auto build_dir = project_dir / "out" / "build" / "arm64-debug";
+	// Helper lambda to replace tokens in paths
+	auto ReplaceTokens = [](std::string str, const std::string& platform, const std::string& config, const std::string& name) -> std::string {
+		size_t pos = 0;
+		while ((pos = str.find("{Platform}", pos)) != std::string::npos) {
+			str.replace(pos, 10, platform);
+			pos += platform.length();
+		}
+		pos = 0;
+		while ((pos = str.find("{Config}", pos)) != std::string::npos) {
+			str.replace(pos, 8, config);
+			pos += config.length();
+		}
+		pos = 0;
+		while ((pos = str.find("{Name}", pos)) != std::string::npos) {
+			str.replace(pos, 6, name);
+			pos += name.length();
+		}
+		return str;
+	};
+	
+	// Get platform and config using macros
+	std::string platform;
+	#if defined(_WIN32)
+		platform = "Windows";
+	#elif defined(__APPLE__)
+		platform = "macOS";
+	#elif defined(__linux__)
+		platform = "Linux";
+	#endif
+	
+	std::string config;
+	#if defined(_DEBUG)
+		config = "Debug";
+	#else
+		config = "Release";
+	#endif
+	
+	// Construct build directory path using tokens
+	std::string build_dir_pattern;
+	#if defined(_WIN32)
+		build_dir_pattern = "out/build/x64-{Config}";
+	#elif defined(__APPLE__)
+		build_dir_pattern = "out/build/arm64-{Config}";
+	#else
+		build_dir_pattern = "out/build/{Config}";
+	#endif
+	
+	std::string build_dir_str = ReplaceTokens(build_dir_pattern, platform, config, project_name);
+	auto build_dir = project_dir / build_dir_str;
 	auto runtime_bin_dir = build_dir / "bin";
 	
+	// Construct runtime executable name using tokens
+	std::string runtime_exe_pattern;
+	#if defined(_WIN32)
+		runtime_exe_pattern = "{Name}.exe";
+	#else
+		runtime_exe_pattern = "{Name}";
+	#endif
+	std::string runtime_exe_name = ReplaceTokens(runtime_exe_pattern, platform, config, project_name);
+	
 	// Validate that Runtime executable exists (should be pre-built)
-	auto runtime_exe = runtime_bin_dir / project_name;
+	auto runtime_exe = runtime_bin_dir / runtime_exe_name;
 	if (!std::filesystem::exists(runtime_exe))
 	{
 		Log::CoreError("Runtime executable not found: {}", runtime_exe.string());
 		Log::CoreError("Please build the project first before exporting.");
-		Log::CoreError("Run: cmake --build out/build/arm64-debug --config Debug");
+		std::string build_cmd = "cmake --build " + build_dir_str + " --config " + config;
+		Log::CoreError("Run: {}", build_cmd);
 		return;
 	}
 	
-	// Validate that script module exists
-	std::string script_module_name = "lib" + project_name;
-	#ifdef _WIN32
-		script_module_name += ".dll";
+	// Construct script module name using tokens (same pattern as project config)
+	std::string script_module_pattern;
+	#if defined(_WIN32)
+		script_module_pattern = "{Name}.dll";
 	#elif defined(__APPLE__)
-		script_module_name += ".dylib";
+		script_module_pattern = "lib{Name}.dylib";
 	#else
-		script_module_name += ".so";
+		script_module_pattern = "lib{Name}.so";
 	#endif
+	std::string script_module_name = ReplaceTokens(script_module_pattern, platform, config, project_name);
 	
-	auto script_module_path = project_dir / "bin" / platform / "Debug" / script_module_name;
+	// Script module path: bin/{Platform}/{Config}/
+	std::string script_dir_pattern = "bin/{Platform}/{Config}";
+	std::string script_dir_str = ReplaceTokens(script_dir_pattern, platform, config, project_name);
+	auto script_module_path = project_dir / script_dir_str / script_module_name;
+	
 	if (!std::filesystem::exists(script_module_path))
 	{
 		Log::CoreError("Script module not found: {}", script_module_path.string());
 		Log::CoreError("Please build the project first before exporting.");
-		Log::CoreError("Run: cmake --build out/build/arm64-debug --config Debug");
+		std::string build_cmd = "cmake --build " + build_dir_str + " --config " + config;
+		Log::CoreError("Run: {}", build_cmd);
 		return;
 	}
 	
@@ -370,9 +432,9 @@ void EditorLayer::ExportGame()
 	try
 	{
 		// Copy runtime executable
-		std::filesystem::copy_file(runtime_exe, dist_dir / project_name,
+		std::filesystem::copy_file(runtime_exe, dist_dir / runtime_exe_name,
 			std::filesystem::copy_options::overwrite_existing);
-		Log::CoreInfo("Copied runtime executable: {}", project_name);
+		Log::CoreInfo("Copied runtime executable: {}", runtime_exe_name);
 		
 		// Copy engine and dependency DLLs
 		for (const auto& entry : std::filesystem::directory_iterator(runtime_bin_dir))
