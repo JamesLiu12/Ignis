@@ -61,12 +61,6 @@ public:
      * - Linux: Opens the parent directory in the default file manager
      */
     static void RevealInFileExplorer(const std::filesystem::path& path);
-    
-    /**
-     * @brief Get the current platform name
-     * @return "Windows", "macOS", or "Linux"
-     */
-    static std::string GetPlatform();
 };
 
 } // namespace ignis

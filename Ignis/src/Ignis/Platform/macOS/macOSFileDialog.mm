@@ -209,9 +209,4 @@ void FileDialog::RevealInFileExplorer(const std::filesystem::path& path)
     std::system(command.c_str());
 }
 
-std::string FileDialog::GetPlatform()
-{
-    return "macOS";
-}
-
 } // namespace ignis

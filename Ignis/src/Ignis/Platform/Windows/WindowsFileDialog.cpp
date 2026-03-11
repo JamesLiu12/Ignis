@@ -266,11 +266,6 @@ namespace ignis {
 		std::system(command.c_str());
 	}
 
-	std::string FileDialog::GetPlatform()
-	{
-		return "Windows";
-	}
-
 } // namespace ignis
 
 #endif // _WIN32
