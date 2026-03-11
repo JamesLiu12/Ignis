@@ -260,6 +260,17 @@ namespace ignis {
 		return result;
 	}
 
+	void FileDialog::RevealInFileExplorer(const std::filesystem::path& path)
+	{
+		std::string command = "explorer /select,\"" + path.string() + "\"";
+		std::system(command.c_str());
+	}
+
+	std::string FileDialog::GetPlatform()
+	{
+		return "Windows";
+	}
+
 } // namespace ignis
 
 #endif // _WIN32

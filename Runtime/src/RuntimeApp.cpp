@@ -80,18 +80,12 @@ std::unique_ptr<ignis::Application> ignis::Application::Create()
 		if (entry.path().extension() == ".igproj")
 		{
 			project_path = exe_dir.string();
-			Log::CoreInfo("Found project: {}", entry.path().filename().string());
+			// Note: Logging happens in RuntimeApp constructor after Application::Application() initializes logging
 			return std::make_unique<ignis::RuntimeApp>(project_path);
 		}
 	}
 	
-	// Not found - show error and exit gracefully
-	Log::CoreError("=== Runtime Error ===");
-	Log::CoreError("No .igproj file found in: {}", exe_dir.string());
-	Log::CoreError("Runtime must be in same directory as project file");
-	Log::CoreError("Please use 'Export Game' from Editor to create distribution");
-	Log::CoreError("====================");
-	
-	// Return nullptr to trigger graceful shutdown
+	// Not found - can't log here because logging isn't initialized yet
+	// Just return nullptr to trigger graceful shutdown
 	return nullptr;
 }

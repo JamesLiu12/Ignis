@@ -202,4 +202,16 @@ std::string FileDialog::OpenFolder()
     }
 }
 
+void FileDialog::RevealInFileExplorer(const std::filesystem::path& path)
+{
+    // Use 'open -R' which reveals the item in Finder (works for both files and folders)
+    std::string command = "open -R \"" + path.string() + "\"";
+    std::system(command.c_str());
+}
+
+std::string FileDialog::GetPlatform()
+{
+    return "macOS";
+}
+
 } // namespace ignis

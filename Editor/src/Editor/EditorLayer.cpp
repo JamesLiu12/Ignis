@@ -3,6 +3,7 @@
 
 #include "Ignis/Core/File/FileDialog.h"
 #include "Ignis/Project/Project.h"
+#include "Ignis/Project/ProjectSerializer.h"
 
 #include <imgui.h>
 
@@ -266,6 +267,18 @@ namespace ignis {
 					CloseProject();
 				}
 
+				ImGui::Separator();
+
+				#ifdef __APPLE__
+					const char* exportShortcut = "Cmd+E";
+				#else
+					const char* exportShortcut = "Ctrl+E";
+				#endif
+				if (ImGui::MenuItem("Export Game...", exportShortcut, false, hasProject))
+				{
+					ExportGame();
+				}
+
 				ImGui::EndMenu();
 			}
 
@@ -294,4 +307,185 @@ namespace ignis {
 			ImGui::EndMainMenuBar();
 		}
 	}
+
+void EditorLayer::ExportGame()
+{
+	if (!Project::GetActive())
+	{
+		Log::CoreError("No active project to export");
+		return;
+	}
+
+	auto project_name = Project::GetActiveProjectName();
+	auto project_dir = Project::GetActiveProjectDirectory();
+
+	Log::CoreInfo("=== Starting Game Export ===");
+	Log::CoreInfo("Project: {}", project_name);
+
+	// Step 2: Configure CMake for Debug build with Runtime enabled
+	auto build_dir = project_dir / "out" / "build" / "arm64-debug";
+	
+	// Always reconfigure to ensure BUILD_RUNTIME=ON is set
+	Log::CoreInfo("Configuring CMake for Debug build with Runtime...");
+	std::string configure_cmd = "cmake -B \"" + build_dir.string() + 
+	                           "\" -S \"" + project_dir.string() + 
+	                           "\" -DCMAKE_BUILD_TYPE=Debug -DBUILD_RUNTIME=ON";
+	int result = std::system(configure_cmd.c_str());
+	if (result != 0)
+	{
+		Log::CoreError("CMake configuration failed");
+		return;
+	}
+	
+	// Step 3: Build Runtime and Script Module in Debug mode
+	Log::CoreInfo("Building runtime and script module in Debug mode...");
+	std::string build_cmd = "cmake --build \"" + build_dir.string() + 
+	                       "\" --config Debug -j8";
+	
+	Log::CoreInfo("Executing: {}", build_cmd);
+	int build_result = std::system(build_cmd.c_str());
+	
+	if (build_result != 0)
+	{
+		Log::CoreError("Build failed. Check console output.");
+		return;
+	}
+	
+	Log::CoreInfo("Build completed successfully");
+
+	// Step 4: Determine platform and bin directory
+	std::string platform = FileDialog::GetPlatform();
+	auto runtime_bin_dir = build_dir / "bin";
+
+	// Step 5: Create distribution folder
+	auto export_dir = project_dir / "Exports";
+	auto dist_dir = export_dir / (project_name + "_Distribution");
+	
+	Log::CoreInfo("Packaging to: {}", dist_dir.string());
+	
+	std::filesystem::create_directories(dist_dir);
+	std::filesystem::create_directories(dist_dir / "scripts");
+
+	try
+	{
+		// Step 6: Copy runtime executable (already named as project)
+		auto runtime_exe = runtime_bin_dir / project_name;
+		if (std::filesystem::exists(runtime_exe))
+		{
+			std::filesystem::copy_file(runtime_exe, dist_dir / project_name,
+				std::filesystem::copy_options::overwrite_existing);
+			Log::CoreInfo("Copied runtime executable: {}", project_name);
+		}
+		else
+		{
+			Log::CoreError("Runtime executable not found: {}", runtime_exe.string());
+			return;
+		}
+		
+		// Step 7: Copy engine and dependency DLLs
+		for (const auto& entry : std::filesystem::directory_iterator(runtime_bin_dir))
+		{
+			if (!entry.is_regular_file()) continue;
+			
+			auto ext = entry.path().extension();
+			auto filename = entry.path().filename();
+			
+			// Check if it's a shared library (but not the script module)
+			if (ext == ".dylib" || ext == ".dll" || ext == ".so")
+			{
+				// Skip script module - we'll copy it separately
+				if (filename.stem().string().find(project_name) == std::string::npos)
+				{
+					std::filesystem::copy_file(entry.path(),
+						dist_dir / filename,
+						std::filesystem::copy_options::overwrite_existing);
+					Log::CoreInfo("Copied: {}", filename.string());
+				}
+			}
+		}
+		
+		// Step 7b: Copy script module DLL from project bin directory
+		std::string script_module_name = "lib" + project_name;
+		#ifdef _WIN32
+			script_module_name += ".dll";
+		#elif defined(__APPLE__)
+			script_module_name += ".dylib";
+		#else
+			script_module_name += ".so";
+		#endif
+		
+		// Script module is built to bin/Platform/Config at project root
+		auto script_module_path = project_dir / "bin" / platform / "Debug" / script_module_name;
+		if (std::filesystem::exists(script_module_path))
+		{
+			std::filesystem::copy_file(script_module_path,
+				dist_dir / "scripts" / script_module_name,
+				std::filesystem::copy_options::overwrite_existing);
+			Log::CoreInfo("Copied to scripts/: {}", script_module_name);
+		}
+		else
+		{
+			Log::CoreWarn("Script module not found at: {}", script_module_path.string());
+			Log::CoreWarn("Runtime may not be able to load game scripts");
+		}
+		
+		// Step 8: Copy and update project file for distribution
+		auto project_file = project_dir / (project_name + ".igproj");
+		auto dist_project_file = dist_dir / (project_name + ".igproj");
+		
+		// Load project, update script module path, and save to distribution
+		ProjectSerializer serializer;
+		auto project = serializer.Deserialize(project_file);
+		if (project)
+		{
+			// Update script module directory for distribution (scripts/ instead of bin/Platform/Config/)
+			project->SetScriptModuleDirectory("scripts/");
+			serializer.Serialize(*project, dist_project_file);
+			Log::CoreInfo("Copied and updated: {}.igproj", project_name);
+		}
+		else
+		{
+			// Fallback: just copy the file
+			std::filesystem::copy_file(project_file, dist_project_file,
+				std::filesystem::copy_options::overwrite_existing);
+			Log::CoreWarn("Could not update project file, copied as-is: {}.igproj", project_name);
+		}
+		
+		// Step 9: Copy assets
+		auto assets_src = Project::GetActiveAssetDirectory();
+		auto assets_dst = dist_dir / "assets";
+		
+		std::filesystem::copy(assets_src, assets_dst,
+			std::filesystem::copy_options::recursive |
+			std::filesystem::copy_options::overwrite_existing);
+		Log::CoreInfo("Copied: assets/");
+		
+		// Step 10: Copy resources (shaders, etc.)
+		auto resources_src = runtime_bin_dir / "resources";
+		auto resources_dst = dist_dir / "resources";
+		
+		if (std::filesystem::exists(resources_src))
+		{
+			std::filesystem::copy(resources_src, resources_dst,
+				std::filesystem::copy_options::recursive |
+				std::filesystem::copy_options::overwrite_existing);
+			Log::CoreInfo("Copied: resources/");
+		}
+		else
+		{
+			Log::CoreWarn("Resources folder not found at: {}", resources_src.string());
+		}
+		
+		Log::CoreInfo("=== Export Complete ===");
+		Log::CoreInfo("Distribution folder: {}", dist_dir.string());
+		
+		// Open folder for user
+		FileDialog::RevealInFileExplorer(dist_dir);
+	}
+	catch (const std::exception& e)
+	{
+		Log::CoreError("Export failed: {}", e.what());
+	}
+}
+
 } // namespace ignis

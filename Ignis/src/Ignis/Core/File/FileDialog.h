@@ -2,10 +2,11 @@
 
 #include "Ignis/Core/API.h"
 
-// Need to include the below two headers although in pch.h
+// Need to include the below headers although in pch.h
 // Because macOSFileDialog.mm is using this file and it is a non-pch file
 #include <string>
 #include <vector>
+#include <filesystem>
 
 namespace ignis {
 
@@ -49,6 +50,23 @@ public:
      * @return Selected folder path, or empty string if cancelled
      */
     static std::string OpenFolder();
+    
+    /**
+     * @brief Reveal a file or folder in the system file explorer
+     * @param path Path to the file or folder to reveal
+     * 
+     * Platform behavior:
+     * - macOS: Opens Finder and selects the item
+     * - Windows: Opens Explorer and selects the item
+     * - Linux: Opens the parent directory in the default file manager
+     */
+    static void RevealInFileExplorer(const std::filesystem::path& path);
+    
+    /**
+     * @brief Get the current platform name
+     * @return "Windows", "macOS", or "Linux"
+     */
+    static std::string GetPlatform();
 };
 
 } // namespace ignis

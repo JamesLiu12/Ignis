@@ -29,6 +29,9 @@ namespace ignis {
 		void CloseProject();  // Closes current project
 		void CreateNewProject();  // Shows new project popup
 
+		// Export functionality
+		void ExportGame();
+
 	private:
 		void RenderMenuBar();
 		void UI_ShowNewProjectPopup();

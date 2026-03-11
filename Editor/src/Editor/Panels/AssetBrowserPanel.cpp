@@ -648,17 +648,7 @@ namespace ignis {
 	// Show in Explorer (macOS Finder)
 	void AssetBrowserPanel::ShowInExplorer(const std::filesystem::path& path)
 	{
-		#ifdef __APPLE__
-			std::string command = "open -R \"" + path.string() + "\"";
-			system(command.c_str());
-		#elif _WIN32
-			std::string command = "explorer /select,\"" + path.string() + "\"";
-			system(command.c_str());
-		#else
-			// Linux - open parent directory
-			std::string command = "xdg-open \"" + path.parent_path().string() + "\"";
-			system(command.c_str());
-		#endif
+		FileDialog::RevealInFileExplorer(path);
 	}
 
 } // namespace ignis
