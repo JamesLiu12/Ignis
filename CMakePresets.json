@@ -34,27 +34,27 @@
             }
         },
         {
-            "name": "arm64-debug",
-            "displayName": "ARM64 Debug",
-            "inherits": "base",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Darwin"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_OSX_ARCHITECTURES": "arm64",
-                "CMAKE_OSX_DEPLOYMENT_TARGET": "12.0"
-            }
+          "name": "arm64-debug",
+          "displayName": "ARM64 Debug",
+          "inherits": "base",
+          "condition": {
+              "type": "equals",
+              "lhs": "${hostSystemName}",
+              "rhs": "Darwin"
+          },
+          "cacheVariables": {
+              "CMAKE_BUILD_TYPE": "Debug",
+              "CMAKE_OSX_ARCHITECTURES": "arm64",
+              "CMAKE_OSX_DEPLOYMENT_TARGET": "12.0"
+          }
         },
         {
-            "name": "arm64-release",
-            "displayName": "ARM64 Release",
-            "inherits": "arm64-debug",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            }
+          "name": "arm64-release",
+          "displayName": "ARM64 Release",
+          "inherits": "arm64-debug",
+          "cacheVariables": {
+              "CMAKE_BUILD_TYPE": "Release"
+          }
         }
     ],
     "buildPresets": [
