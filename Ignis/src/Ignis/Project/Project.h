@@ -29,6 +29,7 @@ namespace ignis
 		};
 
 		const Config& GetConfig() const { return m_config; }
+		void SetScriptModuleDirectory(const std::filesystem::path& directory) { m_config.ScriptModule.Directory = directory; }
 
 		const std::string& GetProjectName() const { return m_config.ProjectName; }
 		const std::filesystem::path& GetProjectDirectory() const { return m_project_directory; }

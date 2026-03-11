@@ -8,6 +8,11 @@ add_executable(Editor
     ${CMAKE_CURRENT_SOURCE_DIR}/../Ignis/src/Ignis/Core/EntryPoint.cpp
 )
 
+# Define _DEBUG for Debug builds
+target_compile_definitions(Editor PRIVATE
+    $<$<CONFIG:Debug>:_DEBUG>
+)
+
 if(MSVC)
     target_compile_options(Editor PRIVATE /utf-8)
 endif()
