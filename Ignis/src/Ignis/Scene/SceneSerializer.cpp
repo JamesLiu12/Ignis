@@ -66,6 +66,12 @@ namespace ignis
 
 		material_data.AOMap = UUID(data["AOMap"]);
 
+		material_data.ClearcoatFactor = data.value("ClearcoatFactor", 0.0f);
+		material_data.ClearcoatRoughnessFactor = data.value("ClearcoatRoughnessFactor", 0.0f);
+		material_data.ClearcoatMap = UUID(data.value("ClearcoatMap", ""));
+		material_data.ClearcoatRoughnessMap = UUID(data.value("ClearcoatRoughnessMap", ""));
+		material_data.ClearcoatNormalMap = UUID(data.value("ClearcoatNormalMap", ""));
+
 		return material_data;
 	}
 
@@ -89,6 +95,12 @@ namespace ignis
 		data["EmissiveIntensity"] = material_data.EmissiveIntensity;
 
 		data["AOMap"] = material_data.AOMap.ToString();
+
+		data["ClearcoatFactor"] = material_data.ClearcoatFactor;
+		data["ClearcoatRoughnessFactor"] = material_data.ClearcoatRoughnessFactor;
+		data["ClearcoatMap"] = material_data.ClearcoatMap.ToString();
+		data["ClearcoatRoughnessMap"] = material_data.ClearcoatRoughnessMap.ToString();
+		data["ClearcoatNormalMap"] = material_data.ClearcoatNormalMap.ToString();
 
 		return data;
 	}
