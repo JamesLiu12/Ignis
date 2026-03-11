@@ -226,6 +226,9 @@ void EditorSceneLayer::OnUpdate(float dt)
 	std::shared_ptr<Camera> render_camera = (m_scene_state == SceneState::Edit) 
 		? m_editor_camera 
 		: m_current_scene->GetPrimaryCamera();
+
+	if (!render_camera)
+		render_camera = m_editor_camera;
 		
 	m_ui_system.OnUpdate(*m_current_scene, framebuffer->GetWidth(), framebuffer->GetHeight());
 
