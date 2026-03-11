@@ -397,6 +397,8 @@ void EditorSceneLayer::ReloadProject()
 	m_editor_scene = nullptr;
 	m_current_scene = nullptr;
 	m_mesh = nullptr;
+
+	AssetManager::ClearAll();
 	
 	// Reload asset registry and scene
 	AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
@@ -531,6 +533,8 @@ void EditorSceneLayer::ClearProject()
 		properties_panel->SetSelectedEntity({});
 		properties_panel->SetCurrentMesh(nullptr, nullptr);
 	}
+
+	AssetManager::ClearAll();
 	
 	Log::CoreInfo("Project scene cleared");
 }

@@ -73,6 +73,8 @@ namespace ignis
 
 		static AssetType DetermineTypeFromExtension(const std::filesystem::path& path);
 
+		static void ClearAll();
+
 	private:
 		static std::shared_ptr<Asset> LoadAssetFromFile(const AssetMetadata& metadata);
 		static AssetImportOptions     DefaultImportOptions(AssetType type);
