@@ -1,0 +1,40 @@
+#pragma once
+
+#include "Ignis.h"
+#include "Ignis/Core/Layer.h"
+#include "Ignis/Renderer/Renderer.h"
+#include "Ignis/Scene/Scene.h"
+#include "Ignis/Renderer/Pipeline.h"
+#include "Ignis/Script/ScriptModule.h"
+
+namespace ignis {
+
+class RuntimeSceneLayer : public Layer
+{
+public:
+	RuntimeSceneLayer(Renderer& renderer, const std::string& project_path);
+	~RuntimeSceneLayer() override;
+
+	void OnAttach() override;
+	void OnDetach() override;
+	void OnUpdate(float dt) override;
+	void OnEvent(EventBase& event) override;
+	
+	void LoadScene(const std::filesystem::path& scene_path);
+	void QueueSceneTransition(const std::filesystem::path& scene_path);
+	
+	std::shared_ptr<Scene> GetScene() const { return m_runtime_scene; }
+
+private:
+	Renderer& m_renderer;
+	std::string m_project_path;
+	
+	std::shared_ptr<Scene> m_runtime_scene;
+	std::shared_ptr<Pipeline> m_pipeline;
+	ScriptModule m_script_module;
+	
+	// Scene transition queue
+	std::vector<std::function<void()>> m_post_scene_update_queue;
+};
+
+} // namespace ignis

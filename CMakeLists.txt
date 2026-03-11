@@ -14,3 +14,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory(Ignis)
 add_subdirectory(Editor)
+
+# Add runtime subdirectory (if it exists)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Runtime")
+	add_subdirectory(Runtime)
+endif()
