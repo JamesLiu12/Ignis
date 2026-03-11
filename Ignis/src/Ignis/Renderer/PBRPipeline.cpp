@@ -46,6 +46,18 @@ namespace ignis
 		auto ao = AssetManager::GetAsset<Texture2D>(data.AOMap);
 		material->Set("material.aoMap", ao ? ao : Renderer::GetWhiteTexture());
 
+		// --- Clearcoat ---
+		auto clearcoatMap = AssetManager::GetAsset<Texture2D>(data.ClearcoatMap);
+		material->Set("material.clearcoatMap", clearcoatMap ? clearcoatMap : Renderer::GetWhiteTexture());
+		material->Set("material.clearcoatFactor", data.ClearcoatFactor);
+
+		auto clearcoatRoughnessMap = AssetManager::GetAsset<Texture2D>(data.ClearcoatRoughnessMap);
+		material->Set("material.clearcoatRoughnessMap", clearcoatRoughnessMap ? clearcoatRoughnessMap : Renderer::GetWhiteTexture());
+		material->Set("material.clearcoatRoughnessFactor", data.ClearcoatRoughnessFactor);
+
+		auto clearcoatNormalMap = AssetManager::GetAsset<Texture2D>(data.ClearcoatNormalMap);
+		material->Set("material.clearcoatNormalMap", clearcoatNormalMap ? clearcoatNormalMap : Renderer::GetDefaultNormalTexture());
+
 		return material;
 	}
 
