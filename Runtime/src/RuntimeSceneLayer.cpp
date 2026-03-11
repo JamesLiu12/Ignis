@@ -6,12 +6,15 @@
 #include "Ignis/Script/ScriptRegistry.h"
 #include "Ignis/Audio/AudioEngine.h"
 #include "Ignis/Renderer/IBLBaker.h"
+#include "Ignis/Core/Events/MouseEvents.h"
+#include "Ignis/Core/Events/KeyEvents.h"
 
 namespace ignis {
 
 RuntimeSceneLayer::RuntimeSceneLayer(Renderer& renderer, const std::string& project_path)
 	: m_renderer(renderer)
 	, m_project_path(project_path)
+	, m_ui_renderer(renderer)
 {
 }
 
@@ -106,6 +109,14 @@ void RuntimeSceneLayer::OnUpdate(float dt)
 	// Update scene runtime (scripts)
 	m_runtime_scene->OnRuntimeUpdate(dt);
 	
+	// Get window dimensions for UI
+	auto& window = Application::Get().GetWindow();
+	uint32_t window_width = window.GetWidth();
+	uint32_t window_height = window.GetHeight();
+	
+	// Update UI layout
+	m_ui_system.OnUpdate(*m_runtime_scene, window_width, window_height);
+	
 	// Render scene
 	m_renderer.BeginFrame();
 	
@@ -118,6 +129,11 @@ void RuntimeSceneLayer::OnUpdate(float dt)
 		scene_renderer.EndScene();
 	}
 	
+	// Render UI
+	m_ui_renderer.BeginUI(window_width, window_height);
+	m_ui_system.OnRender(*m_runtime_scene, m_ui_renderer, window_width, window_height);
+	m_ui_renderer.EndUI();
+	
 	m_renderer.EndFrame();
 	
 	// Process queued scene transitions
@@ -129,8 +145,26 @@ void RuntimeSceneLayer::OnUpdate(float dt)
 
 void RuntimeSceneLayer::OnEvent(EventBase& event)
 {
-	// Runtime doesn't need to handle events directly
-	// Scripts handle events through their OnEvent callbacks
+	if (!m_runtime_scene)
+		return;
+	
+	// Handle UI events using dynamic_cast to check event types
+	if (auto* e = dynamic_cast<MouseMovedEvent*>(&event))
+	{
+		m_ui_system.OnMouseMoved(*m_runtime_scene, e->GetX(), e->GetY());
+	}
+	else if (auto* e = dynamic_cast<MouseButtonPressedEvent*>(&event))
+	{
+		m_ui_system.OnMouseButtonPressed(*m_runtime_scene, e->GetMouseButton());
+	}
+	else if (auto* e = dynamic_cast<MouseButtonReleasedEvent*>(&event))
+	{
+		m_ui_system.OnMouseButtonReleased(*m_runtime_scene, e->GetMouseButton());
+	}
+	else if (auto* e = dynamic_cast<KeyTypedEvent*>(&event))
+	{
+		m_ui_system.OnKeyTyped(*m_runtime_scene, e->GetKeyCode());
+	}
 }
 
 void RuntimeSceneLayer::LoadScene(const std::filesystem::path& scene_path)

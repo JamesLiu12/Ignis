@@ -6,6 +6,8 @@
 #include "Ignis/Scene/Scene.h"
 #include "Ignis/Renderer/Pipeline.h"
 #include "Ignis/Script/ScriptModule.h"
+#include "Ignis/UI/UIRenderer.h"
+#include "Ignis/UI/UISystem.h"
 
 namespace ignis {
 
@@ -32,6 +34,10 @@ private:
 	std::shared_ptr<Scene> m_runtime_scene;
 	std::shared_ptr<Pipeline> m_pipeline;
 	ScriptModule m_script_module;
+	
+	// UI rendering
+	UIRenderer m_ui_renderer;
+	UISystem m_ui_system;
 	
 	// Scene transition queue
 	std::vector<std::function<void()>> m_post_scene_update_queue;
