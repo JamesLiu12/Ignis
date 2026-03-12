@@ -11,7 +11,10 @@ namespace ignis
 		Metal,
 		Roughness,
 		Emissive,
-		AO
+		AO,
+		Clearcoat,
+		ClearcoatRoughness,
+		ClearcoatNormal,
 	};
 
 	struct UVTransform
