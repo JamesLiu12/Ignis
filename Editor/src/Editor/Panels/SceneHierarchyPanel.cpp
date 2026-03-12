@@ -36,8 +36,54 @@ namespace ignis {
 					}
 				}
 
+				// Position unparent drop zone at absolute bottom of panel
+				// Check if we're currently dragging an entity
+				bool is_dragging = ImGui::GetDragDropPayload() != nullptr;
+				
+				if (is_dragging)
+				{
+					// Calculate position to place drop zone at bottom
+					float drop_zone_height = 25.0f;
+					float available_height = ImGui::GetContentRegionAvail().y;
+					
+					// Add spacing to push drop zone to bottom
+					if (available_height > drop_zone_height + 5.0f)
+					{
+						ImGui::Dummy(ImVec2(0.0f, available_height - drop_zone_height - 5.0f));
+					}
+					
+					ImGui::Separator();
+					
+					// Show unparent drop zone with light gray color
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.5f, 0.5f, 0.3f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.6f, 0.6f, 0.6f, 0.5f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.7f, 0.7f, 0.7f, 0.7f));
+					
+					ImGui::Button("Drop here to unparent entity", ImVec2(-1, drop_zone_height));
+					
+					ImGui::PopStyleColor(3);
+					
+					// Drop target on the button
+					if (ImGui::BeginDragDropTarget())
+					{
+						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY_REPARENT"))
+						{
+							UUID dragged_id = *(UUID*)payload->Data;
+							Entity dragged = m_scene->GetEntityByID(dragged_id);
+							
+							if (dragged.IsValid())
+							{
+								Log::CoreInfo("SceneHierarchy: Unparenting '{}'",
+									dragged.GetComponent<TagComponent>().Tag);
+								dragged.Unparent();
+							}
+						}
+						ImGui::EndDragDropTarget();
+					}
+				}
+
 				// Click on blank space to deselect and exit rename mode
-				if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+				if (ImGui::IsMouseClicked(0) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
 				{
 					m_selected_entity = {};
 					m_renaming_entity = {};
@@ -85,6 +131,8 @@ namespace ignis {
 
 	void SceneHierarchyPanel::DrawEntityNode(Entity entity)
 	{
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 8.0f));
+		
 		// Get entity name from TagComponent
 		std::string name = "Unnamed Entity";
 		if (entity.HasComponent<TagComponent>())
@@ -156,6 +204,46 @@ namespace ignis {
 				m_properties_panel->SetSelectedEntity(m_selected_entity);
 				Log::CoreInfo("SceneHierarchy: Selected entity '{}'", name);
 			}
+		}
+
+		// Tree node drag source for reparenting
+		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+		{
+			UUID entity_id = entity.GetID();
+			ImGui::SetDragDropPayload("ENTITY_REPARENT", &entity_id, sizeof(UUID));
+			ImGui::Text("Reparent: %s", name.c_str());
+			ImGui::EndDragDropSource();
+		}
+
+		// Drop target to make dragged entity a child
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY_REPARENT"))
+			{
+				UUID dragged_id = *(UUID*)payload->Data;
+				Entity dragged = m_scene->GetEntityByID(dragged_id);
+				
+				// Prevent circular parenting
+				bool is_circular = false;
+				Entity check = entity;
+				while (check.IsValid())
+				{
+					if (check == dragged)
+					{
+						is_circular = true;
+						break;
+					}
+					check = check.GetParent();
+				}
+				
+				if (!is_circular && dragged.IsValid() && dragged != entity)
+				{
+					Log::CoreInfo("SceneHierarchy: Reparenting '{}' to '{}'",
+						dragged.GetComponent<TagComponent>().Tag, name);
+					dragged.SetParent(entity);
+				}
+			}
+			ImGui::EndDragDropTarget();
 		}
 
 		// Right-click context menu for entity
@@ -274,6 +362,9 @@ namespace ignis {
 			}
 			ImGui::TreePop();
 		}
+		
+		// Restore spacing
+		ImGui::PopStyleVar();
 	}
 
 	void SceneHierarchyPanel::DrawEntityCreateMenu(Entity parent)
