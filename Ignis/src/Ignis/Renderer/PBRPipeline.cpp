@@ -58,6 +58,19 @@ namespace ignis
 		auto clearcoatNormalMap = AssetManager::GetAsset<Texture2D>(data.ClearcoatNormalMap);
 		material->Set("material.clearcoatNormalMap", clearcoatNormalMap ? clearcoatNormalMap : Renderer::GetDefaultNormalTexture());
 
+		material->Set("uv_albedoMap", (int)data.AlbedoMapUVIndex);
+		material->Set("uv_normalMap", (int)data.NormalMapUVIndex);
+		material->Set("uv_metallicMap", (int)data.MetalnessMapUVIndex);
+		material->Set("uv_roughnessMap", (int)data.RoughnessMapUVIndex);
+		material->Set("uv_emissiveMap", (int)data.EmissiveMapUVIndex);
+		material->Set("uv_aoMap", (int)data.AOMapUVIndex);
+		material->Set("uv_clearcoatMap", (int)data.ClearcoatMapUVIndex);
+		material->Set("uv_clearcoatRoughnessMap", (int)data.ClearcoatRoughnessMapUVIndex);
+		material->Set("uv_clearcoatNormalMap", (int)data.ClearcoatNormalMapUVIndex);
+
+		material->Set("ch_metallic", data.MetallicChannel);
+		material->Set("ch_roughness", data.RoughnessChannel);
+
 		return material;
 	}
 
