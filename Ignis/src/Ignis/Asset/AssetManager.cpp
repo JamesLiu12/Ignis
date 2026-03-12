@@ -172,6 +172,13 @@ namespace ignis
 		return AssetType::Unknown;
 	}
 
+	void AssetManager::ClearAll()
+	{
+		s_loaded_assets = {};
+		s_memory_assets = {};
+		s_asset_registry = {};
+	}
+
 	std::shared_ptr<Asset> AssetManager::LoadAssetFromFile(const AssetMetadata& metadata)
 	{
 		if (!VFS::Exists(metadata.FilePath))

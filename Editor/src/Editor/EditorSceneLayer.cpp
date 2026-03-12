@@ -226,6 +226,9 @@ void EditorSceneLayer::OnUpdate(float dt)
 	std::shared_ptr<Camera> render_camera = (m_scene_state == SceneState::Edit) 
 		? m_editor_camera 
 		: m_current_scene->GetPrimaryCamera();
+
+	if (!render_camera)
+		render_camera = m_editor_camera;
 		
 	m_ui_system.OnUpdate(*m_current_scene, framebuffer->GetWidth(), framebuffer->GetHeight());
 
@@ -394,6 +397,8 @@ void EditorSceneLayer::ReloadProject()
 	m_editor_scene = nullptr;
 	m_current_scene = nullptr;
 	m_mesh = nullptr;
+
+	AssetManager::ClearAll();
 	
 	// Reload asset registry and scene
 	AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
@@ -528,6 +533,8 @@ void EditorSceneLayer::ClearProject()
 		properties_panel->SetSelectedEntity({});
 		properties_panel->SetCurrentMesh(nullptr, nullptr);
 	}
+
+	AssetManager::ClearAll();
 	
 	Log::CoreInfo("Project scene cleared");
 }
