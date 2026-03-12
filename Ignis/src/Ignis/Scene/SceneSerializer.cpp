@@ -49,28 +49,39 @@ namespace ignis
 		material_data.AlbedoColor = data.contains("AlbedoColor")
 			? DeserializeVec4(data["AlbedoColor"])
 			: glm::vec4(1.0f);
+		material_data.AlbedoMapUVIndex = data.value("AlbedoMapUVIndex", 0u);
 
 		material_data.NormalMap = UUID(data.value("NormalMap", ""));
+		material_data.NormalMapUVIndex = data.value("NormalMapUVIndex", 0u);
 
 		material_data.MetalnessMap = UUID(data.value("MetalnessMap", ""));
 		material_data.MetallicValue = data.value("MetallicValue", 0.0f);
+		material_data.MetallicChannel = data.value("MetallicChannel", 0);
+		material_data.MetalnessMapUVIndex = data.value("MetalnessMapUVIndex", 0u);
 
 		material_data.RoughnessMap = UUID(data.value("RoughnessMap", ""));
 		material_data.RoughnessValue = data.value("RoughnessValue", 0.5f);
+		material_data.RoughnessChannel = data.value("RoughnessChannel", 0);
+		material_data.RoughnessMapUVIndex = data.value("RoughnessMapUVIndex", 0u);
 
 		material_data.EmissiveMap = UUID(data.value("EmissiveMap", ""));
 		material_data.EmissiveColor = data.contains("EmissiveColor")
 			? DeserializeVec3(data["EmissiveColor"])
 			: glm::vec3(0.0f);
 		material_data.EmissiveIntensity = data.value("EmissiveIntensity", 1.0f);
+		material_data.EmissiveMapUVIndex = data.value("EmissiveMapUVIndex", 0u);
 
 		material_data.AOMap = UUID(data.value("AOMap", ""));
+		material_data.AOMapUVIndex = data.value("AOMapUVIndex", 0u);
 
 		material_data.ClearcoatFactor = data.value("ClearcoatFactor", 0.0f);
 		material_data.ClearcoatRoughnessFactor = data.value("ClearcoatRoughnessFactor", 0.0f);
 		material_data.ClearcoatMap = UUID(data.value("ClearcoatMap", ""));
+		material_data.ClearcoatMapUVIndex = data.value("ClearcoatMapUVIndex", 0u);
 		material_data.ClearcoatRoughnessMap = UUID(data.value("ClearcoatRoughnessMap", ""));
+		material_data.ClearcoatRoughnessMapUVIndex = data.value("ClearcoatRoughnessMapUVIndex", 0u);
 		material_data.ClearcoatNormalMap = UUID(data.value("ClearcoatNormalMap", ""));
+		material_data.ClearcoatNormalMapUVIndex = data.value("ClearcoatNormalMapUVIndex", 0u);
 
 		return material_data;
 	}
@@ -81,26 +92,37 @@ namespace ignis
 
 		data["AlbedoMap"] = material_data.AlbedoMap.ToString();
 		data["AlbedoColor"] = SerializeVec4(material_data.AlbedoColor);
+		data["AlbedoMapUVIndex"] = material_data.AlbedoMapUVIndex;
 
 		data["NormalMap"] = material_data.NormalMap.ToString();
+		data["NormalMapUVIndex"] = material_data.NormalMapUVIndex;
 
 		data["MetalnessMap"] = material_data.MetalnessMap.ToString();
 		data["MetallicValue"] = material_data.MetallicValue;
+		data["MetallicChannel"] = material_data.MetallicChannel;
+		data["MetalnessMapUVIndex"] = material_data.MetalnessMapUVIndex;
 
 		data["RoughnessMap"] = material_data.RoughnessMap.ToString();
 		data["RoughnessValue"] = material_data.RoughnessValue;
+		data["RoughnessChannel"] = material_data.RoughnessChannel;
+		data["RoughnessMapUVIndex"] = material_data.RoughnessMapUVIndex;
 
 		data["EmissiveMap"] = material_data.EmissiveMap.ToString();
 		data["EmissiveColor"] = SerializeVec3(material_data.EmissiveColor);
 		data["EmissiveIntensity"] = material_data.EmissiveIntensity;
+		data["EmissiveMapUVIndex"] = material_data.EmissiveMapUVIndex;
 
 		data["AOMap"] = material_data.AOMap.ToString();
+		data["AOMapUVIndex"] = material_data.AOMapUVIndex;
 
 		data["ClearcoatFactor"] = material_data.ClearcoatFactor;
 		data["ClearcoatRoughnessFactor"] = material_data.ClearcoatRoughnessFactor;
 		data["ClearcoatMap"] = material_data.ClearcoatMap.ToString();
+		data["ClearcoatMapUVIndex"] = material_data.ClearcoatMapUVIndex;
 		data["ClearcoatRoughnessMap"] = material_data.ClearcoatRoughnessMap.ToString();
+		data["ClearcoatRoughnessMapUVIndex"] = material_data.ClearcoatRoughnessMapUVIndex;
 		data["ClearcoatNormalMap"] = material_data.ClearcoatNormalMap.ToString();
+		data["ClearcoatNormalMapUVIndex"] = material_data.ClearcoatNormalMapUVIndex;
 
 		return data;
 	}
