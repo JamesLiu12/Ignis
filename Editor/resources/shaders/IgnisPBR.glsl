@@ -130,6 +130,16 @@ uniform int uv_clearcoatNormalMap;
 uniform int ch_metallic;
 uniform int ch_roughness;
 
+uniform mat3 uvT_albedoMap;
+uniform mat3 uvT_normalMap;
+uniform mat3 uvT_metallicMap;
+uniform mat3 uvT_roughnessMap;
+uniform mat3 uvT_emissiveMap;
+uniform mat3 uvT_aoMap;
+uniform mat3 uvT_clearcoatMap;
+uniform mat3 uvT_clearcoatRoughnessMap;
+uniform mat3 uvT_clearcoatNormalMap;
+
 const float PI = 3.14159265359;
 
 // =========================================================================
@@ -263,21 +273,26 @@ vec2 CalcClearcoatDirect(vec3 L, vec3 V, vec3 Nc, float ccRoughness)
     return vec2(spec, Fc);
 }
 
+vec2 transformUV(vec2 uv, mat3 T)
+{
+    return (T * vec3(uv, 1.0)).xy;
+}
+
 // =========================================================================
 // 主函数
 // =========================================================================
 void main()
 {
-    // ==== 预计算每张纹理的 UV ====
-    vec2 uvAlbedo   = selectUV(uv_albedoMap);
-    vec2 uvNormal   = selectUV(uv_normalMap);
-    vec2 uvMetal    = selectUV(uv_metallicMap);
-    vec2 uvRough    = selectUV(uv_roughnessMap);
-    vec2 uvEmissive = selectUV(uv_emissiveMap);
-    vec2 uvAO       = selectUV(uv_aoMap);
-    vec2 uvCC       = selectUV(uv_clearcoatMap);
-    vec2 uvCCR      = selectUV(uv_clearcoatRoughnessMap);
-    vec2 uvCCN      = selectUV(uv_clearcoatNormalMap);
+    // ==== 选择 UV 集 + 应用变换 ====
+    vec2 uvAlbedo   = transformUV(selectUV(uv_albedoMap),             uvT_albedoMap);
+    vec2 uvNormal   = transformUV(selectUV(uv_normalMap),             uvT_normalMap);
+    vec2 uvMetal    = transformUV(selectUV(uv_metallicMap),           uvT_metallicMap);
+    vec2 uvRough    = transformUV(selectUV(uv_roughnessMap),          uvT_roughnessMap);
+    vec2 uvEmissive = transformUV(selectUV(uv_emissiveMap),           uvT_emissiveMap);
+    vec2 uvAO       = transformUV(selectUV(uv_aoMap),                 uvT_aoMap);
+    vec2 uvCC       = transformUV(selectUV(uv_clearcoatMap),          uvT_clearcoatMap);
+    vec2 uvCCR      = transformUV(selectUV(uv_clearcoatRoughnessMap), uvT_clearcoatRoughnessMap);
+    vec2 uvCCN      = transformUV(selectUV(uv_clearcoatNormalMap),    uvT_clearcoatNormalMap);
 
     // ==== 1. 采样 Base PBR ====
     vec4  albedoSample = texture(material.albedoMap, uvAlbedo);

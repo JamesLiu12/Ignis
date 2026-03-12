@@ -71,6 +71,16 @@ namespace ignis
 		material->Set("ch_metallic", data.MetallicChannel);
 		material->Set("ch_roughness", data.RoughnessChannel);
 
+		material->Set("uvT_albedoMap", data.AlbedoMapUVTransform.ToMatrix());
+		material->Set("uvT_normalMap", data.NormalMapUVTransform.ToMatrix());
+		material->Set("uvT_metallicMap", data.MetalnessMapUVTransform.ToMatrix());
+		material->Set("uvT_roughnessMap", data.RoughnessMapUVTransform.ToMatrix());
+		material->Set("uvT_emissiveMap", data.EmissiveMapUVTransform.ToMatrix());
+		material->Set("uvT_aoMap", data.AOMapUVTransform.ToMatrix());
+		material->Set("uvT_clearcoatMap", data.ClearcoatMapUVTransform.ToMatrix());
+		material->Set("uvT_clearcoatRoughnessMap", data.ClearcoatRoughnessMapUVTransform.ToMatrix());
+		material->Set("uvT_clearcoatNormalMap", data.ClearcoatNormalMapUVTransform.ToMatrix());
+
 		return material;
 	}
 

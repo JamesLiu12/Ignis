@@ -208,6 +208,11 @@ namespace ignis
 			material->Set("model", model);
 			material->Set("viewPos", m_camera->GetPosition());
 
+			if (material_data.DoubleSided)
+				glDisable(GL_CULL_FACE);
+			else
+				glEnable(GL_CULL_FACE);
+
 			material->Bind();
 			glDrawElements(
 				GL_TRIANGLES,
@@ -217,6 +222,7 @@ namespace ignis
 			);
 		}
 
+		glEnable(GL_CULL_FACE);
 		vao->UnBind();
 	}
 
