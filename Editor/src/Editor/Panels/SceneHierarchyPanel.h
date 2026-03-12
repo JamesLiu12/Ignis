@@ -23,6 +23,10 @@ namespace ignis {
 
 		Entity GetSelectedEntity() { return m_selected_entity; }
 
+	// Copy/Paste operations
+	void CopySelectedEntity();
+	void PasteEntity();
+
 	private:
 		void DrawEntityNode(Entity entity);
 		void DrawEntityCreateMenu(Entity parent = Entity());
@@ -33,6 +37,9 @@ namespace ignis {
 		Entity m_selected_entity;
 		Entity m_renaming_entity;
 		char m_rename_buffer[256] = "";
+
+	// Copy/paste support
+	Entity m_copied_entity;
 	};
 
 } // namespace ignis
