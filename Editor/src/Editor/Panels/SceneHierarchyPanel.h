@@ -23,10 +23,9 @@ namespace ignis {
 
 		Entity GetSelectedEntity() { return m_selected_entity; }
 
-	// Copy/Paste/Duplicate operations
+	// Copy/Paste operations
 	void CopySelectedEntity();
 	void PasteEntity();
-	void DuplicateSelectedEntity();
 
 	private:
 		void DrawEntityNode(Entity entity);

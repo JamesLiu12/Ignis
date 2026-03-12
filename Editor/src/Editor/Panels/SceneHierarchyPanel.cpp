@@ -359,37 +359,4 @@ namespace ignis {
 		}
 	}
 
-	void SceneHierarchyPanel::DuplicateSelectedEntity()
-	{
-		if (!m_selected_entity.IsValid())
-		{
-			Log::CoreWarn("SceneHierarchy: No entity selected to duplicate");
-			return;
-		}
-
-		if (!m_scene)
-		{
-			Log::CoreWarn("SceneHierarchy: No scene available");
-			return;
-		}
-
-		Entity duplicate = m_scene->DuplicateEntity(m_selected_entity);
-
-		// Preserve parent relationship
-		if (m_selected_entity.GetParentID() != UUID::Invalid)
-		{
-			duplicate.SetParent(m_selected_entity.GetParent());
-		}
-
-		// Select the duplicated entity
-		m_selected_entity = duplicate;
-		if (m_properties_panel)
-		{
-			m_properties_panel->SetSelectedEntity(duplicate);
-		}
-
-		std::string name = duplicate.GetComponent<TagComponent>().Tag;
-		Log::CoreInfo("SceneHierarchy: Duplicated entity '{}'", name);
-	}
-
 } // namespace ignis
