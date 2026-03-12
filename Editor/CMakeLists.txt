@@ -25,6 +25,14 @@ target_link_libraries(Editor
 	PRIVATE Ignis::Ignis
 )
 
+# macOS: Use relative RPATH so Editor is portable
+if(APPLE)
+	set_target_properties(Editor PROPERTIES
+		BUILD_WITH_INSTALL_RPATH TRUE
+		INSTALL_RPATH "@executable_path"
+	)
+endif()
+
 set(SOURCE_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/resources")
 set(DEST_DIR    "$<TARGET_FILE_DIR:Editor>/resources")
 set(STAMP_FILE  "${CMAKE_CURRENT_BINARY_DIR}/copy_resources.stamp")

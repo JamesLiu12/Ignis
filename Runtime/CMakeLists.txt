@@ -31,6 +31,14 @@ set_target_properties(IgnisRuntime PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
 )
 
+# macOS: Use relative RPATH so Runtime is portable
+if(APPLE)
+	set_target_properties(IgnisRuntime PROPERTIES
+		BUILD_WITH_INSTALL_RPATH TRUE
+		INSTALL_RPATH "@executable_path"
+	)
+endif()
+
 # Windows: Copy DLL dependencies automatically
 if(WIN32)
 	# This tells CMake to copy all dependent DLLs to the output directory
