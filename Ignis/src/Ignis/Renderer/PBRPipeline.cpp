@@ -148,13 +148,18 @@ namespace ignis
 		material.Set("envSettings.tint", environment_settings.Tint);
 	}
 
-	std::shared_ptr<Material> PBRPipeline::CreateSkyboxMaterial(const Environment& scene_environment)
+	std::shared_ptr<Material> PBRPipeline::CreateSkyboxMaterial(const Environment& scene_environment, 
+		const EnvironmentSettings& environment_settings)
 	{
 		auto material = Material::Create(m_shader_library.Get("Skybox"));
 
 		const auto& skybox_map = scene_environment.GetSkyboxMap();
 		if (skybox_map)
 			material->Set("environmentMap", skybox_map);
+
+		material->Set("envRotation", environment_settings.Rotation);
+		material->Set("envIntensity", environment_settings.Intensity);
+		material->Set("envTint", environment_settings.Tint);
 
 		return material;
 	}

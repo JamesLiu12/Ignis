@@ -29,7 +29,7 @@ namespace ignis
 
 		void RenderMesh(const Mesh& mesh, const glm::mat4& model,
 			const Environment& scene_environment, const EnvironmentSettings& environment_settings, const LightEnvironment& light_environment) override;
-		void RenderSkybox(const Environment& environment) override;
+		void RenderSkybox(const Environment& environment, const EnvironmentSettings& environment_settings) override;
 		void RenderText(const Font& font, const std::string& text, const glm::mat4& transform, const glm::vec4& color, float scale) override;
 
 		void Clear() override;

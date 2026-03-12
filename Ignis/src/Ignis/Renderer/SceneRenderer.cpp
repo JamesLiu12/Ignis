@@ -60,7 +60,7 @@ namespace ignis
 		if (m_context.Scene->m_scene_environment && 
 		    m_context.Scene->m_scene_environment->GetSkyboxMap())
 		{
-			m_renderer.RenderSkybox(*m_context.Scene->m_scene_environment);
+			m_renderer.RenderSkybox(*m_context.Scene->m_scene_environment, m_context.Scene->m_environment_settings);
 		}
 	}
 

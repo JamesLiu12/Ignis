@@ -226,11 +226,11 @@ namespace ignis
 		vao->UnBind();
 	}
 
-	void GLRenderer::RenderSkybox(const Environment& environment)
+	void GLRenderer::RenderSkybox(const Environment& environment, const EnvironmentSettings& environment_settings)
 	{
 		SetRenderState(RenderState::Skybox());
 
-		auto material = m_pipeline->CreateSkyboxMaterial(environment);
+		auto material = m_pipeline->CreateSkyboxMaterial(environment, environment_settings);
 
 		glm::mat4 view = glm::mat4(glm::mat3(m_camera->GetView()));
 		material->Set("view", view);
