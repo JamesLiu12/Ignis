@@ -267,7 +267,7 @@ namespace ignis
 						}
 						
 						m_environment_settings.Intensity = sky_light.Intensity;
-						m_environment_settings.Rotation = sky_light.Rotation;
+						m_environment_settings.Rotation = glm::radians(sky_light.Rotation);
 						m_environment_settings.Tint = sky_light.Tint;
 						m_environment_settings.SkyboxLod = sky_light.SkyboxLod;
 					});
