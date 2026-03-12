@@ -296,8 +296,7 @@ void main()
 
     // ==== 1. ²ÉÑù Base PBR ====
     vec4  albedoSample = texture(material.albedoMap, uvAlbedo);
-    vec3  albedo    = pow(albedoSample.rgb, vec3(2.2))
-                    * pow(material.albedoColor.rgb, vec3(2.2));
+    vec3 albedo = albedoSample.rgb * material.albedoColor.rgb;
     float alpha     = albedoSample.a * material.albedoColor.a;
 
     float metallic  = selectChannel(texture(material.metallicMap,  uvMetal), ch_metallic)
@@ -306,7 +305,7 @@ void main()
                     * material.roughnessValue;
     float ao        = texture(material.aoMap, uvAO).r;
 
-    vec3  emissive  = pow(texture(material.emissiveMap, uvEmissive).rgb, vec3(2.2))
+    vec3  emissive  = texture(material.emissiveMap, uvEmissive).rgb
                     * material.emissiveColor
                     * material.emissiveIntensity;
 
