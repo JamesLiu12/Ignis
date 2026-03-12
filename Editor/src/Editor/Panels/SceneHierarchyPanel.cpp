@@ -51,6 +51,26 @@ namespace ignis {
 				if (ImGui::BeginPopupContextWindow("SceneHierarchyContextMenu", 
 					ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
 				{
+					// Paste entity option (disabled if no entity is copied)
+					bool has_copied = m_copied_entity.IsValid();
+					#ifdef __APPLE__
+					if (ImGui::MenuItem("Paste Entity", "Cmd+V", false, has_copied))
+					#else
+					if (ImGui::MenuItem("Paste Entity", "Ctrl+V", false, has_copied))
+					#endif
+					{
+						Entity pasted = m_scene->DuplicateEntity(m_copied_entity);
+						// Paste as root-level entity (no parent) - keep original position
+						m_selected_entity = pasted;
+						if (m_properties_panel)
+						{
+							m_properties_panel->SetSelectedEntity(pasted);
+						}
+						Log::CoreInfo("SceneHierarchy: Pasted entity as root-level entity");
+					}
+					
+					ImGui::Separator();
+					
 					DrawEntityCreateMenu();  // No parent = root entity
 					ImGui::EndPopup();
 				}
@@ -151,6 +171,47 @@ namespace ignis {
 			
 			ImGui::Separator();
 			
+			// Copy entity option
+			#ifdef __APPLE__
+				if (ImGui::MenuItem("Copy Entity", "Cmd+C"))
+			#else
+				if (ImGui::MenuItem("Copy Entity", "Ctrl+C"))
+			#endif
+			{
+				m_copied_entity = entity;
+				Log::CoreInfo("SceneHierarchy: Copied entity '{}'", name);
+			}
+			
+			// Paste entity option (disabled if no entity is copied)
+			bool has_copied = m_copied_entity.IsValid();
+			#ifdef __APPLE__
+				if (ImGui::MenuItem("Paste Entity", "Cmd+V", false, has_copied))
+			#else
+				if (ImGui::MenuItem("Paste Entity", "Ctrl+V", false, has_copied))
+			#endif
+			{
+				Entity pasted = m_scene->DuplicateEntity(m_copied_entity);
+				pasted.SetParent(entity);
+				
+				// Reset position to (0,0,0) to place at parent's location
+				// Keep original rotation and scale to preserve appearance
+				if (pasted.HasComponent<TransformComponent>())
+				{
+					auto& transform = pasted.GetComponent<TransformComponent>();
+					transform.Translation = glm::vec3(0.0f, 0.0f, 0.0f);
+				}
+				
+				m_selected_entity = pasted;
+				if (m_properties_panel)
+				{
+					m_properties_panel->SetSelectedEntity(pasted);
+				}
+				
+				Log::CoreInfo("SceneHierarchy: Pasted entity as child of '{}'", name);
+			}
+			
+			ImGui::Separator();
+			
 			// Create child entity option
 			if (ImGui::MenuItem("Create Child Entity"))
 			{
@@ -188,9 +249,16 @@ namespace ignis {
 				
 				Log::CoreInfo("SceneHierarchy: Deleted entity '{}'", name);
 				
-				// Close popup and skip rendering children
+				// Close popup and tree node before returning
 				ImGui::CloseCurrentPopup();
 				ImGui::EndPopup();
+				
+				// CRITICAL: Close tree node if it was opened to prevent ImGui crash
+				if (opened && !children.empty())
+				{
+					ImGui::TreePop();
+				}
+				
 				return;
 			}
 			
@@ -232,6 +300,96 @@ namespace ignis {
 			Log::CoreInfo("SceneHierarchy: Created entity '{}'", 
 						  new_entity.GetComponent<TagComponent>().Tag);
 		}
+	}
+
+	void SceneHierarchyPanel::CopySelectedEntity()
+	{
+		if (!m_selected_entity.IsValid())
+		{
+			Log::CoreWarn("SceneHierarchy: No entity selected to copy");
+			return;
+		}
+
+		m_copied_entity = m_selected_entity;
+		std::string name = m_selected_entity.GetComponent<TagComponent>().Tag;
+		Log::CoreInfo("SceneHierarchy: Copied entity '{}'", name);
+	}
+
+	void SceneHierarchyPanel::PasteEntity()
+	{
+		if (!m_copied_entity.IsValid())
+		{
+			Log::CoreWarn("SceneHierarchy: No entity copied to paste");
+			return;
+		}
+
+		if (!m_scene)
+		{
+			Log::CoreWarn("SceneHierarchy: No scene available");
+			return;
+		}
+
+		Entity pasted = m_scene->DuplicateEntity(m_copied_entity);
+
+		// If there's a selected entity, make pasted entity a child of it
+		// Otherwise, create as root-level entity
+		if (m_selected_entity.IsValid())
+		{
+			pasted.SetParent(m_selected_entity);
+			// Reset position to (0,0,0) to place at parent's location
+			// Keep original rotation and scale to preserve appearance
+			if (pasted.HasComponent<TransformComponent>())
+			{
+				auto& transform = pasted.GetComponent<TransformComponent>();
+				transform.Translation = glm::vec3(0.0f, 0.0f, 0.0f);
+			}
+			Log::CoreInfo("SceneHierarchy: Pasted entity as child of '{}'", 
+				m_selected_entity.GetComponent<TagComponent>().Tag);
+		}
+		else
+		{
+			Log::CoreInfo("SceneHierarchy: Pasted entity as root-level entity");
+		}
+
+		// Select the pasted entity
+		m_selected_entity = pasted;
+		if (m_properties_panel)
+		{
+			m_properties_panel->SetSelectedEntity(pasted);
+		}
+	}
+
+	void SceneHierarchyPanel::DuplicateSelectedEntity()
+	{
+		if (!m_selected_entity.IsValid())
+		{
+			Log::CoreWarn("SceneHierarchy: No entity selected to duplicate");
+			return;
+		}
+
+		if (!m_scene)
+		{
+			Log::CoreWarn("SceneHierarchy: No scene available");
+			return;
+		}
+
+		Entity duplicate = m_scene->DuplicateEntity(m_selected_entity);
+
+		// Preserve parent relationship
+		if (m_selected_entity.GetParentID() != UUID::Invalid)
+		{
+			duplicate.SetParent(m_selected_entity.GetParent());
+		}
+
+		// Select the duplicated entity
+		m_selected_entity = duplicate;
+		if (m_properties_panel)
+		{
+			m_properties_panel->SetSelectedEntity(duplicate);
+		}
+
+		std::string name = duplicate.GetComponent<TagComponent>().Tag;
+		Log::CoreInfo("SceneHierarchy: Duplicated entity '{}'", name);
 	}
 
 } // namespace ignis

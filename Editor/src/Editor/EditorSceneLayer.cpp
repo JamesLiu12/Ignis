@@ -349,13 +349,42 @@ void EditorSceneLayer::OnEvent(EventBase& event)
 		{
 			if (m_scene_state == SceneState::Edit)
 			{
-				switch (e->GetKeyCode())
+				ImGuiIO& io = ImGui::GetIO();
+				
+				// Check modifier
+				bool modifier_pressed = (io.KeyMods & ImGuiMod_Ctrl) != 0;
+				
+				// Handle Cmd+C/V (macOS) or Ctrl+C/V (windows) shortcuts
+				if (modifier_pressed)
 				{
-				case 'Q': m_gizmo_mode = GizmoMode::None;      return;
-				case 'W': m_gizmo_mode = GizmoMode::Translate; return;
-				case 'E': m_gizmo_mode = GizmoMode::Rotate;    return;
-				case 'R': m_gizmo_mode = GizmoMode::Scale;     return;
-				default: break;
+					auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel();
+					if (hierarchy_panel)
+					{
+						switch (e->GetKeyCode())
+						{
+						case 'C':
+							hierarchy_panel->CopySelectedEntity();
+							return;
+						case 'V':
+							hierarchy_panel->PasteEntity();
+							return;
+						default:
+							break;
+						}
+					}
+				}
+				
+				// Gizmo mode shortcuts (without modifier key)
+				if (!modifier_pressed)
+				{
+					switch (e->GetKeyCode())
+					{
+					case 'Q': m_gizmo_mode = GizmoMode::None;      return;
+					case 'W': m_gizmo_mode = GizmoMode::Translate; return;
+					case 'E': m_gizmo_mode = GizmoMode::Rotate;    return;
+					case 'R': m_gizmo_mode = GizmoMode::Scale;     return;
+					default: break;
+					}
 				}
 			}
 		}
