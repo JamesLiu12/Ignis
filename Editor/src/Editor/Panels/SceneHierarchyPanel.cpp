@@ -105,7 +105,7 @@ namespace ignis {
 					if (ImGui::MenuItem("Paste Entity", "Ctrl+V", false, has_copied))
 					#endif
 					{
-						Entity pasted = m_scene->DuplicateEntity(m_copied_entity);
+						Entity pasted = m_copied_entity.Duplicate();
 						// Paste as root-level entity (no parent) - keep original position
 						m_selected_entity = pasted;
 						if (m_properties_panel)
@@ -278,7 +278,7 @@ namespace ignis {
 				if (ImGui::MenuItem("Paste Entity", "Ctrl+V", false, has_copied))
 			#endif
 			{
-				Entity pasted = m_scene->DuplicateEntity(m_copied_entity);
+				Entity pasted = m_copied_entity.Duplicate();
 				pasted.SetParent(entity);
 				
 				// Reset position to (0,0,0) to place at parent's location
@@ -420,7 +420,7 @@ namespace ignis {
 			return;
 		}
 
-		Entity pasted = m_scene->DuplicateEntity(m_copied_entity);
+		Entity pasted = m_copied_entity.Duplicate();
 
 		// If there's a selected entity, make pasted entity a child of it
 		// Otherwise, create as root-level entity

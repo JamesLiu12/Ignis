@@ -54,12 +54,15 @@ namespace ignis
 		void SetSiblingIndex(int index);
 		void MoveToAfter(Entity target_prev_sibling);
 
+		Entity Duplicate() const;
+
 		glm::mat4 GetLocalTransform() const;
 		glm::mat4 GetWorldTransform() const;
 
 		Scene* GetScene() const { return m_scene; }
 
 	private:
+		void CopyComponentsTo(Entity destination) const;
 		entt::entity m_handle = entt::null;
 		Scene* m_scene = nullptr;
 

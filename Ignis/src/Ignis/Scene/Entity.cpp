@@ -376,4 +376,161 @@ namespace ignis
 
 		return transform;
 	}
+
+	Entity Entity::Duplicate() const
+	{
+		if (!IsValid())
+		{
+			Log::CoreWarn("Entity: Cannot duplicate invalid entity");
+			return {};
+		}
+
+		// Create new entity with duplicated name
+		std::string name = GetComponent<TagComponent>().Tag;
+		Entity new_entity = m_scene->CreateEntity(name + " (Copy)");
+
+		// Copy all components from this entity to the new entity
+		CopyComponentsTo(new_entity);
+
+		// Recursively duplicate children
+		for (Entity child : GetChildren())
+		{
+			Entity child_duplicate = child.Duplicate();
+			child_duplicate.SetParent(new_entity);
+		}
+
+		Log::CoreInfo("Entity: Duplicated entity '{}' -> '{}'", name, new_entity.GetComponent<TagComponent>().Tag);
+		return new_entity;
+	}
+
+	void Entity::CopyComponentsTo(Entity destination) const
+	{
+		// Copy TransformComponent
+		if (HasComponent<TransformComponent>())
+		{
+			auto& src_transform = GetComponent<TransformComponent>();
+			auto& dst_transform = destination.GetComponent<TransformComponent>();
+			dst_transform.Translation = src_transform.Translation;
+			dst_transform.Rotation = src_transform.Rotation;
+			dst_transform.Scale = src_transform.Scale;
+		}
+
+		// Copy CameraComponent
+		if (HasComponent<CameraComponent>())
+		{
+			auto& src_camera = GetComponent<CameraComponent>();
+			auto& dst_camera = destination.AddComponent<CameraComponent>();
+			dst_camera.Camera = std::make_shared<SceneCamera>(*src_camera.Camera);
+			dst_camera.Primary = src_camera.Primary;
+			dst_camera.FixedAspectRatio = src_camera.FixedAspectRatio;
+		}
+
+		// Copy DirectionalLightComponent
+		if (HasComponent<DirectionalLightComponent>())
+		{
+			auto& src_light = GetComponent<DirectionalLightComponent>();
+			destination.AddComponent<DirectionalLightComponent>(src_light);
+		}
+
+		// Copy PointLightComponent
+		if (HasComponent<PointLightComponent>())
+		{
+			auto& src_light = GetComponent<PointLightComponent>();
+			destination.AddComponent<PointLightComponent>(src_light);
+		}
+
+		// Copy SpotLightComponent
+		if (HasComponent<SpotLightComponent>())
+		{
+			auto& src_light = GetComponent<SpotLightComponent>();
+			destination.AddComponent<SpotLightComponent>(src_light);
+		}
+
+		// Copy SkyLightComponent
+		if (HasComponent<SkyLightComponent>())
+		{
+			auto& src_light = GetComponent<SkyLightComponent>();
+			destination.AddComponent<SkyLightComponent>(src_light);
+		}
+
+		// Copy MeshComponent
+		if (HasComponent<MeshComponent>())
+		{
+			auto& src_mesh = GetComponent<MeshComponent>();
+			auto& dst_mesh = destination.AddComponent<MeshComponent>();
+			dst_mesh.Mesh = src_mesh.Mesh;
+			dst_mesh.MaterialSlots = src_mesh.MaterialSlots;
+		}
+
+		// Copy ScriptComponent
+		if (HasComponent<ScriptComponent>())
+		{
+			auto& src_script = GetComponent<ScriptComponent>();
+			auto& dst_script = destination.AddComponent<ScriptComponent>();
+			dst_script.ClassName = src_script.ClassName;
+			dst_script.Enabled = src_script.Enabled;
+		}
+
+		// Copy TextComponent
+		if (HasComponent<TextComponent>())
+		{
+			auto& src_text = GetComponent<TextComponent>();
+			destination.AddComponent<TextComponent>(src_text);
+		}
+
+		// Copy AudioSourceComponent
+		if (HasComponent<AudioSourceComponent>())
+		{
+			auto& src_audio = GetComponent<AudioSourceComponent>();
+			destination.AddComponent<AudioSourceComponent>(src_audio);
+		}
+
+		// Copy AudioListenerComponent
+		if (HasComponent<AudioListenerComponent>())
+		{
+			auto& src_listener = GetComponent<AudioListenerComponent>();
+			destination.AddComponent<AudioListenerComponent>(src_listener);
+		}
+
+		// Copy RigidBodyComponent (create new physics body, don't share)
+		if (HasComponent<RigidBodyComponent>())
+		{
+			auto& src_rb = GetComponent<RigidBodyComponent>();
+			auto& dst_rb = destination.AddComponent<RigidBodyComponent>();
+			dst_rb.BodyType = src_rb.BodyType;
+			dst_rb.Mass = src_rb.Mass;
+			dst_rb.LinearDrag = src_rb.LinearDrag;
+			dst_rb.AngularDrag = src_rb.AngularDrag;
+			dst_rb.UseGravity = src_rb.UseGravity;
+			dst_rb.IsKinematic = src_rb.IsKinematic;
+			dst_rb.LockPositionX = src_rb.LockPositionX;
+			dst_rb.LockPositionY = src_rb.LockPositionY;
+			dst_rb.LockPositionZ = src_rb.LockPositionZ;
+			dst_rb.LockRotationX = src_rb.LockRotationX;
+			dst_rb.LockRotationY = src_rb.LockRotationY;
+			dst_rb.LockRotationZ = src_rb.LockRotationZ;
+			// RuntimeBody will be created when physics system initializes
+		}
+
+		// Copy BoxColliderComponent
+		if (HasComponent<BoxColliderComponent>())
+		{
+			auto& src_collider = GetComponent<BoxColliderComponent>();
+			destination.AddComponent<BoxColliderComponent>(src_collider);
+		}
+
+		// Copy SphereColliderComponent
+		if (HasComponent<SphereColliderComponent>())
+		{
+			auto& src_collider = GetComponent<SphereColliderComponent>();
+			destination.AddComponent<SphereColliderComponent>(src_collider);
+		}
+
+		// Copy CapsuleColliderComponent
+		if (HasComponent<CapsuleColliderComponent>())
+		{
+			auto& src_collider = GetComponent<CapsuleColliderComponent>();
+			destination.AddComponent<CapsuleColliderComponent>(src_collider);
+		}
+	}
 }
