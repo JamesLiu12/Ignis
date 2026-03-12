@@ -35,7 +35,7 @@ namespace ignis
 
 		virtual void RenderMesh(const Mesh& mesh, const glm::mat4& model,
 			const Environment& scene_environment, const EnvironmentSettings& environment_settings, const LightEnvironment& light_environment) = 0;
-		virtual void RenderSkybox(const Environment& environment) = 0;
+		virtual void RenderSkybox(const Environment& environment, const EnvironmentSettings& environment_settings) = 0;
 		virtual void RenderText(const Font& font, const std::string& text, const glm::mat4& transform, const glm::vec4& color, float scale) = 0;
 
 		virtual void Clear() = 0;

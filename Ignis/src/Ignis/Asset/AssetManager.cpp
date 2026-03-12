@@ -29,12 +29,14 @@ namespace ignis
 		return s_memory_assets.find(handle) != s_memory_assets.end();
 	}
 
-	AssetHandle AssetManager::ImportAsset(const std::filesystem::path& path, AssetType asset_type)
+	AssetHandle AssetManager::ImportAsset(const std::filesystem::path& path, AssetType asset_type, const AssetImportOptions& options)
 	{
 		std::string vfs_path = VFS::ToVFSPath(path);
 		const AssetMetadata* existing = GetMetadata(vfs_path);
 		if (existing)
+		{
 			return existing->Handle;
+		}
 
 		AssetHandle handle = AssetHandle();
 
@@ -44,7 +46,15 @@ namespace ignis
 		metadata.Type = (asset_type == AssetType::Unknown)
 			? DetermineTypeFromExtension(path)
 			: asset_type;
-		metadata.ImportOptions = DefaultImportOptions(metadata.Type);
+
+		if (auto* no_options = std::get_if<std::monostate>(&options))
+		{
+			metadata.ImportOptions = DefaultImportOptions(metadata.Type);
+		}
+		else
+		{
+			metadata.ImportOptions = options;
+		}
 
 		s_asset_registry[handle] = metadata;
 		return handle;
@@ -73,6 +83,19 @@ namespace ignis
 	const AssetMetadata* AssetManager::GetMetadata(std::filesystem::path path)
 	{
 		for (const auto& [handle, metadata] : s_asset_registry)
+		{
+			if (metadata.FilePath == path)
+			{
+				return &metadata;
+			}
+		}
+
+		return nullptr;
+	}
+
+	AssetMetadata* AssetManager::GetMetadataMutable(std::filesystem::path path)
+	{
+		for (auto& [handle, metadata] : s_asset_registry)
 		{
 			if (metadata.FilePath == path)
 			{

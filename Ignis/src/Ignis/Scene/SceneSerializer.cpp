@@ -41,38 +41,22 @@ namespace ignis
 		return glm::vec4(data[0], data[1], data[2], data[3]);
 	}
 
-	static MaterialData DeserializeMaterialData(const json& data)
+	static ordered_json SerializeUVTransform(const UVTransform& uv_transform)
 	{
-		MaterialData material_data{};
+		ordered_json data;
+		data["Offset"] = SerializeVec2(uv_transform.Offset);
+		data["Scale"] = SerializeVec2(uv_transform.Scale);
+		data["Rotation"] = uv_transform.Rotation;
+		return data;
+	}
 
-		material_data.AlbedoMap = UUID(data.value("AlbedoMap", ""));
-		material_data.AlbedoColor = data.contains("AlbedoColor")
-			? DeserializeVec4(data["AlbedoColor"])
-			: glm::vec4(1.0f);
-
-		material_data.NormalMap = UUID(data.value("NormalMap", ""));
-
-		material_data.MetalnessMap = UUID(data.value("MetalnessMap", ""));
-		material_data.MetallicValue = data.value("MetallicValue", 0.0f);
-
-		material_data.RoughnessMap = UUID(data.value("RoughnessMap", ""));
-		material_data.RoughnessValue = data.value("RoughnessValue", 0.5f);
-
-		material_data.EmissiveMap = UUID(data.value("EmissiveMap", ""));
-		material_data.EmissiveColor = data.contains("EmissiveColor")
-			? DeserializeVec3(data["EmissiveColor"])
-			: glm::vec3(0.0f);
-		material_data.EmissiveIntensity = data.value("EmissiveIntensity", 1.0f);
-
-		material_data.AOMap = UUID(data.value("AOMap", ""));
-
-		material_data.ClearcoatFactor = data.value("ClearcoatFactor", 0.0f);
-		material_data.ClearcoatRoughnessFactor = data.value("ClearcoatRoughnessFactor", 0.0f);
-		material_data.ClearcoatMap = UUID(data.value("ClearcoatMap", ""));
-		material_data.ClearcoatRoughnessMap = UUID(data.value("ClearcoatRoughnessMap", ""));
-		material_data.ClearcoatNormalMap = UUID(data.value("ClearcoatNormalMap", ""));
-
-		return material_data;
+	static UVTransform DeserializeUVTransform(const json& data)
+	{
+		UVTransform uv_transform;
+		uv_transform.Offset = data.contains("Offset") ? DeserializeVec2(data["Offset"]) : glm::vec2(0.0f, 0.0f);
+		uv_transform.Scale = data.contains("Scale") ? DeserializeVec2(data["Scale"]) : glm::vec2(1.0f, 1.0f);
+		uv_transform.Rotation = data.value("Rotation", 0.0f);
+		return uv_transform;
 	}
 
 	static ordered_json SerializeMaterialData(const MaterialData& material_data)
@@ -81,28 +65,119 @@ namespace ignis
 
 		data["AlbedoMap"] = material_data.AlbedoMap.ToString();
 		data["AlbedoColor"] = SerializeVec4(material_data.AlbedoColor);
+		data["AlbedoMapUVIndex"] = material_data.AlbedoMapUVIndex;
+		data["AlbedoMapUVTransform"] = SerializeUVTransform(material_data.AlbedoMapUVTransform);
 
 		data["NormalMap"] = material_data.NormalMap.ToString();
+		data["NormalMapUVIndex"] = material_data.NormalMapUVIndex;
+		data["NormalMapUVTransform"] = SerializeUVTransform(material_data.NormalMapUVTransform);
 
 		data["MetalnessMap"] = material_data.MetalnessMap.ToString();
 		data["MetallicValue"] = material_data.MetallicValue;
+		data["MetallicChannel"] = material_data.MetallicChannel;
+		data["MetalnessMapUVIndex"] = material_data.MetalnessMapUVIndex;
+		data["MetalnessMapUVTransform"] = SerializeUVTransform(material_data.MetalnessMapUVTransform);
 
 		data["RoughnessMap"] = material_data.RoughnessMap.ToString();
 		data["RoughnessValue"] = material_data.RoughnessValue;
+		data["RoughnessChannel"] = material_data.RoughnessChannel;
+		data["RoughnessMapUVIndex"] = material_data.RoughnessMapUVIndex;
+		data["RoughnessMapUVTransform"] = SerializeUVTransform(material_data.RoughnessMapUVTransform);
 
 		data["EmissiveMap"] = material_data.EmissiveMap.ToString();
 		data["EmissiveColor"] = SerializeVec3(material_data.EmissiveColor);
 		data["EmissiveIntensity"] = material_data.EmissiveIntensity;
+		data["EmissiveMapUVIndex"] = material_data.EmissiveMapUVIndex;
+		data["EmissiveMapUVTransform"] = SerializeUVTransform(material_data.EmissiveMapUVTransform);
 
 		data["AOMap"] = material_data.AOMap.ToString();
+		data["AOMapUVIndex"] = material_data.AOMapUVIndex;
+		data["AOMapUVTransform"] = SerializeUVTransform(material_data.AOMapUVTransform);
 
 		data["ClearcoatFactor"] = material_data.ClearcoatFactor;
 		data["ClearcoatRoughnessFactor"] = material_data.ClearcoatRoughnessFactor;
+
 		data["ClearcoatMap"] = material_data.ClearcoatMap.ToString();
+		data["ClearcoatMapUVIndex"] = material_data.ClearcoatMapUVIndex;
+		data["ClearcoatMapUVTransform"] = SerializeUVTransform(material_data.ClearcoatMapUVTransform);
+
 		data["ClearcoatRoughnessMap"] = material_data.ClearcoatRoughnessMap.ToString();
+		data["ClearcoatRoughnessMapUVIndex"] = material_data.ClearcoatRoughnessMapUVIndex;
+		data["ClearcoatRoughnessMapUVTransform"] = SerializeUVTransform(material_data.ClearcoatRoughnessMapUVTransform);
+
 		data["ClearcoatNormalMap"] = material_data.ClearcoatNormalMap.ToString();
+		data["ClearcoatNormalMapUVIndex"] = material_data.ClearcoatNormalMapUVIndex;
+		data["ClearcoatNormalMapUVTransform"] = SerializeUVTransform(material_data.ClearcoatNormalMapUVTransform);
+
+		data["DoubleSided"] = material_data.DoubleSided;
 
 		return data;
+	}
+
+	static MaterialData DeserializeMaterialData(const json& data)
+	{
+		MaterialData material_data{};
+
+		material_data.AlbedoMap = UUID(data.value("AlbedoMap", ""));
+		material_data.AlbedoColor = data.contains("AlbedoColor") ? 
+			DeserializeVec4(data["AlbedoColor"]) : glm::vec4(1.0f);
+		material_data.AlbedoMapUVIndex = data.value("AlbedoMapUVIndex", 0u);
+		material_data.AlbedoMapUVTransform = data.contains("AlbedoMapUVTransform") ? 
+			DeserializeUVTransform(data["AlbedoMapUVTransform"]) : UVTransform{};
+
+		material_data.NormalMap = UUID(data.value("NormalMap", ""));
+		material_data.NormalMapUVIndex = data.value("NormalMapUVIndex", 0u);
+		material_data.NormalMapUVTransform = data.contains("NormalMapUVTransform") ? 
+			DeserializeUVTransform(data["NormalMapUVTransform"]) : UVTransform{};
+
+		material_data.MetalnessMap = UUID(data.value("MetalnessMap", ""));
+		material_data.MetallicValue = data.value("MetallicValue", 0.0f);
+		material_data.MetallicChannel = data.value("MetallicChannel", 0);
+		material_data.MetalnessMapUVIndex = data.value("MetalnessMapUVIndex", 0u);
+		material_data.MetalnessMapUVTransform = data.contains("MetalnessMapUVTransform") ? 
+			DeserializeUVTransform(data["MetalnessMapUVTransform"]) : UVTransform{};
+
+		material_data.RoughnessMap = UUID(data.value("RoughnessMap", ""));
+		material_data.RoughnessValue = data.value("RoughnessValue", 0.5f);
+		material_data.RoughnessChannel = data.value("RoughnessChannel", 0);
+		material_data.RoughnessMapUVIndex = data.value("RoughnessMapUVIndex", 0u);
+		material_data.RoughnessMapUVTransform = data.contains("RoughnessMapUVTransform") ? 
+			DeserializeUVTransform(data["RoughnessMapUVTransform"]) : UVTransform{};
+
+		material_data.EmissiveMap = UUID(data.value("EmissiveMap", ""));
+		material_data.EmissiveColor = data.contains("EmissiveColor") ? 
+			DeserializeVec3(data["EmissiveColor"]) : glm::vec3(0.0f);
+		material_data.EmissiveIntensity = data.value("EmissiveIntensity", 1.0f);
+		material_data.EmissiveMapUVIndex = data.value("EmissiveMapUVIndex", 0u);
+		material_data.EmissiveMapUVTransform = data.contains("EmissiveMapUVTransform") ? 
+			DeserializeUVTransform(data["EmissiveMapUVTransform"]) : UVTransform{};
+
+		material_data.AOMap = UUID(data.value("AOMap", ""));
+		material_data.AOMapUVIndex = data.value("AOMapUVIndex", 0u);
+		material_data.AOMapUVTransform = data.contains("AOMapUVTransform") ? 
+			DeserializeUVTransform(data["AOMapUVTransform"]) : UVTransform{};
+
+		material_data.ClearcoatFactor = data.value("ClearcoatFactor", 0.0f);
+		material_data.ClearcoatRoughnessFactor = data.value("ClearcoatRoughnessFactor", 0.0f);
+
+		material_data.ClearcoatMap = UUID(data.value("ClearcoatMap", ""));
+		material_data.ClearcoatMapUVIndex = data.value("ClearcoatMapUVIndex", 0u);
+		material_data.ClearcoatMapUVTransform = data.contains("ClearcoatMapUVTransform") ? 
+			DeserializeUVTransform(data["ClearcoatMapUVTransform"]) : UVTransform{};
+
+		material_data.ClearcoatRoughnessMap = UUID(data.value("ClearcoatRoughnessMap", ""));
+		material_data.ClearcoatRoughnessMapUVIndex = data.value("ClearcoatRoughnessMapUVIndex", 0u);
+		material_data.ClearcoatRoughnessMapUVTransform = data.contains("ClearcoatRoughnessMapUVTransform") ? 
+			DeserializeUVTransform(data["ClearcoatRoughnessMapUVTransform"]) : UVTransform{};
+
+		material_data.ClearcoatNormalMap = UUID(data.value("ClearcoatNormalMap", ""));
+		material_data.ClearcoatNormalMapUVIndex = data.value("ClearcoatNormalMapUVIndex", 0u);
+		material_data.ClearcoatNormalMapUVTransform = data.contains("ClearcoatNormalMapUVTransform") ? 
+			DeserializeUVTransform(data["ClearcoatNormalMapUVTransform"]) : UVTransform{};
+
+		material_data.DoubleSided = data.value("DoubleSided", false);
+
+		return material_data;
 	}
 
 	static ordered_json SerializeEntity(const Scene& scene, entt::entity entity_handle)

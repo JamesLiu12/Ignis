@@ -55,12 +55,13 @@ namespace ignis
 		static bool IsMemoryAsset(AssetHandle handle);
 		static bool IsAssetLoaded(AssetHandle handle);
 
-		static AssetHandle ImportAsset(const std::filesystem::path& path, AssetType asset_type = AssetType::Unknown);
+		static AssetHandle ImportAsset(const std::filesystem::path& path, AssetType asset_type = AssetType::Unknown, const AssetImportOptions& options = std::monostate{});
 		static void RemoveAsset(AssetHandle handle);
 		static void UnloadAsset(AssetHandle handle);
 
 		static const AssetMetadata* GetMetadata(AssetHandle handle);
 		static const AssetMetadata* GetMetadata(std::filesystem::path path);
+		static AssetMetadata* GetMetadataMutable(std::filesystem::path path);
 		static AssetMetadata* GetMetadataMutable(AssetHandle handle);
 
 		static bool LoadAssetRegistry(const std::filesystem::path& path);

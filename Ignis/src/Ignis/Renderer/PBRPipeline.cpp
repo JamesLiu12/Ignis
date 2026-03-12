@@ -58,6 +58,29 @@ namespace ignis
 		auto clearcoatNormalMap = AssetManager::GetAsset<Texture2D>(data.ClearcoatNormalMap);
 		material->Set("material.clearcoatNormalMap", clearcoatNormalMap ? clearcoatNormalMap : Renderer::GetDefaultNormalTexture());
 
+		material->Set("uv_albedoMap", (int)data.AlbedoMapUVIndex);
+		material->Set("uv_normalMap", (int)data.NormalMapUVIndex);
+		material->Set("uv_metallicMap", (int)data.MetalnessMapUVIndex);
+		material->Set("uv_roughnessMap", (int)data.RoughnessMapUVIndex);
+		material->Set("uv_emissiveMap", (int)data.EmissiveMapUVIndex);
+		material->Set("uv_aoMap", (int)data.AOMapUVIndex);
+		material->Set("uv_clearcoatMap", (int)data.ClearcoatMapUVIndex);
+		material->Set("uv_clearcoatRoughnessMap", (int)data.ClearcoatRoughnessMapUVIndex);
+		material->Set("uv_clearcoatNormalMap", (int)data.ClearcoatNormalMapUVIndex);
+
+		material->Set("ch_metallic", data.MetallicChannel);
+		material->Set("ch_roughness", data.RoughnessChannel);
+
+		material->Set("uvT_albedoMap", data.AlbedoMapUVTransform.ToMatrix());
+		material->Set("uvT_normalMap", data.NormalMapUVTransform.ToMatrix());
+		material->Set("uvT_metallicMap", data.MetalnessMapUVTransform.ToMatrix());
+		material->Set("uvT_roughnessMap", data.RoughnessMapUVTransform.ToMatrix());
+		material->Set("uvT_emissiveMap", data.EmissiveMapUVTransform.ToMatrix());
+		material->Set("uvT_aoMap", data.AOMapUVTransform.ToMatrix());
+		material->Set("uvT_clearcoatMap", data.ClearcoatMapUVTransform.ToMatrix());
+		material->Set("uvT_clearcoatRoughnessMap", data.ClearcoatRoughnessMapUVTransform.ToMatrix());
+		material->Set("uvT_clearcoatNormalMap", data.ClearcoatNormalMapUVTransform.ToMatrix());
+
 		return material;
 	}
 
@@ -125,13 +148,18 @@ namespace ignis
 		material.Set("envSettings.tint", environment_settings.Tint);
 	}
 
-	std::shared_ptr<Material> PBRPipeline::CreateSkyboxMaterial(const Environment& scene_environment)
+	std::shared_ptr<Material> PBRPipeline::CreateSkyboxMaterial(const Environment& scene_environment, 
+		const EnvironmentSettings& environment_settings)
 	{
 		auto material = Material::Create(m_shader_library.Get("Skybox"));
 
 		const auto& skybox_map = scene_environment.GetSkyboxMap();
 		if (skybox_map)
 			material->Set("environmentMap", skybox_map);
+
+		material->Set("envRotation", environment_settings.Rotation);
+		material->Set("envIntensity", environment_settings.Intensity);
+		material->Set("envTint", environment_settings.Tint);
 
 		return material;
 	}

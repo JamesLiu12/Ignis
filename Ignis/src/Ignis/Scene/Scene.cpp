@@ -267,7 +267,7 @@ namespace ignis
 						}
 						
 						m_environment_settings.Intensity = sky_light.Intensity;
-						m_environment_settings.Rotation = sky_light.Rotation;
+						m_environment_settings.Rotation = glm::radians(sky_light.Rotation);
 						m_environment_settings.Tint = sky_light.Tint;
 						m_environment_settings.SkyboxLod = sky_light.SkyboxLod;
 					});
@@ -284,20 +284,12 @@ namespace ignis
 
 			meshes.each([&](auto entity_handle, MeshComponent& mesh_component, TransformComponent& transform)
 				{
-					bool is_loaded = AssetManager::IsAssetLoaded(mesh_component.Mesh) || AssetManager::IsMemoryAsset(mesh_component.Mesh);
 					if (auto mesh = AssetManager::GetAsset<Mesh>(mesh_component.Mesh))
 					{
 						const uint32_t slot_count = static_cast<uint32_t>(mesh_component.MaterialSlots.size());
 						for (uint32_t i = 0; i < slot_count; i++)
 						{
-							if (is_loaded)
-							{
-								mesh->SetMaterialData(i, mesh_component.MaterialSlots[i]);
-							}
-							else
-							{
-								mesh_component.MaterialSlots[i] = mesh->GetMaterialsData()[0];
-							}
+							mesh->SetMaterialData(i, mesh_component.MaterialSlots[i]);
 						}
 
 						Entity entity(entity_handle, this);

@@ -42,94 +42,135 @@ namespace ignis
 		return this_index;
 	}
 
+	static UVTransform ReadUVTransform(const aiMaterial* aimat, aiTextureType type, unsigned int index)
+	{
+		UVTransform result;
+		aiUVTransform aiT;
+		if (AI_SUCCESS == aimat->Get(AI_MATKEY_UVTRANSFORM(type, index), aiT))
+		{
+			result.Offset = { aiT.mTranslation.x, aiT.mTranslation.y };
+			result.Scale = { aiT.mScaling.x,     aiT.mScaling.y };
+			result.Rotation = aiT.mRotation;
+		}
+		return result;
+	}
+
 	static void LoadMaterialTextures(
 		const aiMaterial* aimat,
 		const std::string& model_dir,
 		MaterialData& out_material_data
 	)
 	{
-		auto loadTexture = [&](const aiString& rel_path) -> AssetHandle
-		{
-			Log::Info("Loading texture: {}", rel_path.C_Str());
-			std::string tex_path = VFS::ConcatPath(model_dir, rel_path.C_Str());
-
-			// Normalize path separators: convert backslashes to forward slashes for cross-platform compatibility
-			// Windows accepts both / and \, but macOS/Linux only accept /
-			std::replace(tex_path.begin(), tex_path.end(), '\\', '/');
-
-			if (!VFS::Exists(tex_path))
+		auto loadTextureSRGB = [&](const aiString& rel_path) -> AssetHandle
 			{
-				Log::Warn("Texture file does not exist: {}", tex_path);
-				return AssetHandle::Invalid;
-			}
-			return AssetManager::ImportAsset(tex_path);
-		};
+				Log::Info("Loading sRGB texture: {}", rel_path.C_Str());
+				std::string tex_path = VFS::ConcatPath(model_dir, rel_path.C_Str());
+				std::replace(tex_path.begin(), tex_path.end(), '\\', '/');
+
+				if (!VFS::Exists(tex_path))
+				{
+					Log::Warn("Texture file does not exist: {}", tex_path);
+					return AssetHandle::Invalid;
+				}
+
+				TextureImportOptions opts;
+				opts.InternalFormat = TextureFormat::RGBA8_sRGB;
+				return AssetManager::ImportAsset(tex_path, AssetType::Texture2D, opts);
+			};
+
+
+		auto loadTextureLinear = [&](const aiString& rel_path) -> AssetHandle
+			{
+				Log::Info("Loading linear texture: {}", rel_path.C_Str());
+				std::string tex_path = VFS::ConcatPath(model_dir, rel_path.C_Str());
+				std::replace(tex_path.begin(), tex_path.end(), '\\', '/');
+
+				if (!VFS::Exists(tex_path))
+				{
+					Log::Warn("Texture file does not exist: {}", tex_path);
+					return AssetHandle::Invalid;
+				}
+
+				return AssetManager::ImportAsset(tex_path, AssetType::Texture2D);
+			};
+
+		auto loadTextureFullEx = [&](
+			aiTextureType type, unsigned int index,
+			AssetHandle& out_handle, uint32_t& outUVIndex, UVTransform& out_transform,
+			bool is_sRGB,
+			std::string* outRawPath = nullptr) -> bool
+			{
+				aiString texture_path;
+				unsigned int uvindex = 0;
+				if (AI_SUCCESS != aimat->GetTexture(type, index, &texture_path, nullptr, &uvindex))
+					return false;
+
+				if (outRawPath)
+					*outRawPath = texture_path.C_Str();
+
+				out_handle = is_sRGB ? loadTextureSRGB(texture_path) : loadTextureLinear(texture_path);
+				outUVIndex = static_cast<uint32_t>(uvindex);
+				out_transform = ReadUVTransform(aimat, type, index);
+				return out_handle.IsValid();
+			};
 
 		// Albedo Map
-		if (aimat->GetTextureCount(aiTextureType_BASE_COLOR) > 0)
 		{
-			aiString texture_path;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_BASE_COLOR, 0, &texture_path))
-				out_material_data.AlbedoMap = loadTexture(texture_path);
-		}
-		else if (aimat->GetTextureCount(aiTextureType_DIFFUSE) > 0)
-		{
-			aiString texture_path;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_DIFFUSE, 0, &texture_path))
-				out_material_data.AlbedoMap = loadTexture(texture_path);
+			aiString path;
+			unsigned int uv = 0;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_BASE_COLOR, 0, &path, nullptr, &uv))
+			{
+				loadTextureFullEx(aiTextureType_BASE_COLOR, 0,
+					out_material_data.AlbedoMap, out_material_data.AlbedoMapUVIndex,
+					out_material_data.AlbedoMapUVTransform, true);
+			}
+			else if (AI_SUCCESS == aimat->GetTexture(aiTextureType_DIFFUSE, 0, &path, nullptr, &uv))
+			{
+				loadTextureFullEx(aiTextureType_DIFFUSE, 0,
+					out_material_data.AlbedoMap, out_material_data.AlbedoMapUVIndex,
+					out_material_data.AlbedoMapUVTransform, true);
+			}
 		}
 		// Albedo Color
 		{
-			aiColor4D base_color(1.0f, 1.0f, 1.0f, 1.0f);
+			aiColor4D base_color(1, 1, 1, 1);
 			if (AI_SUCCESS == aimat->Get(AI_MATKEY_BASE_COLOR, base_color))
-			{
 				out_material_data.AlbedoColor = { base_color.r, base_color.g, base_color.b, base_color.a };
-			}
 			else
 			{
-				aiColor4D diffuse_color(1.0f, 1.0f, 1.0f, 1.0f);
-				if (AI_SUCCESS == aimat->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse_color))
-					out_material_data.AlbedoColor = { diffuse_color.r, diffuse_color.g, diffuse_color.b, diffuse_color.a };
+				aiColor4D diffuse(1, 1, 1, 1);
+				if (AI_SUCCESS == aimat->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse))
+					out_material_data.AlbedoColor = { diffuse.r, diffuse.g, diffuse.b, diffuse.a };
 			}
 		}
 
 		// Normal map
-		if (aimat->GetTextureCount(aiTextureType_NORMALS) > 0)
 		{
-			aiString texture_path;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_NORMALS, 0, &texture_path))
+			aiString path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_NORMALS, 0, &path))
 			{
-				AssetHandle texture_handle = loadTexture(texture_path);
-				if (texture_handle.IsValid())
-				{
-					out_material_data.NormalMap = texture_handle;
-				}
+				loadTextureFullEx(aiTextureType_NORMALS, 0,
+					out_material_data.NormalMap, out_material_data.NormalMapUVIndex,
+					out_material_data.NormalMapUVTransform, false);
 			}
-		}
-		else if (aimat->GetTextureCount(aiTextureType_HEIGHT) > 0)
-		{
-			aiString texture_path;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_HEIGHT, 0, &texture_path))
+			else if (AI_SUCCESS == aimat->GetTexture(aiTextureType_HEIGHT, 0, &path))
 			{
-				AssetHandle texture_handle = loadTexture(texture_path);
-				if (texture_handle.IsValid())
-				{
-					out_material_data.NormalMap = texture_handle;
-				}
+				loadTextureFullEx(aiTextureType_HEIGHT, 0,
+					out_material_data.NormalMap, out_material_data.NormalMapUVIndex,
+					out_material_data.NormalMapUVTransform, false);
 			}
 		}
 
 		// Metallic Map
-		if (aimat->GetTextureCount(aiTextureType_METALNESS) > 0)
+		std::string metallic_tex_path, roughness_tex_path;
 		{
-			aiString texture_path;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_METALNESS, 0, &texture_path))
+			aiString path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_METALNESS, 0, &path))
 			{
-				AssetHandle texture_handle = loadTexture(texture_path);
-				if (texture_handle.IsValid())
-				{
-					out_material_data.MetalnessMap = texture_handle;
-				}
+				loadTextureFullEx(aiTextureType_METALNESS, 0,
+					out_material_data.MetalnessMap, out_material_data.MetalnessMapUVIndex,
+					out_material_data.MetalnessMapUVTransform, false,
+					&metallic_tex_path);
 			}
 		}
 		// Metallic Value
@@ -140,19 +181,16 @@ namespace ignis
 		}
 
 		// Roughness Map
-		if (aimat->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0)
 		{
-			aiString texture_path;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texture_path))
+			aiString path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &path))
 			{
-				AssetHandle texture_handle = loadTexture(texture_path);
-				if (texture_handle.IsValid())
-				{
-					out_material_data.RoughnessMap = texture_handle;
-				}
+				loadTextureFullEx(aiTextureType_DIFFUSE_ROUGHNESS, 0,
+					out_material_data.RoughnessMap, out_material_data.RoughnessMapUVIndex,
+					out_material_data.RoughnessMapUVTransform, false,
+					&roughness_tex_path);
 			}
 		}
-
 		// Roughness Value
 		{
 			float roughness_factor = out_material_data.RoughnessMap.IsValid() ? 1.0f : 0.5f;
@@ -160,30 +198,38 @@ namespace ignis
 			out_material_data.RoughnessValue = roughness_factor;
 		}
 
-		// Emissive Map
-		if (aimat->GetTextureCount(aiTextureType_EMISSIVE) > 0)
+		// RoughnessMetallic Map
+		if (!metallic_tex_path.empty() && !roughness_tex_path.empty()
+			&& metallic_tex_path == roughness_tex_path)
 		{
-			aiString texture_path;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_EMISSIVE, 0, &texture_path))
+			out_material_data.MetallicChannel = 2; // B
+			out_material_data.RoughnessChannel = 1; // G
+			Log::Info("Detected packed metallicRoughness: metallic=B, roughness=G");
+		}
+		else
+		{
+			out_material_data.MetallicChannel = 0;
+			out_material_data.RoughnessChannel = 0;
+		}
+
+
+		// Emissive Map
+		{
+			aiString path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_EMISSIVE, 0, &path))
 			{
-				AssetHandle texture_handle = loadTexture(texture_path);
-				if (texture_handle.IsValid())
-				{
-					out_material_data.EmissiveMap = texture_handle;
-				}
+				loadTextureFullEx(aiTextureType_EMISSIVE, 0,
+					out_material_data.EmissiveMap, out_material_data.EmissiveMapUVIndex,
+					out_material_data.EmissiveMapUVTransform, true);
 			}
 		}
 		// Emissive Color and Intensity
 		{
-			aiColor3D emissive_color(0.0f, 0.0f, 0.0f);
-			if (AI_SUCCESS == aimat->Get(AI_MATKEY_COLOR_EMISSIVE, emissive_color))
-			{
-				out_material_data.EmissiveColor = { emissive_color.r, emissive_color.g, emissive_color.b };
-			}
+			aiColor3D color(0, 0, 0);
+			if (AI_SUCCESS == aimat->Get(AI_MATKEY_COLOR_EMISSIVE, color))
+				out_material_data.EmissiveColor = { color.r, color.g, color.b };
 			else if (out_material_data.EmissiveMap.IsValid())
-			{
 				out_material_data.EmissiveColor = glm::vec3(1.0f);
-			}
 
 			float emissive_intensity = 1.0f;
 			aimat->Get(AI_MATKEY_EMISSIVE_INTENSITY, emissive_intensity);
@@ -191,24 +237,19 @@ namespace ignis
 		}
 
 		// AO Map
-		if (aimat->GetTextureCount(aiTextureType_AMBIENT_OCCLUSION) > 0)
 		{
-			aiString texture_path;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &texture_path))
+			aiString path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &path))
 			{
-				AssetHandle texture_handle = loadTexture(texture_path);
-				if (texture_handle.IsValid())
-					out_material_data.AOMap = texture_handle;
+				loadTextureFullEx(aiTextureType_AMBIENT_OCCLUSION, 0,
+					out_material_data.AOMap, out_material_data.AOMapUVIndex,
+					out_material_data.AOMapUVTransform, false);
 			}
-		}
-		else if (aimat->GetTextureCount(aiTextureType_LIGHTMAP) > 0)
-		{
-			aiString texture_path;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_LIGHTMAP, 0, &texture_path))
+			else if (AI_SUCCESS == aimat->GetTexture(aiTextureType_LIGHTMAP, 0, &path))
 			{
-				AssetHandle texture_handle = loadTexture(texture_path);
-				if (texture_handle.IsValid())
-					out_material_data.AOMap = texture_handle;
+				loadTextureFullEx(aiTextureType_LIGHTMAP, 0,
+					out_material_data.AOMap, out_material_data.AOMapUVIndex,
+					out_material_data.AOMapUVTransform, false);
 			}
 		}
 
@@ -220,50 +261,52 @@ namespace ignis
 		}
 		// Clearcoat Roughness Factor
 		{
-			float clearcoat_roughness = 0.0f;
-			aimat->Get(AI_MATKEY_CLEARCOAT_ROUGHNESS_FACTOR, clearcoat_roughness);
-			out_material_data.ClearcoatRoughnessFactor = clearcoat_roughness;
+			float clear_coat_roughness_factor = 0.0f;
+			aimat->Get(AI_MATKEY_CLEARCOAT_ROUGHNESS_FACTOR, clear_coat_roughness_factor);
+			out_material_data.ClearcoatRoughnessFactor = clear_coat_roughness_factor;
 		}
-		// Clearcoat Map (aiTextureType_CLEARCOAT, index 0 - R channel = factor)
+		// Clearcoat Map (index 0)
 		{
-			aiString texture_path;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_CLEARCOAT, 0, &texture_path))
+			aiString path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_CLEARCOAT, 0, &path))
 			{
-				AssetHandle texture_handle = loadTexture(texture_path);
-				if (texture_handle.IsValid())
-					out_material_data.ClearcoatMap = texture_handle;
+				loadTextureFullEx(aiTextureType_CLEARCOAT, 0,
+					out_material_data.ClearcoatMap, out_material_data.ClearcoatMapUVIndex,
+					out_material_data.ClearcoatMapUVTransform, false);
 			}
 		}
-		// Clearcoat Roughness Map (aiTextureType_CLEARCOAT, index 1 - G channel = roughness)
+		// Clearcoat Roughness Map (index 1)
 		{
-			aiString texture_path;
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_CLEARCOAT, 1, &texture_path))
+			aiString path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_CLEARCOAT, 1, &path))
 			{
-				AssetHandle texture_handle = loadTexture(texture_path);
-				if (texture_handle.IsValid())
-					out_material_data.ClearcoatRoughnessMap = texture_handle;
+				loadTextureFullEx(aiTextureType_CLEARCOAT, 1,
+					out_material_data.ClearcoatRoughnessMap, out_material_data.ClearcoatRoughnessMapUVIndex,
+					out_material_data.ClearcoatRoughnessMapUVTransform, false);
 			}
 		}
-		// Clearcoat Normal Map (aiTextureType_NORMALS, index 1)
+		// Clearcoat Normal Map (NORMALS index 1 or CLEARCOAT index 2)
 		{
-			aiString texture_path;
-			bool found = false;
+			aiString path;
+			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_NORMALS, 1, &path))
+			{
+				loadTextureFullEx(aiTextureType_NORMALS, 1,
+					out_material_data.ClearcoatNormalMap, out_material_data.ClearcoatNormalMapUVIndex,
+					out_material_data.ClearcoatNormalMapUVTransform, false);
+			}
+			else if (AI_SUCCESS == aimat->GetTexture(aiTextureType_CLEARCOAT, 2, &path))
+			{
+				loadTextureFullEx(aiTextureType_CLEARCOAT, 2,
+					out_material_data.ClearcoatNormalMap, out_material_data.ClearcoatNormalMapUVIndex,
+					out_material_data.ClearcoatNormalMapUVTransform, false);
+			}
+		}
 
-			if (AI_SUCCESS == aimat->GetTexture(aiTextureType_NORMALS, 1, &texture_path))
-			{
-				found = true;
-			}
-			else if (AI_SUCCESS == aimat->GetTexture(aiTextureType_CLEARCOAT, 2, &texture_path))
-			{
-				found = true;
-			}
-
-			if (found)
-			{
-				AssetHandle texture_handle = loadTexture(texture_path);
-				if (texture_handle.IsValid())
-					out_material_data.ClearcoatNormalMap = texture_handle;
-			}
+		// Double-Sided
+		{
+			int two_sided = 0;
+			aimat->Get(AI_MATKEY_TWOSIDED, two_sided);
+			out_material_data.DoubleSided = (two_sided != 0);
 		}
 	}
 
@@ -287,8 +330,9 @@ namespace ignis
 			| aiProcess_CalcTangentSpace;
 
 		if (ext == ".gltf" || ext == ".glb")
-			flags |= aiProcess_PreTransformVertices
-			| aiProcess_TransformUVCoords;
+		{
+			flags |= aiProcess_PreTransformVertices;
+		}
 
 		const aiScene* scene = importer.ReadFile(model_path.string(), flags);
 
@@ -330,6 +374,7 @@ namespace ignis
 			{
 				Vertex vertex{};
 
+				// Position
 				if (aimesh->HasPositions())
 				{
 					vertex.Position.x = aimesh->mVertices[v].x;
@@ -337,6 +382,7 @@ namespace ignis
 					vertex.Position.z = aimesh->mVertices[v].z;
 				}
 
+				// Normal
 				if (aimesh->HasNormals())
 				{
 					vertex.Normal.x = aimesh->mNormals[v].x;
@@ -348,6 +394,7 @@ namespace ignis
 					vertex.Normal = glm::vec3(0, 1, 0);
 				}
 
+				// UV0
 				if (aimesh->HasTextureCoords(0))
 				{
 					vertex.TexCoords.x = aimesh->mTextureCoords[0][v].x;
@@ -358,6 +405,29 @@ namespace ignis
 					vertex.TexCoords = glm::vec2(0.0f);
 				}
 
+				// UV1
+				if (aimesh->HasTextureCoords(1))
+				{
+					vertex.TexCoords1.x = aimesh->mTextureCoords[1][v].x;
+					vertex.TexCoords1.y = aimesh->mTextureCoords[1][v].y;
+				}
+				else
+				{
+					vertex.TexCoords1 = glm::vec2(0.0f);
+				}
+
+				// UV2
+				if (aimesh->HasTextureCoords(2))
+				{
+					vertex.TexCoords2.x = aimesh->mTextureCoords[2][v].x;
+					vertex.TexCoords2.y = aimesh->mTextureCoords[2][v].y;
+				}
+				else
+				{
+					vertex.TexCoords2 = glm::vec2(0.0f);
+				}
+
+				// Tangent & Bitangent
 				if (aimesh->HasTangentsAndBitangents())
 				{
 					vertex.Tangent = glm::vec3(aimesh->mTangents[v].x, aimesh->mTangents[v].y, aimesh->mTangents[v].z);
@@ -395,11 +465,13 @@ namespace ignis
 			(uint32_t)(mesh->m_vertices.size() * sizeof(Vertex)));
 
 		mesh->m_vertex_buffer->SetLayout(VertexBuffer::Layout({
-			{0, Shader::DataType::Float3},
-			{1, Shader::DataType::Float3},
-			{2, Shader::DataType::Float2},
-			{3, Shader::DataType::Float3},
-			{4, Shader::DataType::Float3},
+			{0, Shader::DataType::Float3},  // Position
+			{1, Shader::DataType::Float3},  // Normal
+			{2, Shader::DataType::Float2},  // TexCoords  (UV0)
+			{3, Shader::DataType::Float2},  // TexCoords1 (UV1)
+			{4, Shader::DataType::Float2},  // TexCoords2 (UV2)
+			{5, Shader::DataType::Float3},  // Tangent
+			{6, Shader::DataType::Float3},  // Bitangent
 			}));
 
 		mesh->m_index_buffer = IndexBuffer::Create(mesh->m_indices.data(),
