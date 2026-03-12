@@ -50,9 +50,11 @@ Ignis (Latin for "fire") is a custom game engine built from scratch to understan
 
 ## 🚀 Getting Started
 
-**You can directly download the release for Windows / MacOS to try our Editor!**
-
 **A sample game project can be found at https://github.com/JamesLiu12/Ignis-Example-Project**
+
+**We encourage you to build you own editor and game, but you can also try our pre-built editor in release**
+
+**Known limitation for download and use prebuilt editor / game on macOS: the system will forbid the opening of the executable and .dylib files for security reasons, so you need to manually approve each of them, which takes some times (so we encourage you to build one by your self)**
 
 ### Prerequisites
 
