@@ -434,6 +434,13 @@ void EditorSceneLayer::ReloadProject()
 	SceneSerializer scene_serializer;
 	m_editor_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
 
+	if (!m_editor_scene)
+	{
+		AssetManager::ClearAll();
+		Log::Error("Failed to load start scene");
+		return;
+	}
+
 	// Script module will be loaded in OnScenePlay()
 	// Do not call OnRuntimeStart() in edit mode, as scripts should only run in Play mode
 
