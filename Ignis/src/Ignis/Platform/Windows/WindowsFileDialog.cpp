@@ -262,8 +262,14 @@ namespace ignis {
 
 	void FileDialog::RevealInFileExplorer(const std::filesystem::path& path)
 	{
-		std::string command = "explorer /select,\"" + path.string() + "\"";
-		std::system(command.c_str());
+		std::filesystem::path preferred = path;
+		std::wstring wpath = preferred.make_preferred().wstring();
+		PIDLIST_ABSOLUTE pidl = nullptr;
+		if (SUCCEEDED(SHParseDisplayName(wpath.c_str(), nullptr, &pidl, 0, nullptr)))
+		{
+			SHOpenFolderAndSelectItems(pidl, 0, nullptr, 0);
+			ILFree(pidl);
+		}
 	}
 
 } // namespace ignis

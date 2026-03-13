@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Ignis.h"
-#include "Editor/PanelManager.h"
+#include "Editor/Panels/PanelManager.h"
 
 namespace ignis {
 
@@ -28,6 +28,8 @@ namespace ignis {
 		void SaveProjectAs();  // Shows folder dialog, saves to new location
 		void CloseProject();  // Closes current project
 		void CreateNewProject();  // Shows new project popup
+
+		void BuildScripts();
 
 		// Export functionality
 		void ExportGame();
