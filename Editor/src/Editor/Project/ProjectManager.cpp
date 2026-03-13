@@ -225,7 +225,7 @@ bool ProjectManager::CreateNewProject(const std::string& name, const std::filesy
 	}
 
 	// Add Ignis as submodule
-	if (!GitClient::AddIgnisSubmodule(project_dir))
+	if (!GitClient::AddSubmodule(project_dir, "https://github.com/JamesLiu12/Ignis", "Ignis"))
 	{
 		Log::CoreError("Failed to add Ignis submodule");
 		Log::CoreError("Please check your internet connection and try again");
