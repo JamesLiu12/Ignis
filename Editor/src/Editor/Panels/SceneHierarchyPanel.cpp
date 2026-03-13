@@ -347,6 +347,7 @@ namespace ignis {
 					ImGui::TreePop();
 				}
 				
+				ImGui::PopStyleVar();
 				return;
 			}
 			
