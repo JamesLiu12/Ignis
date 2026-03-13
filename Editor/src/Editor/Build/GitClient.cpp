@@ -2,7 +2,8 @@
 #include "Editor/Core/ProcessRunner.h"
 #include "Ignis/Core/Log.h"
 
-namespace ignis {
+namespace ignis 
+{
 
 	bool GitClient::IsGitAvailable()
 	{

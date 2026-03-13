@@ -2,7 +2,8 @@
 #include <filesystem>
 #include <string>
 
-namespace ignis {
+namespace ignis 
+{
 
 	class ProcessRunner
 	{
@@ -16,7 +17,7 @@ namespace ignis {
 
 		static RunResult RunCommand(
 			const std::string& command,
-			const std::filesystem::path& workingDirectory = {});
+			const std::filesystem::path& working_directory = {});
 	};
 
 } // namespace ignis

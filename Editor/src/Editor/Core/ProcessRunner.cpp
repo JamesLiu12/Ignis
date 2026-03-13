@@ -7,24 +7,25 @@
 #define pclose _pclose
 #endif
 
-namespace ignis {
+namespace ignis 
+{
 
 	ProcessRunner::RunResult ProcessRunner::RunCommand(
 		const std::string& command,
-		const std::filesystem::path& workingDirectory)
+		const std::filesystem::path& working_directory)
 	{
 		RunResult result;
 		auto original_path = std::filesystem::current_path();
 
-		if (!workingDirectory.empty())
+		if (!working_directory.empty())
 		{
 			try
 			{
-				std::filesystem::current_path(workingDirectory);
+				std::filesystem::current_path(working_directory);
 			}
 			catch (const std::exception&)
 			{
-				Log::CoreError("Failed to change directory to: {}", workingDirectory.string());
+				Log::CoreError("Failed to change directory to: {}", working_directory.string());
 				return result;
 			}
 		}

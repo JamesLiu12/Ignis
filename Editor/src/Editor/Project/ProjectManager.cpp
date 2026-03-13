@@ -10,7 +10,8 @@
 #include "Editor/Project/TemplateProcessor.h"
 #include "Editor/Build/GitClient.h"
 
-namespace ignis {
+namespace ignis 
+{
 
 void ProjectManager::OpenProject(const std::filesystem::path& filepath)
 {
