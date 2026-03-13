@@ -66,13 +66,13 @@ namespace ignis
 		glm::mat4 GetTransform() const
 		{
 			return glm::translate(glm::mat4(1.0f), Translation)
-				* glm::mat4_cast(glm::quat(Rotation))
+				* glm::mat4_cast(glm::quat(glm::radians(Rotation)))
 				* glm::scale(glm::mat4(1.0f), Scale);
 		}
 
 		glm::quat GetRotationQuat() const
 		{
-			return glm::quat(Rotation);
+			return glm::quat(glm::radians(Rotation));
 		}
 	};
 
