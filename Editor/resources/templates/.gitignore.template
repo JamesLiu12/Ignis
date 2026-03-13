@@ -1,0 +1,24 @@
+# Build outputs
+out/
+bin/
+Exports/
+
+# IDE files
+.vs/
+.vscode/
+*.user
+*.suo
+*.sln
+*.vcxproj
+*.vcxproj.filters
+
+# macOS
+.DS_Store
+
+# Asset cache
+*.cache
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake

@@ -3,9 +3,12 @@
 #include "Ignis/Project/ProjectSerializer.h"
 #include "Ignis/Scene/SceneSerializer.h"
 #include "Ignis/Core/Log.h"
+#include "Ignis/Core/File/FileSystem.h"
 #include "Editor/EditorApp.h"
 #include "Editor/EditorSceneLayer.h"
 #include "Editor/Panels/AssetBrowserPanel.h"
+#include "Editor/Core/TemplateProcessor.h"
+#include "Editor/Core/GitHelper.h"
 
 namespace ignis {
 
@@ -192,58 +195,173 @@ void ProjectManager::CloseProject()
 
 bool ProjectManager::CreateNewProject(const std::string& name, const std::filesystem::path& location)
 {
-	std::filesystem::path projectDir = location / name;
+	std::filesystem::path project_dir = location / name;
 
 	// Check if directory already exists
-	if (std::filesystem::exists(projectDir))
+	if (std::filesystem::exists(project_dir))
 	{
-		Log::CoreError("Project directory already exists: {}", projectDir.string());
+		Log::CoreError("Project directory already exists: {}", project_dir.string());
 		return false;
 	}
 
 	// Create project directory structure
-	std::filesystem::create_directories(projectDir);
-	std::filesystem::create_directories(projectDir / "assets");
-	std::filesystem::create_directories(projectDir / "assets" / "scenes");
+	std::filesystem::create_directories(project_dir);
+	std::filesystem::create_directories(project_dir / "assets" / "scenes");
+	std::filesystem::create_directories(project_dir / "assets" / "scripts");
 
-	// Create project file
-	std::filesystem::path projectFile = projectDir / (name + ".igproj");
-
-	// Create basic project JSON manually
-	std::ofstream projectFileStream(projectFile);
-	if (!projectFileStream.is_open())
+	// Check if Git is available
+	if (!GitHelper::IsGitAvailable())
 	{
-		Log::CoreError("Failed to create project file: {}", projectFile.string());
+		Log::CoreError("Git is not available. Please install Git and try again.");
+		Log::CoreError("Download Git from: https://git-scm.com/downloads");
 		return false;
 	}
 
-	projectFileStream << "{\n";
-	projectFileStream << "  \"ProjectName\": \"" << name << "\",\n";
-	projectFileStream << "  \"AssetDirectory\": \"assets\",\n";
-	projectFileStream << "  \"AssetRegistry\": \"assets/AssetRegistry.igar\",\n";
-	projectFileStream << "  \"StartScene\": \"scenes/MainScene.igscene\"\n";
-	projectFileStream << "}\n";
-	projectFileStream.close();
+	// Initialize Git repository
+	if (!GitHelper::InitRepository(project_dir))
+	{
+		Log::CoreError("Failed to initialize Git repository");
+		return false;
+	}
 
-	// Create empty asset registry with proper structure
-	std::ofstream assetRegistry(projectDir / "assets" / "AssetRegistry.igar");
-	assetRegistry << "{\n";
-	assetRegistry << "  \"Assets\": []\n";
-	assetRegistry << "}";
-	assetRegistry.close();
+	// Add Ignis as submodule
+	if (!GitHelper::AddIgnisSubmodule(project_dir))
+	{
+		Log::CoreError("Failed to add Ignis submodule");
+		Log::CoreError("Please check your internet connection and try again");
+		return false;
+	}
 
-	// Create empty scene with proper structure
-	std::ofstream scene(projectDir / "assets" / "scenes" / "MainScene.igscene");
+	// Update submodules (download Ignis)
+	if (!GitHelper::UpdateSubmodules(project_dir))
+	{
+		Log::CoreError("Failed to download Ignis engine");
+		return false;
+	}
+
+	// Get template directory
+	auto template_dir = FileSystem::GetExecutableDirectory() / "resources" / "templates";
+	if (!std::filesystem::exists(template_dir))
+	{
+		Log::CoreError("Template directory not found: {}", template_dir.string());
+		return false;
+	}
+
+	// Prepare template variables
+	std::map<std::string, std::string> variables = {
+		{"${PROJECT_NAME}", name},
+		{"${PROJECT_NAME_UPPER}", TemplateProcessor::ToUpperCase(name)}
+	};
+
+	// Process template files
+	if (!TemplateProcessor::ProcessTemplate(
+			template_dir / "CMakeLists.txt.template",
+			project_dir / "CMakeLists.txt",
+			variables))
+	{
+		Log::CoreError("Failed to create CMakeLists.txt");
+		return false;
+	}
+
+	if (!TemplateProcessor::ProcessTemplate(
+			template_dir / "CMakePresets.json.template",
+			project_dir / "CMakePresets.json",
+			variables))
+	{
+		Log::CoreError("Failed to create CMakePresets.json");
+		return false;
+	}
+
+	if (!TemplateProcessor::ProcessTemplate(
+			template_dir / "ScriptModuleExports.cpp.template",
+			project_dir / "assets" / "scripts" / "ScriptModuleExports.cpp",
+			variables))
+	{
+		Log::CoreError("Failed to create ScriptModuleExports.cpp");
+		return false;
+	}
+
+	if (!TemplateProcessor::ProcessTemplate(
+			template_dir / ".gitignore.template",
+			project_dir / ".gitignore",
+			variables))
+	{
+		Log::CoreError("Failed to create .gitignore");
+		return false;
+	}
+
+	// Create .igproj file with ScriptModule configuration
+	std::filesystem::path project_file = project_dir / (name + ".igproj");
+	std::ofstream project_file_stream(project_file);
+	if (!project_file_stream.is_open())
+	{
+		Log::CoreError("Failed to create project file: {}", project_file.string());
+		return false;
+	}
+
+	project_file_stream << "{\n";
+	project_file_stream << "  \"ProjectName\": \"" << name << "\",\n";
+	project_file_stream << "  \"AssetDirectory\": \"assets/\",\n";
+	project_file_stream << "  \"AssetRegistry\": \"assets/AssetRegistry.igar\",\n";
+	project_file_stream << "  \"StartScene\": \"scenes/MainScene.igscene\",\n";
+	project_file_stream << "  \"ScriptModule\": {\n";
+	project_file_stream << "    \"Name\": \"" << name << "\",\n";
+	project_file_stream << "    \"Directory\": \"bin/{Platform}/{Config}/\",\n";
+	project_file_stream << "    \"Windows\": \"{Name}.dll\",\n";
+	project_file_stream << "    \"Linux\": \"lib{Name}.so\",\n";
+	project_file_stream << "    \"macOS\": \"lib{Name}.dylib\"\n";
+	project_file_stream << "  }\n";
+	project_file_stream << "}\n";
+	project_file_stream.close();
+
+	// Create empty asset registry
+	std::ofstream asset_registry(project_dir / "assets" / "AssetRegistry.igar");
+	asset_registry << "{\n";
+	asset_registry << "  \"Assets\": []\n";
+	asset_registry << "}";
+	asset_registry.close();
+
+	// Create empty scene
+	std::ofstream scene(project_dir / "assets" / "scenes" / "MainScene.igscene");
 	scene << "{\n";
 	scene << "  \"Scene\": \"MainScene\",\n";
 	scene << "  \"Entities\": []\n";
 	scene << "}";
 	scene.close();
 
-	Log::CoreInfo("Created new project: {}", projectFile.string());
+	// Log success and instructions
+	Log::CoreInfo("=== New Project Created Successfully ===");
+	Log::CoreInfo("Project: {}", name);
+	Log::CoreInfo("Location: {}", project_dir.string());
+	Log::CoreInfo("");
+	Log::CoreInfo("Next steps:");
+	Log::CoreInfo("1. Create your scene and add scripts in the Editor");
+	Log::CoreInfo("2. Build your scripts before exporting:");
+	Log::CoreInfo("");
+
+#if defined(__APPLE__)
+	Log::CoreInfo("   Open Terminal and run:");
+	Log::CoreInfo("   cd \"{}\"", project_dir.string());
+	Log::CoreInfo("   cmake --preset arm64-debug");
+	Log::CoreInfo("   cmake --build --preset arm64-debug");
+#elif defined(_WIN32)
+	Log::CoreInfo("   Open Command Prompt and run:");
+	Log::CoreInfo("   cd \"{}\"", project_dir.string());
+	Log::CoreInfo("   cmake --preset x64-debug");
+	Log::CoreInfo("   cmake --build --preset x64-debug");
+#else
+	Log::CoreInfo("   Open Terminal and run:");
+	Log::CoreInfo("   cd \"{}\"", project_dir.string());
+	Log::CoreInfo("   cmake -B build -DCMAKE_BUILD_TYPE=Debug");
+	Log::CoreInfo("   cmake --build build");
+#endif
+
+	Log::CoreInfo("");
+	Log::CoreInfo("3. After building, export your game from Project -> Export Game");
+	Log::CoreInfo("========================================");
 
 	// Open the new project
-	OpenProject(projectFile);
+	OpenProject(project_file);
 	return true;
 }
 
