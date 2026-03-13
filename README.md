@@ -65,7 +65,7 @@ Ignis (Latin for "fire") is a custom game engine built from scratch to understan
 - **Ninja** build system
   - Windows: Visual Studio 2022 has Ninja by default, or install via Visual Studio installer
   - macOS: `brew install ninja`
-- **Git** for version control
+- **Git** for version control installed and in path
 
 ### Building on Windows
 
