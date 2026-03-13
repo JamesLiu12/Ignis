@@ -5,6 +5,8 @@
 #include "Ignis/Core/File/FileDialog.h"
 #include "Ignis/Project/Project.h"
 #include "Ignis/Project/ProjectSerializer.h"
+#include "Editor/EditorApp.h"
+#include "Editor/EditorSceneLayer.h"
 
 #include <imgui.h>
 
@@ -390,9 +392,15 @@ namespace ignis
 		}
 
 		if (CMakeBuilder::ConfigureAndBuild(options))
+		{
 			Log::CoreInfo("=== Scripts Built Successfully ===");
+			EditorApp& editor_app = static_cast<EditorApp&>(Application::Get());
+			editor_app.GetSceneLayer()->OnScriptsReload();
+		}
 		else
+		{
 			Log::CoreError("=== Scripts Build Failed ===");
+		}
 	}
 
 	void EditorLayer::ExportGame()

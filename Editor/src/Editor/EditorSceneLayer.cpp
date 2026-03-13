@@ -265,314 +265,322 @@ void EditorSceneLayer::RenderEditorOverlay()
 	m_overlay_renderer->Flush();
 }
 
-void EditorSceneLayer::OnEvent(EventBase& event)
-{
-	// window resize handling removed, and viewport panel now manages framebuffer size
-	// and camera aspect ratio is updated in OnUpdate() based on viewport panel size
-
-	if (auto* e = dynamic_cast<WindowResizeEvent*>(&event))
+	void EditorSceneLayer::OnEvent(EventBase& event)
 	{
-		if (m_current_scene)
-		{
-			auto framebuffer = m_renderer.GetFramebuffer();
-			m_current_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
-		}
-	}
+		// window resize handling removed, and viewport panel now manages framebuffer size
+		// and camera aspect ratio is updated in OnUpdate() based on viewport panel size
 
-	if (auto* e = dynamic_cast<KeyPressedEvent*>(&event))
-	{
-		if (e->GetKeyCode() == (int)KeyCode::Escape)
+		if (auto* e = dynamic_cast<WindowResizeEvent*>(&event))
 		{
-			if (m_is_in_scene && m_scene_state == SceneState::Play)
+			if (m_current_scene)
 			{
-				m_is_locked = Input::IsCursorLocked();
-				m_is_visible = Input::IsCursorVisible();
-				Input::ShowCursor();
+				auto framebuffer = m_renderer.GetFramebuffer();
+				m_current_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
 			}
 		}
-	}
 
-	int mouse_x = Input::GetMouseX();
-	int mouse_y = Input::GetMouseY();
-
-	if (!m_viewport_panel->IsPointInViewport(mouse_x, mouse_y))
-		return;
-
-	ImVec2 min_bound = m_viewport_panel->GetViewportMinBound();
-
-	if (auto* e = dynamic_cast<KeyTypedEvent*>(&event))
-	{
-		if (m_current_scene)
-			m_ui_system.OnKeyTyped(*m_current_scene, e->GetKeyCode());
-		return;
-	}
-
-	if (auto* e = dynamic_cast<MouseMovedEvent*>(&event))
-	{
-		if (m_current_scene)
-			m_ui_system.OnMouseMoved(*m_current_scene,
-				e->GetX() - min_bound.x, e->GetY() - min_bound.y);
-	}
-	else if (auto* e = dynamic_cast<MouseButtonPressedEvent*>(&event))
-	{
-		if (e->GetMouseButton() == 0 && m_scene_state == SceneState::Play)
-		{
-			if (m_is_locked)
-			{
-				Input::LockCursor();
-			}
-			else if (!m_is_visible)
-			{
-				Input::HideCursor();
-			}
-			m_is_in_scene = true;
-		}
-
-		if (e->GetMouseButton() == 1)
-			m_right_pressed = true;
-
-		if (m_current_scene)
-			m_ui_system.OnMouseButtonPressed(*m_current_scene, e->GetMouseButton());
-	}
-	else if (auto* e = dynamic_cast<MouseButtonReleasedEvent*>(&event))
-	{
-		if (e->GetMouseButton() == 1)
-			m_right_pressed = false;
-
-		if (m_current_scene)
-			m_ui_system.OnMouseButtonReleased(*m_current_scene, e->GetMouseButton());
-	}
-
-	if (!m_right_pressed)
-	{
 		if (auto* e = dynamic_cast<KeyPressedEvent*>(&event))
 		{
-			if (m_scene_state == SceneState::Edit)
+			if (e->GetKeyCode() == (int)KeyCode::Escape)
 			{
-				ImGuiIO& io = ImGui::GetIO();
-				
-				// Check modifier
-				bool modifier_pressed = (io.KeyMods & ImGuiMod_Ctrl) != 0;
-				
-				// Handle Cmd+C/V (macOS) or Ctrl+C/V (windows) shortcuts
-				if (modifier_pressed)
+				if (m_is_in_scene && m_scene_state == SceneState::Play)
 				{
-					auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel();
-					if (hierarchy_panel)
+					m_is_locked = Input::IsCursorLocked();
+					m_is_visible = Input::IsCursorVisible();
+					Input::ShowCursor();
+				}
+			}
+		}
+
+		int mouse_x = Input::GetMouseX();
+		int mouse_y = Input::GetMouseY();
+
+		if (!m_viewport_panel->IsPointInViewport(mouse_x, mouse_y))
+			return;
+
+		ImVec2 min_bound = m_viewport_panel->GetViewportMinBound();
+
+		if (auto* e = dynamic_cast<KeyTypedEvent*>(&event))
+		{
+			if (m_current_scene)
+				m_ui_system.OnKeyTyped(*m_current_scene, e->GetKeyCode());
+			return;
+		}
+
+		if (auto* e = dynamic_cast<MouseMovedEvent*>(&event))
+		{
+			if (m_current_scene)
+				m_ui_system.OnMouseMoved(*m_current_scene,
+					e->GetX() - min_bound.x, e->GetY() - min_bound.y);
+		}
+		else if (auto* e = dynamic_cast<MouseButtonPressedEvent*>(&event))
+		{
+			if (e->GetMouseButton() == 0 && m_scene_state == SceneState::Play)
+			{
+				if (m_is_locked)
+				{
+					Input::LockCursor();
+				}
+				else if (!m_is_visible)
+				{
+					Input::HideCursor();
+				}
+				m_is_in_scene = true;
+			}
+
+			if (e->GetMouseButton() == 1)
+				m_right_pressed = true;
+
+			if (m_current_scene)
+				m_ui_system.OnMouseButtonPressed(*m_current_scene, e->GetMouseButton());
+		}
+		else if (auto* e = dynamic_cast<MouseButtonReleasedEvent*>(&event))
+		{
+			if (e->GetMouseButton() == 1)
+				m_right_pressed = false;
+
+			if (m_current_scene)
+				m_ui_system.OnMouseButtonReleased(*m_current_scene, e->GetMouseButton());
+		}
+
+		if (!m_right_pressed)
+		{
+			if (auto* e = dynamic_cast<KeyPressedEvent*>(&event))
+			{
+				if (m_scene_state == SceneState::Edit)
+				{
+					ImGuiIO& io = ImGui::GetIO();
+				
+					// Check modifier
+					bool modifier_pressed = (io.KeyMods & ImGuiMod_Ctrl) != 0;
+				
+					// Handle Cmd+C/V (macOS) or Ctrl+C/V (windows) shortcuts
+					if (modifier_pressed)
+					{
+						auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel();
+						if (hierarchy_panel)
+						{
+							switch (e->GetKeyCode())
+							{
+							case 'C':
+								hierarchy_panel->CopySelectedEntity();
+								return;
+							case 'V':
+								hierarchy_panel->PasteEntity();
+								return;
+							default:
+								break;
+							}
+						}
+					}
+				
+					// Gizmo mode shortcuts (without modifier key)
+					if (!modifier_pressed)
 					{
 						switch (e->GetKeyCode())
 						{
-						case 'C':
-							hierarchy_panel->CopySelectedEntity();
-							return;
-						case 'V':
-							hierarchy_panel->PasteEntity();
-							return;
-						default:
-							break;
+						case 'Q': m_gizmo_mode = GizmoMode::None;      return;
+						case 'W': m_gizmo_mode = GizmoMode::Translate; return;
+						case 'E': m_gizmo_mode = GizmoMode::Rotate;    return;
+						case 'R': m_gizmo_mode = GizmoMode::Scale;     return;
+						default: break;
 						}
-					}
-				}
-				
-				// Gizmo mode shortcuts (without modifier key)
-				if (!modifier_pressed)
-				{
-					switch (e->GetKeyCode())
-					{
-					case 'Q': m_gizmo_mode = GizmoMode::None;      return;
-					case 'W': m_gizmo_mode = GizmoMode::Translate; return;
-					case 'E': m_gizmo_mode = GizmoMode::Rotate;    return;
-					case 'R': m_gizmo_mode = GizmoMode::Scale;     return;
-					default: break;
 					}
 				}
 			}
 		}
 	}
-}
 
-void EditorSceneLayer::ReloadProject()
-{
-	if (!Project::GetActive())
+	void EditorSceneLayer::ReloadProject()
 	{
-		ClearProject();
-		return;
-	}
+		if (!Project::GetActive())
+		{
+			ClearProject();
+			return;
+		}
 	
-	Log::CoreInfo("Reloading project scene...");
+		Log::CoreInfo("Reloading project scene...");
 	
-	// Auto-stop Play mode if currently playing
-	if (m_scene_state == SceneState::Play)
-	{
-		Log::CoreWarn("Auto-stopping Play mode for project reload");
-		OnSceneStop();
-	}
+		// Auto-stop Play mode if currently playing
+		if (m_scene_state == SceneState::Play)
+		{
+			Log::CoreWarn("Auto-stopping Play mode for project reload");
+			OnSceneStop();
+		}
 	
-	// Clear panels Before destroying old scene to prevent accessing stale entities
-	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
-	{
-		properties_panel->SetSelectedEntity({});
-		properties_panel->SetCurrentMesh(nullptr, nullptr);
-	}
+		// Clear panels Before destroying old scene to prevent accessing stale entities
+		if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
+		{
+			properties_panel->SetSelectedEntity({});
+			properties_panel->SetCurrentMesh(nullptr, nullptr);
+		}
 
-	if (m_editor_scene)
-	{
-		m_editor_scene->OnRuntimeStop();
-	}
-	m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
-	m_script_module.Unload();
+		if (m_editor_scene)
+		{
+			m_editor_scene->OnRuntimeStop();
+		}
+		m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
+		m_script_module.Unload();
 	
-	// Clear previous project's scene and assets
-	m_editor_scene = nullptr;
-	m_current_scene = nullptr;
-	m_mesh = nullptr;
+		// Clear previous project's scene and assets
+		m_editor_scene = nullptr;
+		m_current_scene = nullptr;
+		m_mesh = nullptr;
 
-	AssetManager::ClearAll();
-	
-	// Reload asset registry and scene
-	AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
-	SceneSerializer scene_serializer;
-	m_editor_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
-
-	if (!m_editor_scene)
-	{
 		AssetManager::ClearAll();
-		Log::Error("Failed to load start scene");
-		return;
+	
+		// Reload asset registry and scene
+		AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
+		SceneSerializer scene_serializer;
+		m_editor_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
+
+		if (!m_editor_scene)
+		{
+			AssetManager::ClearAll();
+			Log::Error("Failed to load start scene");
+			return;
+		}
+
+		// Script module will be loaded in OnScenePlay()
+		// Do not call OnRuntimeStart() in edit mode, as scripts should only run in Play mode
+
+		auto framebuffer = m_renderer.GetFramebuffer();
+		m_editor_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
+	
+		// Refresh asset browser with new project files
+		if (auto* asset_browser = m_editor_app->GetAssetBrowserPanel())
+		{
+			asset_browser->Refresh();
+			// Save asset registry after scanning to persist all imported assets
+			AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
+		}
+	
+		// Set current scene to editor scene
+		m_current_scene = m_editor_scene;
+
+		// Update hierarchy panel with all entities from the scene
+		if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+		{
+			hierarchy_panel->SetScene(m_editor_scene);
+		}
+	
+		Log::CoreInfo("Project scene reloaded");
 	}
 
-	// Script module will be loaded in OnScenePlay()
-	// Do not call OnRuntimeStart() in edit mode, as scripts should only run in Play mode
-
-	auto framebuffer = m_renderer.GetFramebuffer();
-	m_editor_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
-	
-	// Refresh asset browser with new project files
-	if (auto* asset_browser = m_editor_app->GetAssetBrowserPanel())
+	void EditorSceneLayer::OnScenePlay()
 	{
-		asset_browser->Refresh();
-		// Save asset registry after scanning to persist all imported assets
-		AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
-	}
+		Log::CoreInfo("OnScenePlay() - Transitioning to Play mode");
 	
-	// Set current scene to editor scene
-	m_current_scene = m_editor_scene;
+		// Change state to Play
+		m_scene_state = SceneState::Play;
+	
+		// Create runtime scene and copy editor scene
+		m_runtime_scene = std::make_shared<Scene>();
+		m_editor_scene->CopyTo(m_runtime_scene);
+	
+		// Load and register script module
+		m_script_module.Load(Project::ResolveActiveScriptModulePath());
+		m_script_module.RegisterAll(ScriptRegistry::Get());
+	
+		// Start runtime (creates script instances, calls OnCreate)
+		m_runtime_scene->OnRuntimeStart();
+	
+		// Switch to runtime scene
+		m_current_scene = m_runtime_scene;
 
-	// Update hierarchy panel with all entities from the scene
-	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
-	{
-		hierarchy_panel->SetScene(m_editor_scene);
-	}
+		m_is_in_scene = true;
 	
-	Log::CoreInfo("Project scene reloaded");
-}
-
-void EditorSceneLayer::OnScenePlay()
-{
-	Log::CoreInfo("OnScenePlay() - Transitioning to Play mode");
+		// Update hierarchy panel to use runtime scene
+		if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+		{
+			hierarchy_panel->SetScene(m_runtime_scene);
+		}
 	
-	// Change state to Play
-	m_scene_state = SceneState::Play;
-	
-	// Create runtime scene and copy editor scene
-	m_runtime_scene = std::make_shared<Scene>();
-	m_editor_scene->CopyTo(m_runtime_scene);
-	
-	// Load and register script module
-	m_script_module.Load(Project::ResolveActiveScriptModulePath());
-	m_script_module.RegisterAll(ScriptRegistry::Get());
-	
-	// Start runtime (creates script instances, calls OnCreate)
-	m_runtime_scene->OnRuntimeStart();
-	
-	// Switch to runtime scene
-	m_current_scene = m_runtime_scene;
-
-	m_is_in_scene = true;
-	
-	// Update hierarchy panel to use runtime scene
-	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
-	{
-		hierarchy_panel->SetScene(m_runtime_scene);
-	}
-	
-	Log::CoreInfo("OnScenePlay() - Play mode started");
-}
-
-void EditorSceneLayer::OnSceneStop()
-{
-	Log::CoreInfo("OnSceneStop() - Transitioning to Edit mode");
-	
-	// Clear selected entity in PropertiesPanel before destroying runtime scene
-	// This prevents accessing components on entities from destroyed registry
-	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
-	{
-		properties_panel->SetSelectedEntity({});
-	}
-	
-	// Stop runtime (calls OnDestroy, clears scripts)
-	if (m_runtime_scene)
-	{
-		m_runtime_scene->OnRuntimeStop();
-	}
-	
-	// Unload script module
-	m_script_module.UnregisterAll(ScriptRegistry::Get());
-	m_script_module.Unload();
-	
-	// Discard runtime scene
-	m_runtime_scene = nullptr;
-	
-	// Change state to Edit
-	m_scene_state = SceneState::Edit;
-	
-	// Switch back to editor scene
-	m_current_scene = m_editor_scene;
-	
-	// Update hierarchy panel to use editor scene
-	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
-	{
-		hierarchy_panel->SetScene(m_editor_scene);
-	}
-	
-	Log::CoreInfo("OnSceneStop() - Edit mode restored");
-}
-
-Entity EditorSceneLayer::GetSelectedEntity() const
-{
-	if (auto* hierarchy = m_editor_app->GetSceneHierarchyPanel())
-		return hierarchy->GetSelectedEntity();
-	return {};
-}
-
-void EditorSceneLayer::ClearProject()
-{
-	if (m_editor_scene)
-	{
-		m_editor_scene->OnRuntimeStop();
-	}
-	m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
-	m_script_module.Unload();
-
-	m_editor_scene = nullptr;
-	m_current_scene = nullptr;
-	m_mesh = nullptr;
-	
-	// Clear panels
-	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
-	{
-		hierarchy_panel->SetScene(nullptr);
-	}
-	
-	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
-	{
-		properties_panel->SetSelectedEntity({});
-		properties_panel->SetCurrentMesh(nullptr, nullptr);
+		Log::CoreInfo("OnScenePlay() - Play mode started");
 	}
 
-	AssetManager::ClearAll();
+	void EditorSceneLayer::OnSceneStop()
+	{
+		Log::CoreInfo("OnSceneStop() - Transitioning to Edit mode");
 	
-	Log::CoreInfo("Project scene cleared");
-}
+		// Clear selected entity in PropertiesPanel before destroying runtime scene
+		// This prevents accessing components on entities from destroyed registry
+		if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
+		{
+			properties_panel->SetSelectedEntity({});
+		}
+	
+		// Stop runtime (calls OnDestroy, clears scripts)
+		if (m_runtime_scene)
+		{
+			m_runtime_scene->OnRuntimeStop();
+		}
+	
+		// Unload script module
+		m_script_module.UnregisterAll(ScriptRegistry::Get());
+		m_script_module.Unload();
+	
+		// Discard runtime scene
+		m_runtime_scene = nullptr;
+	
+		// Change state to Edit
+		m_scene_state = SceneState::Edit;
+	
+		// Switch back to editor scene
+		m_current_scene = m_editor_scene;
+	
+		// Update hierarchy panel to use editor scene
+		if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+		{
+			hierarchy_panel->SetScene(m_editor_scene);
+		}
+	
+		Log::CoreInfo("OnSceneStop() - Edit mode restored");
+	}
+
+	Entity EditorSceneLayer::GetSelectedEntity() const
+	{
+		if (auto* hierarchy = m_editor_app->GetSceneHierarchyPanel())
+			return hierarchy->GetSelectedEntity();
+		return {};
+	}
+
+	void EditorSceneLayer::ClearProject()
+	{
+		if (m_editor_scene)
+		{
+			m_editor_scene->OnRuntimeStop();
+		}
+		m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
+		m_script_module.Unload();
+
+		m_editor_scene = nullptr;
+		m_current_scene = nullptr;
+		m_mesh = nullptr;
+	
+		// Clear panels
+		if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+		{
+			hierarchy_panel->SetScene(nullptr);
+		}
+	
+		if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
+		{
+			properties_panel->SetSelectedEntity({});
+			properties_panel->SetCurrentMesh(nullptr, nullptr);
+		}
+
+		AssetManager::ClearAll();
+	
+		Log::CoreInfo("Project scene cleared");
+	}
+
+	void EditorSceneLayer::OnScriptsReload()
+	{
+		m_script_module.Unload();
+		m_script_module.UnregisterAll(ScriptRegistry::Get());
+		m_script_module.Load(Project::ResolveActiveScriptModulePath());
+		m_script_module.RegisterAll(ScriptRegistry::Get());
+	}
 
 } // namespace ignis

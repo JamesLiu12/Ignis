@@ -58,6 +58,8 @@ public:
 	std::shared_ptr<EditorCamera> GetEditorCamera() const { return m_editor_camera; }
 	Entity GetSelectedEntity() const;
 
+	void OnScriptsReload();
+
 private:
 	void RenderEditorOverlay();
 
