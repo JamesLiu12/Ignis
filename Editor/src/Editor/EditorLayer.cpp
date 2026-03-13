@@ -424,23 +424,46 @@ void EditorLayer::ExportGame()
 	
 	if (!std::filesystem::exists(script_module_path))
 	{
+		Log::CoreError("=== Script Module Not Built ===");
 		Log::CoreError("Script module not found: {}", script_module_path.string());
-		Log::CoreError("Please build the project first before exporting.");
-		#if defined(_WIN32)
+		Log::CoreError("");
+		Log::CoreError("You need to build your project scripts first.");
+		Log::CoreError("Open a terminal in your project directory and run:");
+		Log::CoreError("");
+		
+		#if defined(__APPLE__)
+			Log::CoreError("  cd \"{}\"", project_dir.string());
 			if (config == "Debug")
-				Log::CoreError("Run: cmake --build --preset x64-debug");
+			{
+				Log::CoreError("  cmake --preset arm64-debug");
+				Log::CoreError("  cmake --build --preset arm64-debug");
+			}
 			else
-				Log::CoreError("Run: cmake --build --preset x64-release");
-		#elif defined(__APPLE__)
+			{
+				Log::CoreError("  cmake --preset arm64-release");
+				Log::CoreError("  cmake --build --preset arm64-release");
+			}
+		#elif defined(_WIN32)
+			Log::CoreError("  cd \"{}\"", project_dir.string());
 			if (config == "Debug")
-				Log::CoreError("Run: cmake --build --preset arm64-debug");
+			{
+				Log::CoreError("  cmake --preset x64-debug");
+				Log::CoreError("  cmake --build --preset x64-debug");
+			}
 			else
-				Log::CoreError("Run: cmake --build --preset arm64-release");
+			{
+				Log::CoreError("  cmake --preset x64-release");
+				Log::CoreError("  cmake --build --preset x64-release");
+			}
 		#else
-			// Linux or fallback
-			std::string build_cmd = "cmake --build " + build_dir_str + " --config " + config;
-			Log::CoreError("Run: {}", build_cmd);
+			Log::CoreError("  cd \"{}\"", project_dir.string());
+			Log::CoreError("  cmake -B build -DCMAKE_BUILD_TYPE={}", config);
+			Log::CoreError("  cmake --build build");
 		#endif
+		
+		Log::CoreError("");
+		Log::CoreError("After building, try exporting again.");
+		Log::CoreError("===============================");
 		return;
 	}
 	
