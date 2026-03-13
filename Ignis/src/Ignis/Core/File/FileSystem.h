@@ -1,12 +1,14 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
+
 #include <filesystem>
 #include <vector>
 #include <cstdint>
 
 namespace ignis {
 
-    class FileSystem
+    class IGNIS_API FileSystem
     {
     public:
         // File existence and info
