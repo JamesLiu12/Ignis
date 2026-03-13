@@ -1,0 +1,61 @@
+cmake_minimum_required(VERSION 3.20)
+project(${PROJECT_NAME} LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+option(${PROJECT_NAME_UPPER}_AS_SCRIPT_MODULE "Build ${PROJECT_NAME} as runtime-loaded script module (DLL/.so)" ON)
+
+# Add Ignis engine (git submodule)
+add_subdirectory(Ignis)
+
+if(NOT TARGET Ignis::Ignis AND TARGET Ignis)
+    add_library(Ignis::Ignis ALIAS Ignis)
+endif()
+
+# Collect all script source files
+file(GLOB_RECURSE ${PROJECT_NAME_UPPER}_SOURCES CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/assets/scripts/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/assets/scripts/*.cpp
+)
+
+if(${PROJECT_NAME_UPPER}_AS_SCRIPT_MODULE)
+    add_library(${PROJECT_NAME} SHARED ${${PROJECT_NAME_UPPER}_SOURCES})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE ${PROJECT_NAME_UPPER}_DLL_EXPORT=1)
+else()
+    add_library(${PROJECT_NAME} STATIC ${${PROJECT_NAME_UPPER}_SOURCES})
+endif()
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    DEBUG_POSTFIX ""
+    RELWITHDEBINFO_POSTFIX ""
+    MINSIZEREL_POSTFIX ""
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE Ignis::Ignis)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/scripts
+)
+
+if(MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /utf-8)
+endif()
+
+if(${PROJECT_NAME_UPPER}_AS_SCRIPT_MODULE)
+    set(_${PROJECT_NAME_UPPER}_PLATFORM "$<IF:$<PLATFORM_ID:Windows>,Windows,$<IF:$<PLATFORM_ID:Darwin>,macOS,Linux>>")
+    set(_${PROJECT_NAME_UPPER}_OUTDIR "${CMAKE_SOURCE_DIR}/bin/${_${PROJECT_NAME_UPPER}_PLATFORM}/$<CONFIG>")
+
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        OUTPUT_NAME "${PROJECT_NAME}"
+        RUNTIME_OUTPUT_DIRECTORY "${_${PROJECT_NAME_UPPER}_OUTDIR}"
+        LIBRARY_OUTPUT_DIRECTORY "${_${PROJECT_NAME_UPPER}_OUTDIR}"
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${_${PROJECT_NAME_UPPER}_PLATFORM}/$<CONFIG>/lib"
+    )
+
+    if(WIN32)
+        set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
+    endif()
+endif()
