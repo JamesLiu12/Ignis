@@ -579,8 +579,6 @@ void EditorSceneLayer::RenderEditorOverlay()
 	{
 		m_script_module.Unload();
 		m_script_module.UnregisterAll(ScriptRegistry::Get());
-		m_script_module.Load(Project::ResolveActiveScriptModulePath());
-		m_script_module.RegisterAll(ScriptRegistry::Get());
 	}
 
 } // namespace ignis
