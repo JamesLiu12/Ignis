@@ -2,19 +2,11 @@
 
 namespace ignis {
 
-class GitHelper
+class GitClient
 {
 public:
 	// Check if Git is available on the system
 	static bool IsGitAvailable();
-	
-	// Execute a Git command in the specified directory
-	// Returns true if command succeeded (exit code 0)
-	static bool RunGitCommand(
-		const std::string& command,
-		const std::filesystem::path& working_directory,
-		std::string* output = nullptr
-	);
 	
 	// Initialize a new Git repository
 	static bool InitRepository(const std::filesystem::path& directory);

@@ -8,7 +8,7 @@
 #include "Editor/EditorSceneLayer.h"
 #include "Editor/Panels/AssetBrowserPanel.h"
 #include "Editor/Project/TemplateProcessor.h"
-#include "Editor/Build/GitHelper.h"
+#include "Editor/Build/GitClient.h"
 
 namespace ignis {
 
@@ -210,7 +210,7 @@ bool ProjectManager::CreateNewProject(const std::string& name, const std::filesy
 	std::filesystem::create_directories(project_dir / "assets" / "scripts");
 
 	// Check if Git is available
-	if (!GitHelper::IsGitAvailable())
+	if (!GitClient::IsGitAvailable())
 	{
 		Log::CoreError("Git is not available. Please install Git and try again.");
 		Log::CoreError("Download Git from: https://git-scm.com/downloads");
@@ -218,14 +218,14 @@ bool ProjectManager::CreateNewProject(const std::string& name, const std::filesy
 	}
 
 	// Initialize Git repository
-	if (!GitHelper::InitRepository(project_dir))
+	if (!GitClient::InitRepository(project_dir))
 	{
 		Log::CoreError("Failed to initialize Git repository");
 		return false;
 	}
 
 	// Add Ignis as submodule
-	if (!GitHelper::AddIgnisSubmodule(project_dir))
+	if (!GitClient::AddIgnisSubmodule(project_dir))
 	{
 		Log::CoreError("Failed to add Ignis submodule");
 		Log::CoreError("Please check your internet connection and try again");
@@ -233,7 +233,7 @@ bool ProjectManager::CreateNewProject(const std::string& name, const std::filesy
 	}
 
 	// Update submodules (download Ignis)
-	if (!GitHelper::UpdateSubmodules(project_dir))
+	if (!GitClient::UpdateSubmodules(project_dir))
 	{
 		Log::CoreError("Failed to download Ignis engine");
 		return false;
