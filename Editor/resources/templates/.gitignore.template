@@ -1,7 +1,7 @@
 # Build outputs
 out/
 bin/
-build/
+Exports/
 
 # IDE files
 .vs/
