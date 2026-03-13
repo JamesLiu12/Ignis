@@ -577,8 +577,8 @@ void EditorSceneLayer::RenderEditorOverlay()
 
 	void EditorSceneLayer::OnScriptsReload()
 	{
-		m_script_module.Unload();
 		m_script_module.UnregisterAll(ScriptRegistry::Get());
+		m_script_module.Unload();
 	}
 
 } // namespace ignis
