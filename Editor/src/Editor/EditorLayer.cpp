@@ -181,6 +181,13 @@ namespace ignis
 			if (Project::GetActive())
 				BuildScripts();
 		}
+
+		// Cmd/Ctrl + E: Export Game
+		if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_E))
+		{
+			if (Project::GetActive())
+				ExportGame();
+		}
 	}
 
 	void EditorLayer::UI_ShowNewProjectPopup()
@@ -338,7 +345,7 @@ namespace ignis
 
 		CMakeBuilder::BuildOptions options;
 		options.SourceDir = Project::GetActiveProjectDirectory();
-		options.BuildDir = options.SourceDir / "build";
+		options.BuildDir = options.SourceDir / "out" / "build";
 
 		#if defined(_DEBUG)
 			options.BuildType = CMakeBuilder::BuildType::Debug;
@@ -352,6 +359,26 @@ namespace ignis
 			options.Arch = CMakeBuilder::VSArch::ARM64;
 			options.ExtraArgs.push_back("-DCMAKE_OSX_ARCHITECTURES=arm64");
 		#endif
+
+		if (options.Arch == CMakeBuilder::VSArch::X64)
+		{
+			if (options.BuildType == CMakeBuilder::BuildType::Debug)
+				options.BuildDir /= "x64-debug";
+			else
+				options.BuildDir /= "x64-release";
+		}
+		else if (options.Arch == CMakeBuilder::VSArch::ARM64)
+		{
+			if (options.BuildType == CMakeBuilder::BuildType::Debug)
+				options.BuildDir /= "arm64-debug";
+			else
+				options.BuildDir /= "arm64-release";
+		}
+		else
+		{
+			Log::CoreError("Unsupported Platform");
+			return;
+		}
 
 		Log::CoreInfo("=== Building Scripts ===");
 		Log::CoreInfo("Project: {}", Project::GetActiveProjectName());
