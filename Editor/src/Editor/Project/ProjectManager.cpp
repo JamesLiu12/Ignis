@@ -7,8 +7,8 @@
 #include "Editor/EditorApp.h"
 #include "Editor/EditorSceneLayer.h"
 #include "Editor/Panels/AssetBrowserPanel.h"
-#include "Editor/Core/TemplateProcessor.h"
-#include "Editor/Core/GitHelper.h"
+#include "Editor/Project/TemplateProcessor.h"
+#include "Editor/Build/GitHelper.h"
 
 namespace ignis {
 

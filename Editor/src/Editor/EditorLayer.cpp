@@ -1,5 +1,5 @@
 #include "Editor/EditorLayer.h"
-#include "Editor/Core/ProjectManager.h"
+#include "Editor/Project/ProjectManager.h"
 
 #include "Ignis/Core/File/FileDialog.h"
 #include "Ignis/Project/Project.h"
