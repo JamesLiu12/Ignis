@@ -410,9 +410,7 @@ namespace ignis {
 			"Browse Texture...",
 			"None (Clear)",
 			"White Texture",
-			"Black Texture",
-			"Default Normal",
-			"Default Roughness"
+			"Black Texture"
 		};
 		
 		int selected = 0; // Always start at Select
@@ -486,8 +484,11 @@ namespace ignis {
 					}
 					break;
 				case 3: // White Texture
+				{
+					// Load white texture from Editor resources
+					AssetHandle white_handle = AssetManager::ImportAsset("resources://images/White.png");
+					if (white_handle.IsValid())
 					{
-						AssetHandle white_handle = Renderer::GetWhiteTextureHandle();
 						switch (type)
 						{
 							case MaterialType::Albedo:              slot.AlbedoMap = white_handle;             break;
@@ -501,11 +502,20 @@ namespace ignis {
 							case MaterialType::ClearcoatNormal:     slot.ClearcoatNormalMap = white_handle;    break;
 						}
 						mesh->SetMaterialDataTexture(material_index, type, white_handle);
+						Log::Info("Set white texture from resources");
 					}
-					break;
-				case 4: // Black Texture
+					else
 					{
-						AssetHandle black_handle = Renderer::GetBlackTextureHandle();
+						Log::Error("Failed to load white texture from resources");
+					}
+				}
+				break;
+				case 4: // Black Texture
+				{
+					// Load black texture from Editor resources
+					AssetHandle black_handle = AssetManager::ImportAsset("resources://images/Black.png");
+					if (black_handle.IsValid())
+					{
 						switch (type)
 						{
 							case MaterialType::Albedo:              slot.AlbedoMap = black_handle;             break;
@@ -519,44 +529,14 @@ namespace ignis {
 							case MaterialType::ClearcoatNormal:     slot.ClearcoatNormalMap = black_handle;    break;
 						}
 						mesh->SetMaterialDataTexture(material_index, type, black_handle);
+						Log::Info("Set black texture from resources");
 					}
-					break;
-				case 5: // Default Normal
+					else
 					{
-						AssetHandle normal_handle = Renderer::GetDefaultNormalTextureHandle();
-						switch (type)
-						{
-							case MaterialType::Albedo:              slot.AlbedoMap = normal_handle;             break;
-							case MaterialType::Normal:              slot.NormalMap = normal_handle;             break;
-							case MaterialType::Metal:               slot.MetalnessMap = normal_handle;          break;
-							case MaterialType::Roughness:           slot.RoughnessMap = normal_handle;          break;
-							case MaterialType::Emissive:            slot.EmissiveMap = normal_handle;           break;
-							case MaterialType::AO:                  slot.AOMap = normal_handle;                 break;
-							case MaterialType::Clearcoat:           slot.ClearcoatMap = normal_handle;          break;
-							case MaterialType::ClearcoatRoughness:  slot.ClearcoatRoughnessMap = normal_handle; break;
-							case MaterialType::ClearcoatNormal:     slot.ClearcoatNormalMap = normal_handle;    break;
-						}
-						mesh->SetMaterialDataTexture(material_index, type, normal_handle);
+						Log::Error("Failed to load black texture from resources");
 					}
-					break;
-				case 6: // Default Roughness
-					{
-						AssetHandle roughness_handle = Renderer::GetDefaultRoughnessTextureHandle();
-						switch (type)
-						{
-							case MaterialType::Albedo:              slot.AlbedoMap = roughness_handle;             break;
-							case MaterialType::Normal:              slot.NormalMap = roughness_handle;             break;
-							case MaterialType::Metal:               slot.MetalnessMap = roughness_handle;          break;
-							case MaterialType::Roughness:           slot.RoughnessMap = roughness_handle;          break;
-							case MaterialType::Emissive:            slot.EmissiveMap = roughness_handle;           break;
-							case MaterialType::AO:                  slot.AOMap = roughness_handle;                 break;
-							case MaterialType::Clearcoat:           slot.ClearcoatMap = roughness_handle;          break;
-							case MaterialType::ClearcoatRoughness:  slot.ClearcoatRoughnessMap = roughness_handle; break;
-							case MaterialType::ClearcoatNormal:     slot.ClearcoatNormalMap = roughness_handle;    break;
-						}
-						mesh->SetMaterialDataTexture(material_index, type, roughness_handle);
-					}
-					break;
+				}
+				break;
 			}
 		}
 		
