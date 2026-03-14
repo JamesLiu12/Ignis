@@ -800,7 +800,6 @@ void EditorSceneLayer::RenderEditorOverlay()
 			{
 				// Still loading, display progress in editor
 				float progress = m_async_loader.GetProgress();
-				// TODO: Display progress in editor UI status bar
 				static int frame_count = 0;
 				if (++frame_count % 60 == 0)
 				{

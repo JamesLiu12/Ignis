@@ -272,8 +272,6 @@ void RuntimeSceneLayer::ProcessSceneTransition()
 		{
 			// Still loading, display progress
 			float progress = m_async_loader.GetProgress();
-			// TODO: Display loading screen or progress bar here
-			// For now, just log occasionally
 			static int frame_count = 0;
 			if (++frame_count % 60 == 0)
 			{

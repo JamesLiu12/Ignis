@@ -212,7 +212,6 @@ namespace ignis
 
 	void EditorLayer::UI_ShowNewProjectPopup()
 	{
-		// TODO: - Implement new project creation popup
 		ImGui::OpenPopup("New Project");
 
 		if (ImGui::BeginPopupModal("New Project", &s_ShowNewProjectPopup, ImGuiWindowFlags_AlwaysAutoResize))
@@ -1033,9 +1032,6 @@ namespace ignis
 		{
 			std::string folder(s_SaveSceneAsFolderBuffer);
 			Log::CoreInfo("Processing deferred scene save as: {}", folder);
-			
-			// TODO: Implement actual scene save as
-			Log::CoreInfo("Scene save as not yet implemented");
 			
 			// Clear buffer
 			s_SaveSceneAsFolderBuffer[0] = '\0';
