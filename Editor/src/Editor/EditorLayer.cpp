@@ -20,6 +20,13 @@ namespace ignis
 	char EditorLayer::s_NewProjectNameBuffer[128] = "";
 	bool EditorLayer::s_ShowNewProjectPopup = false;
 
+	// Scene management static buffers
+	char EditorLayer::s_LoadSceneFilePathBuffer[512] = "";
+	char EditorLayer::s_SaveSceneAsFolderBuffer[512] = "";
+	char EditorLayer::s_NewSceneFolderBuffer[512] = "";
+	char EditorLayer::s_NewSceneNameBuffer[128] = "";
+	bool EditorLayer::s_ShowNewScenePopup = false;
+
 	EditorLayer::EditorLayer()
 		: Layer("EditorLayer")
 	{
@@ -65,9 +72,17 @@ namespace ignis
 			UI_ShowNewProjectPopup();
 		}
 
+		// Handle new scene popup
+		if (s_ShowNewScenePopup)
+		{
+			UI_ShowNewScenePopup();
+		}
+
 		// Process deferred operations (safe after ImGui rendering)
 		ProcessDeferredProjectLoad();
 		ProcessDeferredSaveAs();
+		ProcessDeferredSceneLoad();
+		ProcessDeferredSceneSaveAs();
 	}
 
 	void EditorLayer::OnEvent(EventBase& event)
@@ -194,7 +209,7 @@ namespace ignis
 
 	void EditorLayer::UI_ShowNewProjectPopup()
 	{
-		// TODO: Phase 3 - Implement new project creation popup
+		// TODO: - Implement new project creation popup
 		ImGui::OpenPopup("New Project");
 
 		if (ImGui::BeginPopupModal("New Project", &s_ShowNewProjectPopup, ImGuiWindowFlags_AlwaysAutoResize))
@@ -305,6 +320,41 @@ namespace ignis
 				if (ImGui::MenuItem("Export Game...", exportShortcut, false, hasProject))
 				{
 					ExportGame();
+				}
+
+				ImGui::EndMenu();
+			}
+
+			// Scene Menu
+			if (ImGui::BeginMenu("Scene"))
+			{
+				bool hasProject = Project::GetActive() != nullptr;
+
+				if (ImGui::MenuItem("New Scene", nullptr, false, hasProject))
+				{
+					NewScene();
+				}
+
+				if (ImGui::MenuItem("Load Scene...", nullptr, false, hasProject))
+				{
+					LoadScene();
+				}
+
+				if (ImGui::MenuItem("Save Scene", nullptr, false, hasProject))
+				{
+					SaveScene();
+				}
+
+				if (ImGui::MenuItem("Save Scene As...", nullptr, false, hasProject))
+				{
+					SaveSceneAs();
+				}
+
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("Set Current Scene As Start Scene", nullptr, false, hasProject))
+				{
+					SetCurrentSceneAsStartScene();
 				}
 
 				ImGui::EndMenu();
@@ -671,6 +721,212 @@ namespace ignis
 		catch (const std::exception& e)
 		{
 			Log::CoreError("Export failed: {}", e.what());
+		}
+	}
+
+	void EditorLayer::NewScene()
+	{
+		Log::CoreInfo("New Scene menu item clicked");
+		s_ShowNewScenePopup = true;
+		
+		// Clear buffers (no default values)
+		s_NewSceneFolderBuffer[0] = '\0';
+		s_NewSceneNameBuffer[0] = '\0';
+	}
+
+	void EditorLayer::LoadScene()
+	{
+		Log::CoreInfo("Load Scene menu item clicked");
+		
+		// Open file dialog to select .igscene file
+		std::string filepath = FileDialog::OpenFile("Ignis Scene", {"igscene"});
+		
+		if (!filepath.empty())
+		{
+			// Verify the selected file is within the project assets directory
+			std::filesystem::path assets_dir = Project::GetActiveAssetDirectory();
+			std::filesystem::path selected_path(filepath);
+		
+			// Normalize paths for comparison
+			std::string assets_str = std::filesystem::canonical(assets_dir).string();
+			std::string selected_str = std::filesystem::canonical(selected_path.parent_path()).string();
+		
+			if (selected_str.find(assets_str) == 0 || selected_str == assets_str)
+			{
+				std::strncpy(s_LoadSceneFilePathBuffer, filepath.c_str(), sizeof(s_LoadSceneFilePathBuffer) - 1);
+				s_LoadSceneFilePathBuffer[sizeof(s_LoadSceneFilePathBuffer) - 1] = '\0';
+				Log::CoreInfo("Scene file selected: {}", filepath);
+			}
+			else
+			{
+				Log::CoreError("Scene file must be within the project assets folder: {}", assets_dir.string());
+			}
+		}
+	}
+
+	void EditorLayer::SaveScene()
+	{
+		Log::CoreInfo("Save Scene menu item clicked");
+		
+		// TODO: Implement
+		Log::CoreInfo("Save Scene not yet implemented");
+	}
+
+	void EditorLayer::SaveSceneAs()
+	{
+		Log::CoreInfo("Save Scene As menu item clicked");
+		
+		// Open folder dialog to select save location (restricted to assets folder)
+		std::string folder = FileDialog::OpenFolder();
+		
+		if (!folder.empty())
+		{
+			// Verify the selected folder is within the project assets directory
+			std::filesystem::path assets_dir = Project::GetActiveAssetDirectory();
+			std::filesystem::path selected_path(folder);
+		
+			// Normalize paths for comparison
+			std::string assets_str = std::filesystem::canonical(assets_dir).string();
+			std::string selected_str = std::filesystem::canonical(selected_path).string();
+		
+			if (selected_str.find(assets_str) == 0 || selected_str == assets_str)
+			{
+				std::strncpy(s_SaveSceneAsFolderBuffer, folder.c_str(), sizeof(s_SaveSceneAsFolderBuffer) - 1);
+				s_SaveSceneAsFolderBuffer[sizeof(s_SaveSceneAsFolderBuffer) - 1] = '\0';
+				Log::CoreInfo("Save location selected: {}", folder);
+				
+				// TODO: Implement actual save
+				Log::CoreInfo("Save Scene As not yet implemented");
+			}
+			else
+			{
+				Log::CoreError("Scene must be saved within the project assets folder: {}", assets_dir.string());
+			}
+		}
+	}
+
+	void EditorLayer::SetCurrentSceneAsStartScene()
+	{
+		Log::CoreInfo("Set Current Scene As Start Scene menu item clicked");
+		
+		// TODO: Implement
+		Log::CoreInfo("Set Current Scene As Start Scene not yet implemented");
+	}
+
+	void EditorLayer::UI_ShowNewScenePopup()
+	{
+		if (!s_ShowNewScenePopup)
+			return;
+
+		ImGui::OpenPopup("New Scene");
+		
+		ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+		ImGui::SetNextWindowSize(ImVec2(450, 150), ImGuiCond_Appearing);
+		
+		if (ImGui::BeginPopupModal("New Scene", &s_ShowNewScenePopup, ImGuiWindowFlags_NoResize))
+		{
+			// Scene name input
+			ImGui::Text("Scene Name:");
+			ImGui::SetNextItemWidth(-1);
+			ImGui::InputText("##SceneName", s_NewSceneNameBuffer, sizeof(s_NewSceneNameBuffer));
+			
+			ImGui::Spacing();
+			
+			// Location selection
+			ImGui::Text("Location:");
+			ImGui::SetNextItemWidth(-80);
+			ImGui::InputText("##SceneLocation", s_NewSceneFolderBuffer, sizeof(s_NewSceneFolderBuffer), ImGuiInputTextFlags_ReadOnly);
+			ImGui::SameLine();
+			
+			if (ImGui::Button("Browse..."))
+			{
+				std::filesystem::path assets_dir = Project::GetActiveAssetDirectory();
+				std::string folder = FileDialog::OpenFolder();
+				
+				if (!folder.empty())
+				{
+					// Verify the selected folder is within the assets directory
+					std::filesystem::path selected_path(folder);
+				
+					// Normalize paths for comparison
+					std::string assets_str = std::filesystem::canonical(assets_dir).string();
+					std::string selected_str = std::filesystem::canonical(selected_path).string();
+				
+					if (selected_str.find(assets_str) == 0 || selected_str == assets_str)
+					{
+						std::strncpy(s_NewSceneFolderBuffer, folder.c_str(), sizeof(s_NewSceneFolderBuffer) - 1);
+						s_NewSceneFolderBuffer[sizeof(s_NewSceneFolderBuffer) - 1] = '\0';
+					}
+					else
+					{
+						Log::CoreError("Scene must be created within the project assets folder");
+					}
+				}
+			}
+			
+			ImGui::Spacing();
+			ImGui::Separator();
+			ImGui::Spacing();
+			
+			// Buttons
+			if (ImGui::Button("Create", ImVec2(120, 0)))
+			{
+				// Validate scene name
+				std::string scene_name(s_NewSceneNameBuffer);
+				if (scene_name.empty())
+				{
+					Log::CoreError("Scene name cannot be empty");
+				}
+				else
+				{
+					// TODO: Implement scene creation
+					std::filesystem::path scene_path = std::filesystem::path(s_NewSceneFolderBuffer) / (scene_name + ".igscene");
+					Log::CoreInfo("Creating new scene: {}", scene_path.string());
+					Log::CoreInfo("New Scene creation not yet implemented");
+					
+					s_ShowNewScenePopup = false;
+				}
+			}
+			
+			ImGui::SameLine();
+			
+			if (ImGui::Button("Cancel", ImVec2(120, 0)))
+			{
+				s_ShowNewScenePopup = false;
+			}
+			
+			ImGui::EndPopup();
+		}
+	}
+
+	void EditorLayer::ProcessDeferredSceneLoad()
+	{
+		if (s_LoadSceneFilePathBuffer[0] != '\0')
+		{
+			std::string filepath(s_LoadSceneFilePathBuffer);
+			Log::CoreInfo("Processing deferred scene load: {}", filepath);
+			
+			// TODO: Implement actual scene loading
+			Log::CoreInfo("Scene loading not yet implemented");
+			
+			// Clear buffer
+			s_LoadSceneFilePathBuffer[0] = '\0';
+		}
+	}
+
+	void EditorLayer::ProcessDeferredSceneSaveAs()
+	{
+		if (s_SaveSceneAsFolderBuffer[0] != '\0')
+		{
+			std::string folder(s_SaveSceneAsFolderBuffer);
+			Log::CoreInfo("Processing deferred scene save as: {}", folder);
+			
+			// TODO: Implement actual scene save as
+			Log::CoreInfo("Scene save as not yet implemented");
+			
+			// Clear buffer
+			s_SaveSceneAsFolderBuffer[0] = '\0';
 		}
 	}
 
