@@ -85,14 +85,24 @@ void ProjectManager::SaveProject(const std::filesystem::path& filepath)
 					// Always save editor scene, not runtime scene
 					if (auto scene = scene_layer->GetEditorScene())
 					{
-						SceneSerializer scene_serializer;
-						if (scene_serializer.Serialize(*scene, Project::GetActiveStartScene()))
+						// Get the current scene's file path
+						std::filesystem::path scene_path = scene_layer->GetCurrentScenePath();
+						
+						// If no scene path is set, default to start scene (shouldn't happen in normal use)
+						if (scene_path.empty())
 						{
-							Log::CoreInfo("Scene saved: {}", Project::GetActiveStartScene().string());
+							scene_path = Project::GetActiveStartScene();
+							Log::CoreWarn("No current scene path set, defaulting to start scene");
+						}
+						
+						SceneSerializer scene_serializer;
+						if (scene_serializer.Serialize(*scene, scene_path))
+						{
+							Log::CoreInfo("Scene saved: {}", scene_path.string());
 						}
 						else
 						{
-							Log::CoreError("Failed to save scene: {}", Project::GetActiveStartScene().string());
+							Log::CoreError("Failed to save scene: {}", scene_path.string());
 						}
 					}
 

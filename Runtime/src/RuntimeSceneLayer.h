@@ -8,10 +8,12 @@
 #include "Ignis/Script/ScriptModule.h"
 #include "Ignis/UI/UIRenderer.h"
 #include "Ignis/UI/UISystem.h"
+#include "Ignis/Scene/SceneManager.h"
+#include "Ignis/Scene/AsyncSceneLoader.h"
 
 namespace ignis {
 
-class RuntimeSceneLayer : public Layer
+class RuntimeSceneLayer : public Layer, public ISceneLayer
 {
 public:
 	RuntimeSceneLayer(Renderer& renderer, const std::string& project_path);
@@ -23,11 +25,16 @@ public:
 	void OnEvent(EventBase& event) override;
 	
 	void LoadScene(const std::filesystem::path& scene_path);
-	void QueueSceneTransition(const std::filesystem::path& scene_path);
+	
+	// ISceneLayer interface implementation
+	void QueueSceneTransition(const std::filesystem::path& scene_path) override;
+	std::string GetCurrentSceneName() const override;
+	bool HasPendingSceneTransition() const override;
 	
 	std::shared_ptr<Scene> GetScene() const { return m_runtime_scene; }
 
 private:
+	void ProcessSceneTransition();
 	Renderer& m_renderer;
 	std::string m_project_path;
 	
@@ -39,8 +46,14 @@ private:
 	UIRenderer m_ui_renderer;
 	UISystem m_ui_system;
 	
-	// Scene transition queue
-	std::vector<std::function<void()>> m_post_scene_update_queue;
+	// Scene transition support
+	std::filesystem::path m_pending_scene_path;
+	std::filesystem::path m_current_scene_path;
+	
+	// Async scene loading support
+	AsyncSceneLoader m_async_loader;
+	bool m_is_async_loading = false;
+	std::string m_loading_scene_name;
 };
 
 } // namespace ignis

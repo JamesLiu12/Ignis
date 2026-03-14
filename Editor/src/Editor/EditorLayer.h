@@ -31,17 +31,27 @@ namespace ignis {
 
 		void BuildScripts();
 
+		// Scene management methods
+		void NewScene();  // Shows new scene popup
+		void LoadScene();  // Shows load scene dialog
+		void SaveScene();  // Saves current scene
+		void SaveSceneAs();  // Shows save scene as dialog
+		void SetCurrentSceneAsStartScene();  // Sets current scene as project start scene
+
 		// Export functionality
 		void ExportGame();
 
 	private:
 		void RenderMenuBar();
 		void UI_ShowNewProjectPopup();
+		void UI_ShowNewScenePopup();
 		void HandleKeyboardShortcuts();
 	
 		// Deferred operation helpers
 		void ProcessDeferredProjectLoad();
 		void ProcessDeferredSaveAs();
+		void ProcessDeferredSceneLoad();
+		void ProcessDeferredSceneSaveAs();
 
 	private:
 		std::unique_ptr<PanelManager> m_panel_manager;
@@ -52,6 +62,13 @@ namespace ignis {
 		static char s_NewProjectFolderBuffer[512];
 		static char s_NewProjectNameBuffer[128];
 		static bool s_ShowNewProjectPopup;
+
+		// Scene management buffers
+		static char s_LoadSceneFilePathBuffer[512];
+		static char s_SaveSceneAsFolderBuffer[512];
+		static char s_NewSceneFolderBuffer[512];
+		static char s_NewSceneNameBuffer[128];
+		static bool s_ShowNewScenePopup;
 	};
 
 } // namespace ignis

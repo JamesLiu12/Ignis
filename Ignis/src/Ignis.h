@@ -26,6 +26,8 @@
 #include "Ignis/Scene/Entity.h"
 #include "Ignis/Scene/Components.h"
 #include "Ignis/Scene/SceneSerializer.h"
+#include "Ignis/Scene/SceneManager.h"
+#include "Ignis/Scene/AsyncSceneLoader.h"
 
 #include "Ignis/UI/UIComponents.h"
 

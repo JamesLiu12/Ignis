@@ -11,13 +11,14 @@
 
 #include "Ignis/UI/UISystem.h"
 #include "Ignis/UI/UIRenderer.h"
+#include "Ignis/Scene/SceneManager.h"
 
 namespace ignis {
 	class Renderer;
 	class EditorApp;
 	class ViewportPanel;
 
-class EditorSceneLayer : public Layer
+class EditorSceneLayer : public Layer, public ISceneLayer
 {
 public:
 	enum class SceneState
@@ -39,6 +40,10 @@ public:
 	void ReloadProject();  // Called when project is loaded
 	void ClearProject();   // Called when project is closed
 
+	// Scene management
+	void LoadScene(const std::filesystem::path& scene_path);  // Load a scene file into the editor
+	void SaveCurrentScene();  // Save current scene to its file
+
 	// Scene state transitions
 	void OnScenePlay();
 	void OnSceneStop();
@@ -47,6 +52,7 @@ public:
 	// Scene access
 	std::shared_ptr<Scene> GetScene() const { return m_current_scene; }
 	std::shared_ptr<Scene> GetEditorScene() const { return m_editor_scene; }
+	std::filesystem::path GetCurrentScenePath() const { return m_current_scene_path; }
 
 	// Mesh access for PropertiesPanel
 	std::shared_ptr<Mesh> GetCurrentMesh() const { return m_mesh; }
@@ -60,8 +66,14 @@ public:
 
 	void OnScriptsReload();
 
+	// ISceneLayer interface implementation
+	void QueueSceneTransition(const std::filesystem::path& scene_path) override;
+	std::string GetCurrentSceneName() const override;
+	bool HasPendingSceneTransition() const override;
+
 private:
 	void RenderEditorOverlay();
+	void ProcessSceneTransition();
 
 private:
 	Renderer& m_renderer;
@@ -73,6 +85,9 @@ private:
 	std::shared_ptr<Scene> m_editor_scene;   // Persistent scene for editing
 	std::shared_ptr<Scene> m_runtime_scene;  // Temporary scene for play mode
 	std::shared_ptr<Scene> m_current_scene;  // Points to active scene (editor or runtime)
+	std::filesystem::path m_current_scene_path;  // Path to currently loaded scene file
+	std::filesystem::path m_original_editor_scene_path;  // Scene path before entering Play mode
+	std::filesystem::path m_pending_scene_path;  // Queued scene transition for runtime
 
 	std::shared_ptr<Mesh> m_mesh;
 	
@@ -100,6 +115,11 @@ private:
 	bool m_is_locked = false;
 	bool m_is_visible = true;
 	bool m_is_in_scene = false;
+
+	// Async scene loading support for Play mode
+	AsyncSceneLoader m_async_loader;
+	bool m_is_async_loading = false;
+	std::string m_loading_scene_name;
 };
 
 } // namespace ignis

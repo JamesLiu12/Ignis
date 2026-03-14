@@ -101,6 +101,54 @@ namespace ignis
 		return s_texture;
 	}
 
+	std::shared_ptr<TextureCube> Renderer::GetWhiteTextureCube()
+	{
+		static constexpr auto s_white_pixel = [] {
+			std::array<std::byte, 24> arr{};
+			arr.fill(std::byte{ 255 });
+			return arr;
+			}();
+		static const std::span<const std::byte> s_white_data(s_white_pixel);
+
+		static std::shared_ptr<TextureCube> s_texture;
+
+		if (!s_texture)
+		{
+			ignis::TextureSpecs specs;
+			specs.Width = 1;
+			specs.Height = 1;
+			specs.Format = TextureFormat::RGBA8;
+
+			s_texture = ignis::TextureCube::Create(specs, ImageFormat::RGBA8, s_white_data);
+		}
+
+		return s_texture;
+	}
+
+	std::shared_ptr<TextureCube> Renderer::GetBlackTextureCube()
+	{
+		static constexpr std::array<std::byte, 24> s_black_pixel = [] {
+			std::array<std::byte, 24> arr{};
+			arr.fill(std::byte{ 0 });
+			return arr;
+			}();
+		static const std::span<const std::byte> s_black_data(s_black_pixel);
+
+		static std::shared_ptr<TextureCube> s_texture;
+
+		if (!s_texture)
+		{
+			ignis::TextureSpecs specs;
+			specs.Width = 1;
+			specs.Height = 1;
+			specs.Format = ignis::TextureFormat::RGBA8;
+
+			s_texture = ignis::TextureCube::Create(specs, ImageFormat::RGBA8, s_black_data);
+		}
+
+		return s_texture;
+	}
+
 	AssetHandle Renderer::GetWhiteTextureHandle()
 	{
 		static AssetHandle s_handle = AssetHandle::Invalid;

@@ -18,7 +18,14 @@ namespace ignis {
 		std::string_view GetName() const override { return "Scene Hierarchy"; }
 		std::string_view GetID() const override { return "SceneHierarchy"; }
 
-		void SetScene(std::shared_ptr<Scene> scene) { m_scene = scene; }
+		void SetScene(std::shared_ptr<Scene> scene) 
+		{ 
+			m_scene = scene; 
+			// Clear entity references when switching scenes to prevent accessing stale entities
+			m_selected_entity = {};
+			m_renaming_entity = {};
+			m_copied_entity = {};
+		}
 		void SetPropertiesPanel(PropertiesPanel* properties_panel) { m_properties_panel = properties_panel; }
 
 		Entity GetSelectedEntity() { return m_selected_entity; }

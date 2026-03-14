@@ -1,5 +1,8 @@
 #include "AssetBrowserItem.h"
 #include "Editor/Panels/AssetBrowserPanel.h"
+#include "Editor/EditorApp.h"
+#include "Editor/EditorSceneLayer.h"
+#include "Ignis/Core/File/VFS.h"
 #include <imgui.h>
 
 #ifdef _WIN32
@@ -301,8 +304,8 @@ namespace ignis {
 
 	void AssetBrowserAsset::OnActivate()
 	{
-		// Open file with system default application
-		std::filesystem::path full_path = Project::GetActiveAssetDirectory() / m_asset_info.FilePath;
+		// Resolve VFS path to physical path
+		std::filesystem::path full_path = VFS::Resolve(m_asset_info.FilePath);
 		
 		if (!std::filesystem::exists(full_path))
 		{
@@ -310,6 +313,25 @@ namespace ignis {
 			return;
 		}
 		
+		// Check if this is a scene file - load it in the editor instead of opening externally
+		if (full_path.extension() == ".igscene")
+		{
+			Log::CoreInfo("Double clicked scene, now loading scene");
+			// Get EditorApp and load scene in editor
+			if (auto* app = dynamic_cast<EditorApp*>(&Application::Get()))
+			{
+				if (auto* scene_layer = app->GetSceneLayer())
+				{
+					scene_layer->LoadScene(full_path);
+					return;
+				}
+			}
+			
+			Log::CoreError("Failed to access EditorSceneLayer for scene loading");
+			return;
+		}
+		
+		// For non-scene files, open with system default application
 		#ifdef __APPLE__
 			// macOS: Try simple 'open' command first (works for files with default apps)
 			std::string command = "open \"" + full_path.string() + "\" 2>&1";

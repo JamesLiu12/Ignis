@@ -24,6 +24,9 @@ RuntimeSceneLayer::~RuntimeSceneLayer()
 
 void RuntimeSceneLayer::OnAttach()
 {
+	// Register with SceneManager for runtime scene transitions
+	SceneManager::RegisterSceneLayer(this);
+	
 	// Mount VFS for resources FIRST (before renderer init needs shaders)
 	VFS::Mount("resources", "resources");
 	
@@ -90,6 +93,9 @@ void RuntimeSceneLayer::OnAttach()
 
 void RuntimeSceneLayer::OnDetach()
 {
+	// Unregister from SceneManager
+	SceneManager::UnregisterSceneLayer();
+	
 	if (m_runtime_scene)
 	{
 		m_runtime_scene->OnRuntimeStop();
@@ -136,11 +142,8 @@ void RuntimeSceneLayer::OnUpdate(float dt)
 	
 	m_renderer.EndFrame();
 	
-	// Process queued scene transitions
-	auto queue = m_post_scene_update_queue;
-	m_post_scene_update_queue.clear();
-	for (auto& fn : queue)
-		fn();
+	// Process pending scene transitions
+	ProcessSceneTransition();
 }
 
 void RuntimeSceneLayer::OnEvent(EventBase& event)
@@ -187,6 +190,9 @@ void RuntimeSceneLayer::LoadScene(const std::filesystem::path& scene_path)
 		return;
 	}
 	
+	// Track current scene path
+	m_current_scene_path = scene_path;
+	
 	// Load and register script module
 	m_script_module.Load(Project::ResolveActiveScriptModulePath());
 	m_script_module.RegisterAll(ScriptRegistry::Get());
@@ -197,12 +203,120 @@ void RuntimeSceneLayer::LoadScene(const std::filesystem::path& scene_path)
 	Log::CoreInfo("Runtime scene loaded: {}", scene_path.string());
 }
 
+// ISceneLayer interface implementation
 void RuntimeSceneLayer::QueueSceneTransition(const std::filesystem::path& scene_path)
 {
-	m_post_scene_update_queue.push_back([this, scene_path]()
+	m_pending_scene_path = scene_path;
+	Log::CoreInfo("Scene transition queued: {}", scene_path.string());
+}
+
+std::string RuntimeSceneLayer::GetCurrentSceneName() const
+{
+	if (m_runtime_scene)
 	{
-		LoadScene(scene_path);
-	});
+		return m_runtime_scene->GetName();
+	}
+	return "";
+}
+
+bool RuntimeSceneLayer::HasPendingSceneTransition() const
+{
+	return !m_pending_scene_path.empty();
+}
+
+void RuntimeSceneLayer::ProcessSceneTransition()
+{
+	// If async loading is in progress, check if ready
+	if (m_is_async_loading)
+	{
+		if (m_async_loader.IsReady())
+		{
+			Log::CoreInfo("Async scene load complete, finalizing transition");
+
+			// Get the loaded scene
+			auto new_scene = m_async_loader.GetScene();
+
+			if (!new_scene)
+			{
+				Log::CoreError("Failed to load scene asynchronously");
+				m_is_async_loading = false;
+				m_pending_scene_path.clear();
+				return;
+			}
+
+			// Resolve path relative to project directory
+			std::filesystem::path scene_path = m_pending_scene_path;
+			if (scene_path.is_relative())
+			{
+				scene_path = Project::GetActiveProjectDirectory() / scene_path;
+			}
+
+			// Replace runtime scene
+			m_runtime_scene = new_scene;
+			m_current_scene_path = scene_path;
+
+			// Reload and register script module
+			m_script_module.Load(Project::ResolveActiveScriptModulePath());
+			m_script_module.RegisterAll(ScriptRegistry::Get());
+
+			// Start new runtime scene
+			m_runtime_scene->OnRuntimeStart();
+
+			Log::CoreInfo("Runtime scene transition complete: {}", scene_path.filename().string());
+
+			// Clear state
+			m_is_async_loading = false;
+			m_pending_scene_path.clear();
+		}
+		else
+		{
+			// Still loading, display progress
+			float progress = m_async_loader.GetProgress();
+			static int frame_count = 0;
+			if (++frame_count % 60 == 0)
+			{
+				Log::CoreInfo("Loading scene '{}': {:.0f}%", m_loading_scene_name, progress * 100.0f);
+			}
+		}
+		return;
+	}
+
+	// Start new async load if there's a pending scene
+	if (!m_pending_scene_path.empty())
+	{
+		Log::CoreInfo("Starting async scene transition to: {}", m_pending_scene_path.string());
+
+		// Resolve path relative to project directory
+		std::filesystem::path scene_path = m_pending_scene_path;
+		if (scene_path.is_relative())
+		{
+			scene_path = Project::GetActiveProjectDirectory() / scene_path;
+		}
+
+		if (!std::filesystem::exists(scene_path))
+		{
+			Log::CoreError("Scene file does not exist: {}", scene_path.string());
+			m_pending_scene_path.clear();
+			return;
+		}
+
+		// Stop current runtime scene
+		if (m_runtime_scene)
+		{
+			m_runtime_scene->OnRuntimeStop();
+		}
+
+		// Unload script module
+		m_script_module.UnregisterAll(ScriptRegistry::Get());
+		m_script_module.Unload();
+
+		// Start async load
+		m_loading_scene_name = scene_path.filename().string();
+		m_async_loader.LoadSceneAsync(scene_path);
+		m_is_async_loading = true;
+
+		Log::CoreInfo("Async load started for: {}", m_loading_scene_name);
+	}
 }
 
 } // namespace ignis

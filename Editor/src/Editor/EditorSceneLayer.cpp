@@ -63,6 +63,9 @@ void EditorSceneLayer::OnAttach()
 	m_debug_renderer->Init();
 	m_overlay_renderer = std::make_unique<EditorOverlayRenderer>(*m_debug_renderer);
 	
+	// Register this layer with SceneManager for runtime scene transitions
+	SceneManager::RegisterSceneLayer(this);
+	
 	// Get viewport panel reference for camera aspect ratio updates
 	m_viewport_panel = m_editor_app->GetViewportPanel();
 
@@ -123,6 +126,9 @@ void EditorSceneLayer::OnAttach()
 
 void EditorSceneLayer::OnDetach()
 {
+	// Unregister from SceneManager
+	SceneManager::UnregisterSceneLayer();
+	
 	if (m_editor_scene)
 	{
 		m_editor_scene->OnRuntimeStop();
@@ -206,6 +212,9 @@ void EditorSceneLayer::OnUpdate(float dt)
 	if (m_scene_state == SceneState::Play && m_current_scene)
 	{
 		m_current_scene->OnRuntimeUpdate(dt);
+		
+		// Process any pending scene transitions after scripts/physics update
+		ProcessSceneTransition();
 	}
 	
 	auto framebuffer = m_renderer.GetFramebuffer();
@@ -222,7 +231,7 @@ void EditorSceneLayer::OnUpdate(float dt)
 		return;
 	}
 
-	// In Edit mode, use EditorCamera; in Play mode (Phase 4), use scene camera
+	// In Edit mode, use EditorCamera; in Play mode, use scene camera
 	std::shared_ptr<Camera> render_camera = (m_scene_state == SceneState::Edit) 
 		? m_editor_camera 
 		: m_current_scene->GetPrimaryCamera();
@@ -431,6 +440,15 @@ void EditorSceneLayer::RenderEditorOverlay()
 	
 		// Reload asset registry and scene
 		AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
+	
+		// IMPORTANT: Refresh asset browser BEFORE loading scene
+		if (auto* asset_browser = m_editor_app->GetAssetBrowserPanel())
+		{
+			asset_browser->Refresh();
+			// Save asset registry after scanning to persist all imported assets
+			AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
+		}
+	
 		SceneSerializer scene_serializer;
 		m_editor_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
 
@@ -447,16 +465,9 @@ void EditorSceneLayer::RenderEditorOverlay()
 		auto framebuffer = m_renderer.GetFramebuffer();
 		m_editor_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
 	
-		// Refresh asset browser with new project files
-		if (auto* asset_browser = m_editor_app->GetAssetBrowserPanel())
-		{
-			asset_browser->Refresh();
-			// Save asset registry after scanning to persist all imported assets
-			AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
-		}
-	
 		// Set current scene to editor scene
 		m_current_scene = m_editor_scene;
+		m_current_scene_path = Project::GetActiveStartScene();  // Track the start scene path
 
 		// Update hierarchy panel with all entities from the scene
 		if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
@@ -467,9 +478,111 @@ void EditorSceneLayer::RenderEditorOverlay()
 		Log::CoreInfo("Project scene reloaded");
 	}
 
+	void EditorSceneLayer::LoadScene(const std::filesystem::path& scene_path)
+	{
+		if (!Project::GetActive())
+		{
+			Log::CoreError("Cannot load scene: No project is loaded");
+			return;
+		}
+
+		if (!std::filesystem::exists(scene_path))
+		{
+			Log::CoreError("Cannot load scene: File does not exist: {}", scene_path.string());
+			return;
+		}
+
+		Log::CoreInfo("Loading scene: {}", scene_path.string());
+
+		// Auto-save current scene before switching
+		if (m_editor_scene && !m_current_scene_path.empty())
+		{
+			SaveCurrentScene();
+		}
+
+		// Auto-stop Play mode if currently playing
+		if (m_scene_state == SceneState::Play)
+		{
+			Log::CoreWarn("Auto-stopping Play mode for scene load");
+			OnSceneStop();
+		}
+
+		// Clear panels before destroying old scene to prevent accessing stale entities
+		if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
+		{
+			properties_panel->SetSelectedEntity({});
+			properties_panel->SetCurrentMesh(nullptr, nullptr);
+		}
+
+		// Clear the old editor scene (don't call OnRuntimeStop - that's for runtime scenes only)
+		if (m_editor_scene)
+		{
+			m_editor_scene.reset();
+		}
+
+		// Clear current scene pointer
+		m_current_scene = nullptr;
+
+		// Deserialize the new scene
+		SceneSerializer scene_serializer;
+		auto new_scene = scene_serializer.Deserialize(scene_path);
+
+		if (!new_scene)
+		{
+			Log::CoreError("Failed to load scene from: {}", scene_path.string());
+			return;
+		}
+
+		// Replace the editor scene
+		m_editor_scene = new_scene;
+		m_current_scene = m_editor_scene;
+		m_current_scene_path = scene_path;  // Track the loaded scene's file path
+
+		// Update viewport size
+		auto framebuffer = m_renderer.GetFramebuffer();
+		m_editor_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
+
+		// Update hierarchy panel with entities from the new scene
+		if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+		{
+			hierarchy_panel->SetScene(m_editor_scene);
+		}
+
+		Log::CoreInfo("Scene loaded successfully: {}", scene_path.string());
+	}
+
+	void EditorSceneLayer::SaveCurrentScene()
+	{
+		if (!m_editor_scene)
+		{
+			Log::CoreWarn("Cannot save scene: No scene is loaded");
+			return;
+		}
+		
+		if (m_current_scene_path.empty())
+		{
+			Log::CoreWarn("Cannot save scene: Scene has no file path");
+			return;
+		}
+		
+		// Always save the editor scene, not the runtime scene
+		SceneSerializer serializer;
+		if (serializer.Serialize(*m_editor_scene, m_current_scene_path))
+		{
+			Log::CoreInfo("Scene saved: {}", m_current_scene_path.string());
+		}
+		else
+		{
+			Log::CoreError("Failed to save scene: {}", m_current_scene_path.string());
+		}
+	}
+
 	void EditorSceneLayer::OnScenePlay()
 	{
 		Log::CoreInfo("OnScenePlay() - Transitioning to Play mode");
+	
+		// Store original editor scene path to restore on Stop
+		m_original_editor_scene_path = m_current_scene_path;
 	
 		// Change state to Play
 		m_scene_state = SceneState::Play;
@@ -526,6 +639,26 @@ void EditorSceneLayer::RenderEditorOverlay()
 		// Change state to Edit
 		m_scene_state = SceneState::Edit;
 	
+		// Load back the original editor scene (the one active when Play was clicked)
+		if (!m_original_editor_scene_path.empty() && m_original_editor_scene_path != m_current_scene_path)
+		{
+			Log::CoreInfo("Restoring original editor scene: {}", m_original_editor_scene_path.string());
+			
+			// Load the original scene
+			SceneSerializer scene_serializer;
+			auto original_scene = scene_serializer.Deserialize(m_original_editor_scene_path);
+			
+			if (original_scene)
+			{
+				m_editor_scene = original_scene;
+				m_current_scene_path = m_original_editor_scene_path;
+			}
+			else
+			{
+				Log::CoreError("Failed to restore original editor scene");
+			}
+		}
+	
 		// Switch back to editor scene
 		m_current_scene = m_editor_scene;
 	
@@ -579,6 +712,145 @@ void EditorSceneLayer::RenderEditorOverlay()
 	{
 		m_script_module.UnregisterAll(ScriptRegistry::Get());
 		m_script_module.Unload();
+	}
+
+	// ISceneLayer interface implementation for SceneManager
+	void EditorSceneLayer::QueueSceneTransition(const std::filesystem::path& scene_path)
+	{
+		if (m_scene_state != SceneState::Play)
+		{
+			Log::CoreWarn("SceneManager::LoadScene can only be called during Play mode");
+			return;
+		}
+
+		m_pending_scene_path = scene_path;
+		Log::CoreInfo("Scene transition queued: {}", scene_path.string());
+	}
+
+	std::string EditorSceneLayer::GetCurrentSceneName() const
+	{
+		if (m_current_scene)
+		{
+			return m_current_scene->GetName();
+		}
+		return "";
+	}
+
+	bool EditorSceneLayer::HasPendingSceneTransition() const
+	{
+		return !m_pending_scene_path.empty();
+	}
+
+	void EditorSceneLayer::ProcessSceneTransition()
+	{
+		// If async loading is in progress, check if ready
+		if (m_is_async_loading)
+		{
+			if (m_async_loader.IsReady())
+			{
+				Log::CoreInfo("Async scene load complete, finalizing transition");
+
+				// Get the loaded scene
+				auto new_scene = m_async_loader.GetScene();
+
+				if (!new_scene)
+				{
+					Log::CoreError("Failed to load scene asynchronously");
+					m_is_async_loading = false;
+					m_pending_scene_path.clear();
+					return;
+				}
+
+				// Resolve path relative to project directory
+				std::filesystem::path scene_path = m_pending_scene_path;
+				if (scene_path.is_relative())
+				{
+					scene_path = Project::GetActiveProjectDirectory() / scene_path;
+				}
+
+				// Replace runtime scene
+				m_runtime_scene = new_scene;
+				m_current_scene = m_runtime_scene;
+				m_current_scene_path = scene_path;
+
+				// Reload and register script module
+				m_script_module.Load(Project::ResolveActiveScriptModulePath());
+				m_script_module.RegisterAll(ScriptRegistry::Get());
+
+				// Start new runtime scene
+				m_runtime_scene->OnRuntimeStart();
+
+				// Update viewport size
+				auto framebuffer = m_renderer.GetFramebuffer();
+				m_runtime_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
+
+				// Update hierarchy panel
+				if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+				{
+					hierarchy_panel->SetScene(m_runtime_scene);
+				}
+
+				Log::CoreInfo("Runtime scene transition complete: {}", scene_path.filename().string());
+
+				// Clear state
+				m_is_async_loading = false;
+				m_pending_scene_path.clear();
+			}
+			else
+			{
+				// Still loading, display progress in editor
+				float progress = m_async_loader.GetProgress();
+				static int frame_count = 0;
+				if (++frame_count % 60 == 0)
+				{
+					Log::CoreInfo("Loading scene '{}': {:.0f}%", m_loading_scene_name, progress * 100.0f);
+				}
+			}
+			return;
+		}
+
+		// Start new async load if there's a pending scene
+		if (!m_pending_scene_path.empty())
+		{
+			Log::CoreInfo("Starting async scene transition to: {}", m_pending_scene_path.string());
+
+			// Resolve path relative to project directory
+			std::filesystem::path scene_path = m_pending_scene_path;
+			if (scene_path.is_relative())
+			{
+				scene_path = Project::GetActiveProjectDirectory() / scene_path;
+			}
+
+			if (!std::filesystem::exists(scene_path))
+			{
+				Log::CoreError("Scene file does not exist: {}", scene_path.string());
+				m_pending_scene_path.clear();
+				return;
+			}
+
+			// Clear panels before destroying runtime scene
+			if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
+			{
+				properties_panel->SetSelectedEntity({});
+			}
+
+			// Stop current runtime scene
+			if (m_runtime_scene)
+			{
+				m_runtime_scene->OnRuntimeStop();
+			}
+
+			// Unload script module
+			m_script_module.UnregisterAll(ScriptRegistry::Get());
+			m_script_module.Unload();
+
+			// Start async load
+			m_loading_scene_name = scene_path.filename().string();
+			m_async_loader.LoadSceneAsync(scene_path);
+			m_is_async_loading = true;
+
+			Log::CoreInfo("Async load started for: {}", m_loading_scene_name);
+		}
 	}
 
 } // namespace ignis
