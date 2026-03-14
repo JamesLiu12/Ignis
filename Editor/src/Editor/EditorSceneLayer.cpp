@@ -63,6 +63,9 @@ void EditorSceneLayer::OnAttach()
 	m_debug_renderer->Init();
 	m_overlay_renderer = std::make_unique<EditorOverlayRenderer>(*m_debug_renderer);
 	
+	// Register this layer with SceneManager for runtime scene transitions
+	RegisterSceneLayer(this);
+	
 	// Get viewport panel reference for camera aspect ratio updates
 	m_viewport_panel = m_editor_app->GetViewportPanel();
 
@@ -123,6 +126,9 @@ void EditorSceneLayer::OnAttach()
 
 void EditorSceneLayer::OnDetach()
 {
+	// Unregister from SceneManager
+	UnregisterSceneLayer();
+	
 	if (m_editor_scene)
 	{
 		m_editor_scene->OnRuntimeStop();
@@ -206,6 +212,9 @@ void EditorSceneLayer::OnUpdate(float dt)
 	if (m_scene_state == SceneState::Play && m_current_scene)
 	{
 		m_current_scene->OnRuntimeUpdate(dt);
+		
+		// Process any pending scene transitions after scripts/physics update
+		ProcessSceneTransition();
 	}
 	
 	auto framebuffer = m_renderer.GetFramebuffer();
@@ -572,6 +581,9 @@ void EditorSceneLayer::RenderEditorOverlay()
 	{
 		Log::CoreInfo("OnScenePlay() - Transitioning to Play mode");
 	
+		// Store original editor scene path to restore on Stop
+		m_original_editor_scene_path = m_current_scene_path;
+	
 		// Change state to Play
 		m_scene_state = SceneState::Play;
 	
@@ -627,6 +639,26 @@ void EditorSceneLayer::RenderEditorOverlay()
 		// Change state to Edit
 		m_scene_state = SceneState::Edit;
 	
+		// Load back the original editor scene (the one active when Play was clicked)
+		if (!m_original_editor_scene_path.empty() && m_original_editor_scene_path != m_current_scene_path)
+		{
+			Log::CoreInfo("Restoring original editor scene: {}", m_original_editor_scene_path.string());
+			
+			// Load the original scene
+			SceneSerializer scene_serializer;
+			auto original_scene = scene_serializer.Deserialize(m_original_editor_scene_path);
+			
+			if (original_scene)
+			{
+				m_editor_scene = original_scene;
+				m_current_scene_path = m_original_editor_scene_path;
+			}
+			else
+			{
+				Log::CoreError("Failed to restore original editor scene");
+			}
+		}
+	
 		// Switch back to editor scene
 		m_current_scene = m_editor_scene;
 	
@@ -680,6 +712,111 @@ void EditorSceneLayer::RenderEditorOverlay()
 	{
 		m_script_module.UnregisterAll(ScriptRegistry::Get());
 		m_script_module.Unload();
+	}
+
+	// ISceneLayer interface implementation for SceneManager
+	void EditorSceneLayer::QueueSceneTransition(const std::filesystem::path& scene_path)
+	{
+		if (m_scene_state != SceneState::Play)
+		{
+			Log::CoreWarn("SceneManager::LoadScene can only be called during Play mode");
+			return;
+		}
+
+		m_pending_scene_path = scene_path;
+		Log::CoreInfo("Scene transition queued: {}", scene_path.string());
+	}
+
+	std::string EditorSceneLayer::GetCurrentSceneName() const
+	{
+		if (m_current_scene)
+		{
+			return m_current_scene->GetName();
+		}
+		return "";
+	}
+
+	bool EditorSceneLayer::HasPendingSceneTransition() const
+	{
+		return !m_pending_scene_path.empty();
+	}
+
+	void EditorSceneLayer::ProcessSceneTransition()
+	{
+		if (m_pending_scene_path.empty())
+		{
+			return;
+		}
+
+		Log::CoreInfo("Processing runtime scene transition to: {}", m_pending_scene_path.string());
+
+		// Resolve path relative to project directory
+		std::filesystem::path scene_path = m_pending_scene_path;
+		if (scene_path.is_relative())
+		{
+			scene_path = Project::GetActiveProjectDirectory() / scene_path;
+		}
+
+		if (!std::filesystem::exists(scene_path))
+		{
+			Log::CoreError("Scene file does not exist: {}", scene_path.string());
+			m_pending_scene_path.clear();
+			return;
+		}
+
+		// Clear panels before destroying runtime scene
+		if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
+		{
+			properties_panel->SetSelectedEntity({});
+		}
+
+		// Stop current runtime scene
+		if (m_runtime_scene)
+		{
+			m_runtime_scene->OnRuntimeStop();
+		}
+
+		// Unload script module
+		m_script_module.UnregisterAll(ScriptRegistry::Get());
+		m_script_module.Unload();
+
+		// Load new scene
+		SceneSerializer scene_serializer;
+		auto new_scene = scene_serializer.Deserialize(scene_path);
+
+		if (!new_scene)
+		{
+			Log::CoreError("Failed to load scene: {}", scene_path.string());
+			m_pending_scene_path.clear();
+			return;
+		}
+
+		// Replace runtime scene
+		m_runtime_scene = new_scene;
+		m_current_scene = m_runtime_scene;
+		m_current_scene_path = scene_path;
+
+		// Reload and register script module
+		m_script_module.Load(Project::ResolveActiveScriptModulePath());
+		m_script_module.RegisterAll(ScriptRegistry::Get());
+
+		// Start new runtime scene
+		m_runtime_scene->OnRuntimeStart();
+
+		// Update viewport size
+		auto framebuffer = m_renderer.GetFramebuffer();
+		m_runtime_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
+
+		// Update hierarchy panel
+		if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+		{
+			hierarchy_panel->SetScene(m_runtime_scene);
+		}
+
+		Log::CoreInfo("Runtime scene transition complete: {}", scene_path.filename().string());
+
+		// Clear pending path
+		m_pending_scene_path.clear();
 	}
 
 } // namespace ignis

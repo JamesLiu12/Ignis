@@ -17,7 +17,21 @@ namespace ignis {
 	class EditorApp;
 	class ViewportPanel;
 
-class EditorSceneLayer : public Layer
+	// Forward declare ISceneLayer interface for SceneManager
+	class ISceneLayer
+	{
+	public:
+		virtual ~ISceneLayer() = default;
+		virtual void QueueSceneTransition(const std::filesystem::path& scene_path) = 0;
+		virtual std::string GetCurrentSceneName() const = 0;
+		virtual bool HasPendingSceneTransition() const = 0;
+	};
+
+	// Registration functions for SceneManager
+	void RegisterSceneLayer(ISceneLayer* layer);
+	void UnregisterSceneLayer();
+
+class EditorSceneLayer : public Layer, public ISceneLayer
 {
 public:
 	enum class SceneState
@@ -65,8 +79,14 @@ public:
 
 	void OnScriptsReload();
 
+	// ISceneLayer interface implementation
+	void QueueSceneTransition(const std::filesystem::path& scene_path) override;
+	std::string GetCurrentSceneName() const override;
+	bool HasPendingSceneTransition() const override;
+
 private:
 	void RenderEditorOverlay();
+	void ProcessSceneTransition();
 
 private:
 	Renderer& m_renderer;
@@ -79,6 +99,8 @@ private:
 	std::shared_ptr<Scene> m_runtime_scene;  // Temporary scene for play mode
 	std::shared_ptr<Scene> m_current_scene;  // Points to active scene (editor or runtime)
 	std::filesystem::path m_current_scene_path;  // Path to currently loaded scene file
+	std::filesystem::path m_original_editor_scene_path;  // Scene path before entering Play mode
+	std::filesystem::path m_pending_scene_path;  // Queued scene transition for runtime
 
 	std::shared_ptr<Mesh> m_mesh;
 	
