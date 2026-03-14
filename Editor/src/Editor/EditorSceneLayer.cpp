@@ -431,6 +431,15 @@ void EditorSceneLayer::RenderEditorOverlay()
 	
 		// Reload asset registry and scene
 		AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
+	
+		// IMPORTANT: Refresh asset browser BEFORE loading scene
+		if (auto* asset_browser = m_editor_app->GetAssetBrowserPanel())
+		{
+			asset_browser->Refresh();
+			// Save asset registry after scanning to persist all imported assets
+			AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
+		}
+	
 		SceneSerializer scene_serializer;
 		m_editor_scene = scene_serializer.Deserialize(Project::GetActiveStartScene());
 
@@ -446,14 +455,6 @@ void EditorSceneLayer::RenderEditorOverlay()
 
 		auto framebuffer = m_renderer.GetFramebuffer();
 		m_editor_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
-	
-		// Refresh asset browser with new project files
-		if (auto* asset_browser = m_editor_app->GetAssetBrowserPanel())
-		{
-			asset_browser->Refresh();
-			// Save asset registry after scanning to persist all imported assets
-			AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
-		}
 	
 		// Set current scene to editor scene
 		m_current_scene = m_editor_scene;

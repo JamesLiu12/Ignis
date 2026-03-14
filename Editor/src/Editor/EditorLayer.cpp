@@ -855,10 +855,39 @@ namespace ignis
 
 	void EditorLayer::SetCurrentSceneAsStartScene()
 	{
-		Log::CoreInfo("Set Current Scene As Start Scene menu item clicked");
+		auto project = Project::GetActive();
+		if (!project)
+		{
+			Log::CoreError("Cannot set start scene: No project is loaded");
+			return;
+		}
 		
-		// TODO: Implement
-		Log::CoreInfo("Set Current Scene As Start Scene not yet implemented");
+		// Get current scene path from EditorSceneLayer
+		if (auto* app = dynamic_cast<EditorApp*>(&Application::Get()))
+		{
+			if (auto* scene_layer = app->GetSceneLayer())
+			{
+				std::filesystem::path current_scene_path = scene_layer->GetCurrentScenePath();
+				
+				if (current_scene_path.empty())
+				{
+					Log::CoreError("Cannot set start scene: No scene is currently loaded");
+					return;
+				}
+				
+				// Convert absolute path to relative path from assets directory
+				std::filesystem::path assets_dir = Project::GetActiveAssetDirectory();
+				std::filesystem::path relative_path = std::filesystem::relative(current_scene_path, assets_dir);
+				
+				// Update project's start scene
+				project->SetStartScene(relative_path);
+				
+				// Save project to persist the change
+				ProjectManager::SaveProject();
+				
+				Log::CoreInfo("Start scene set to: {}", current_scene_path.filename().string());
+			}
+		}
 	}
 
 	void EditorLayer::UI_ShowNewScenePopup()
