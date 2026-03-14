@@ -141,7 +141,7 @@ namespace ignis
 		else
 		{
 			material.Set("irradianceMap", Renderer::GetBlackTextureCube());
-			material.Set("prefilterMap", Renderer::GetWhiteTextureCube());
+			material.Set("prefilterMap", Renderer::GetBlackTextureCube());
 			material.Set("brdfLUT", m_brdf_lut_texture);
 			material.Set("prefilterMaxLod", 0.0f);
 		}

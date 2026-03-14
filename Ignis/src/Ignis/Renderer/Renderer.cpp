@@ -103,8 +103,11 @@ namespace ignis
 
 	std::shared_ptr<TextureCube> Renderer::GetWhiteTextureCube()
 	{
-		static constexpr std::array<std::byte, 4> s_white_pixel =
-		{ std::byte{ 255 } ,std::byte{ 255 } ,std::byte{ 255 } ,std::byte{ 255 } };
+		static constexpr auto s_white_pixel = [] {
+			std::array<std::byte, 24> arr{};
+			arr.fill(std::byte{ 255 });
+			return arr;
+			}();
 		static const std::span<const std::byte> s_white_data(s_white_pixel);
 
 		static std::shared_ptr<TextureCube> s_texture;
@@ -124,8 +127,11 @@ namespace ignis
 
 	std::shared_ptr<TextureCube> Renderer::GetBlackTextureCube()
 	{
-		static constexpr std::array<std::byte, 4> s_black_pixel =
-		{ std::byte{ 0 } ,std::byte{ 0 } ,std::byte{ 0 } ,std::byte{ 0 } };
+		static constexpr std::array<std::byte, 24> s_black_pixel = [] {
+			std::array<std::byte, 24> arr{};
+			arr.fill(std::byte{ 0 });
+			return arr;
+			}();
 		static const std::span<const std::byte> s_black_data(s_black_pixel);
 
 		static std::shared_ptr<TextureCube> s_texture;
