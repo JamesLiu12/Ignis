@@ -140,7 +140,10 @@ namespace ignis
 		}
 		else
 		{
-			// TODO: No Environment Map
+			material.Set("irradianceMap", Renderer::GetBlackTextureCube());
+			material.Set("prefilterMap", Renderer::GetWhiteTextureCube());
+			material.Set("brdfLUT", m_brdf_lut_texture);
+			material.Set("prefilterMaxLod", 0.0f);
 		}
 
 		material.Set("envSettings.intensity", environment_settings.Intensity);

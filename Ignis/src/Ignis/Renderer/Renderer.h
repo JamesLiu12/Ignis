@@ -64,6 +64,10 @@ namespace ignis
 		static std::shared_ptr<Texture2D> GetBlackTexture();
 		static std::shared_ptr<Texture2D> GetDefaultNormalTexture();
 		static std::shared_ptr<Texture2D> GetDefaultRoughnessTexture();
+
+		static std::shared_ptr<TextureCube> GetWhiteTextureCube();
+		static std::shared_ptr<TextureCube> GetBlackTextureCube();
+
 		// Get asset handles for default textures (memory-only assets)
 		static AssetHandle GetWhiteTextureHandle();
 		static AssetHandle GetBlackTextureHandle();
