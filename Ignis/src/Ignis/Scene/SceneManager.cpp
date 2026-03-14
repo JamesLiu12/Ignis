@@ -49,6 +49,6 @@ namespace ignis
 	void SceneManager::UnregisterSceneLayer()
 	{
 		s_scene_layer = nullptr;
-		Log::CoreInfo("SceneManager: Scene layer unregistered");
+		// Note: No logging here to avoid crash during shutdown when logger may be destroyed
 	}
 }
