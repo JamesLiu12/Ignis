@@ -164,11 +164,13 @@ namespace ignis
 			uint32_t light_index = 0;
 			auto lights = m_registry.group<DirectionalLightComponent>(entt::get<TransformComponent>);
 
-			lights.each([&](auto entity, DirectionalLightComponent& light, TransformComponent& transform)
+			lights.each([&](auto entity_handle, DirectionalLightComponent& light, TransformComponent& transform)
 				{
 					if (light_index >= LightEnvironment::MaxDirectionalLights) return;
-					
-					glm::vec3 direction = glm::normalize(transform.GetRotationQuat() * glm::vec3(0.0f, 0.0f, -1.0f));
+
+					Entity entity(entity_handle, this);
+					glm::mat4 world_transform = entity.GetWorldTransform();
+					glm::vec3 direction = glm::normalize(glm::mat3(world_transform) * glm::vec3(0.0f, 0.0f, -1.0f));
 
 					m_light_environment.DirectionalLights.emplace_back
 					(
@@ -186,7 +188,7 @@ namespace ignis
 			uint32_t light_index = 0;
 			auto lights = m_registry.group<PointLightComponent>(entt::get<TransformComponent>);
 
-			lights.each([&](auto /*entity*/, PointLightComponent& light, TransformComponent& transform)
+			lights.each([&](auto entity_handle, PointLightComponent& light, TransformComponent& transform)
 				{
 					if (light_index >= LightEnvironment::MaxPointLights) return;
 
@@ -194,9 +196,13 @@ namespace ignis
 					float quadratic = 0.0f;
 					ComputeAttenuationFromRange(light.Range, linear, quadratic);
 
+					Entity entity(entity_handle, this);
+					glm::mat4 world_transform = entity.GetWorldTransform();
+					glm::vec3 world_position = glm::vec3(world_transform[3]);
+
 					m_light_environment.PointLights.emplace_back
 					(
-						transform.Translation,
+						world_position,
 						light.Color * light.Intensity,
 						1.0f,
 						linear,
@@ -213,7 +219,7 @@ namespace ignis
 			uint32_t light_index = 0;
 			auto lights = m_registry.group<SpotLightComponent>(entt::get<TransformComponent>);
 
-			lights.each([&](auto entity, SpotLightComponent& light, TransformComponent& transform)
+			lights.each([&](auto entity_handle, SpotLightComponent& light, TransformComponent& transform)
 				{
 					if (light_index >= LightEnvironment::MaxSpotLights) return;
 
@@ -225,11 +231,14 @@ namespace ignis
 					float outer = light.OuterConeAngle;
 					if (inner > outer) std::swap(inner, outer);
 
-					glm::vec3 direction = glm::normalize(transform.GetRotationQuat() * glm::vec3(0.0f, 0.0f, -1.0f));
+					Entity entity(entity_handle, this);
+					glm::mat4 world_transform = entity.GetWorldTransform();
+					glm::vec3 world_position = glm::vec3(world_transform[3]);
+					glm::vec3 direction = glm::normalize(glm::mat3(world_transform) * glm::vec3(0.0f, 0.0f, -1.0f));
 
 					m_light_environment.SpotLights.emplace_back
 					(
-						transform.Translation,
+						world_position,
 						light.Color * light.Intensity,
 						direction,
 						1.0f,
