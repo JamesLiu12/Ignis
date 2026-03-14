@@ -35,6 +35,13 @@ namespace ignis
 		}
 	};
 
+	enum class AlphaMode
+	{
+		Opaque,
+		Mask,
+		Blend,
+	};
+
 	struct MaterialData
 	{
 		AssetHandle AlbedoMap = AssetHandle::Invalid;
@@ -82,6 +89,9 @@ namespace ignis
 		AssetHandle ClearcoatNormalMap = AssetHandle::Invalid;
 		uint32_t    ClearcoatNormalMapUVIndex = 0;
 		UVTransform ClearcoatNormalMapUVTransform;
+
+		AlphaMode Alpha = AlphaMode::Opaque;
+		float AlphaCutoff = 0.5f;
 
 		bool DoubleSided = false;
 	};

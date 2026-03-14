@@ -197,6 +197,23 @@ namespace ignis
 		{
 			const auto& material_data = materials_data[sm.MaterialIndex];
 
+			RenderState state;
+			switch (material_data.Alpha)
+			{
+			case AlphaMode::Opaque:
+			case AlphaMode::Mask:
+				state = RenderState::Default();
+				break;
+			case AlphaMode::Blend:
+				state = RenderState::Transparent();
+				break;
+			}
+
+			if (material_data.DoubleSided)
+				state.CullFace = false;
+
+			SetRenderState(state);
+
 			// TODO a performance bottleneck?
 			auto material = m_pipeline->CreateMaterial(material_data);
 			m_pipeline->ApplyEnvironment(*material, scene_environment, environment_settings, light_environment);
@@ -222,7 +239,7 @@ namespace ignis
 			);
 		}
 
-		glEnable(GL_CULL_FACE);
+		ResetRenderState();
 		vao->UnBind();
 	}
 
@@ -456,7 +473,20 @@ namespace ignis
 		glDepthMask(state.DepthWrite ? GL_TRUE : GL_FALSE);
 
 		// Culling
-		state.CullFace ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
+		if (state.CullFace)
+		{
+			glEnable(GL_CULL_FACE);
+			switch (state.Cull)
+			{
+			case RenderState::CullMode::Back:         glCullFace(GL_BACK);  break;
+			case RenderState::CullMode::Front:        glCullFace(GL_FRONT); break;
+			case RenderState::CullMode::FrontAndBack: glCullFace(GL_FRONT_AND_BACK); break;
+			}
+		}
+		else
+		{
+			glDisable(GL_CULL_FACE);
+		}
 
 		// Blend
 		if (state.Blend)

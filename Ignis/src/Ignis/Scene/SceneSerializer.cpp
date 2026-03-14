@@ -109,6 +109,9 @@ namespace ignis
 		data["ClearcoatNormalMapUVIndex"] = material_data.ClearcoatNormalMapUVIndex;
 		data["ClearcoatNormalMapUVTransform"] = SerializeUVTransform(material_data.ClearcoatNormalMapUVTransform);
 
+		data["Alpha"] = static_cast<int>(material_data.Alpha);
+		data["AlphaCutoff"] = material_data.AlphaCutoff;
+
 		data["DoubleSided"] = material_data.DoubleSided;
 
 		return data;
@@ -174,6 +177,9 @@ namespace ignis
 		material_data.ClearcoatNormalMapUVIndex = data.value("ClearcoatNormalMapUVIndex", 0u);
 		material_data.ClearcoatNormalMapUVTransform = data.contains("ClearcoatNormalMapUVTransform") ? 
 			DeserializeUVTransform(data["ClearcoatNormalMapUVTransform"]) : UVTransform{};
+
+		material_data.Alpha = static_cast<AlphaMode>(data.value("Alpha", static_cast<int>(AlphaMode::Opaque)));
+		material_data.AlphaCutoff = data.value("AlphaCutoff", 0.5f);
 
 		material_data.DoubleSided = data.value("DoubleSided", false);
 
