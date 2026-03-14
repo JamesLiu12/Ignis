@@ -4,6 +4,16 @@
 
 namespace ignis
 {
+	// Forward declare ISceneLayer interface
+	class ISceneLayer
+	{
+	public:
+		virtual ~ISceneLayer() = default;
+		virtual void QueueSceneTransition(const std::filesystem::path& scene_path) = 0;
+		virtual std::string GetCurrentSceneName() const = 0;
+		virtual bool HasPendingSceneTransition() const = 0;
+	};
+
 	/**
 	 * @brief Static API for runtime scene transitions
 	 * 
@@ -14,6 +24,8 @@ namespace ignis
 	class IGNIS_API SceneManager
 	{
 	public:
+		// ===== Public API for Scripts =====
+		
 		/**
 		 * @brief Load a scene by path (relative to project root)
 		 * @param scene_path Path to the scene file (e.g., "assets/scenes/Level2.igscene")
@@ -35,6 +47,24 @@ namespace ignis
 		 * @return True if a scene is queued to load, false otherwise
 		 */
 		static bool IsLoading();
+
+		// ===== Internal API (used by EditorSceneLayer/RuntimeSceneLayer) =====
+		
+		/**
+		 * @brief Register a scene layer to handle scene transitions
+		 * @param layer Pointer to the scene layer (EditorSceneLayer or RuntimeSceneLayer)
+		 * 
+		 * This is called internally by scene layers when they are attached.
+		 * Only one scene layer can be registered at a time.
+		 */
+		static void RegisterSceneLayer(ISceneLayer* layer);
+		
+		/**
+		 * @brief Unregister the current scene layer
+		 * 
+		 * This is called internally by scene layers when they are detached.
+		 */
+		static void UnregisterSceneLayer();
 
 	private:
 		SceneManager() = delete;

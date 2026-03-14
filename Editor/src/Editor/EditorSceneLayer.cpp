@@ -64,7 +64,7 @@ void EditorSceneLayer::OnAttach()
 	m_overlay_renderer = std::make_unique<EditorOverlayRenderer>(*m_debug_renderer);
 	
 	// Register this layer with SceneManager for runtime scene transitions
-	RegisterSceneLayer(this);
+	SceneManager::RegisterSceneLayer(this);
 	
 	// Get viewport panel reference for camera aspect ratio updates
 	m_viewport_panel = m_editor_app->GetViewportPanel();
@@ -127,7 +127,7 @@ void EditorSceneLayer::OnAttach()
 void EditorSceneLayer::OnDetach()
 {
 	// Unregister from SceneManager
-	UnregisterSceneLayer();
+	SceneManager::UnregisterSceneLayer();
 	
 	if (m_editor_scene)
 	{

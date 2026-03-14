@@ -11,25 +11,12 @@
 
 #include "Ignis/UI/UISystem.h"
 #include "Ignis/UI/UIRenderer.h"
+#include "Ignis/Scene/SceneManager.h"
 
 namespace ignis {
 	class Renderer;
 	class EditorApp;
 	class ViewportPanel;
-
-	// Forward declare ISceneLayer interface for SceneManager
-	class ISceneLayer
-	{
-	public:
-		virtual ~ISceneLayer() = default;
-		virtual void QueueSceneTransition(const std::filesystem::path& scene_path) = 0;
-		virtual std::string GetCurrentSceneName() const = 0;
-		virtual bool HasPendingSceneTransition() const = 0;
-	};
-
-	// Registration functions for SceneManager
-	void RegisterSceneLayer(ISceneLayer* layer);
-	void UnregisterSceneLayer();
 
 class EditorSceneLayer : public Layer, public ISceneLayer
 {
