@@ -39,6 +39,9 @@ public:
 	void ReloadProject();  // Called when project is loaded
 	void ClearProject();   // Called when project is closed
 
+	// Scene management
+	void LoadScene(const std::filesystem::path& scene_path);  // Load a scene file into the editor
+
 	// Scene state transitions
 	void OnScenePlay();
 	void OnSceneStop();
@@ -47,6 +50,7 @@ public:
 	// Scene access
 	std::shared_ptr<Scene> GetScene() const { return m_current_scene; }
 	std::shared_ptr<Scene> GetEditorScene() const { return m_editor_scene; }
+	std::filesystem::path GetCurrentScenePath() const { return m_current_scene_path; }
 
 	// Mesh access for PropertiesPanel
 	std::shared_ptr<Mesh> GetCurrentMesh() const { return m_mesh; }
@@ -73,6 +77,7 @@ private:
 	std::shared_ptr<Scene> m_editor_scene;   // Persistent scene for editing
 	std::shared_ptr<Scene> m_runtime_scene;  // Temporary scene for play mode
 	std::shared_ptr<Scene> m_current_scene;  // Points to active scene (editor or runtime)
+	std::filesystem::path m_current_scene_path;  // Path to currently loaded scene file
 
 	std::shared_ptr<Mesh> m_mesh;
 	

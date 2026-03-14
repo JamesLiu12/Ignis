@@ -822,26 +822,15 @@ namespace ignis
 			return;
 
 		ImGui::OpenPopup("New Scene");
-		
-		ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-		ImGui::SetNextWindowSize(ImVec2(450, 150), ImGuiCond_Appearing);
-		
-		if (ImGui::BeginPopupModal("New Scene", &s_ShowNewScenePopup, ImGuiWindowFlags_NoResize))
+
+		if (ImGui::BeginPopupModal("New Scene", &s_ShowNewScenePopup, ImGuiWindowFlags_AlwaysAutoResize))
 		{
-			// Scene name input
-			ImGui::Text("Scene Name:");
-			ImGui::SetNextItemWidth(-1);
-			ImGui::InputText("##SceneName", s_NewSceneNameBuffer, sizeof(s_NewSceneNameBuffer));
-			
-			ImGui::Spacing();
-			
-			// Location selection
-			ImGui::Text("Location:");
-			ImGui::SetNextItemWidth(-80);
-			ImGui::InputText("##SceneLocation", s_NewSceneFolderBuffer, sizeof(s_NewSceneFolderBuffer), ImGuiInputTextFlags_ReadOnly);
+			ImGui::Text("Create a new scene");
+			ImGui::Separator();
+
+			ImGui::InputText("Scene Name", s_NewSceneNameBuffer, sizeof(s_NewSceneNameBuffer));
+			ImGui::InputText("Location", s_NewSceneFolderBuffer, sizeof(s_NewSceneFolderBuffer));
 			ImGui::SameLine();
-			
 			if (ImGui::Button("Browse..."))
 			{
 				std::filesystem::path assets_dir = Project::GetActiveAssetDirectory();
@@ -867,12 +856,9 @@ namespace ignis
 					}
 				}
 			}
-			
-			ImGui::Spacing();
+
 			ImGui::Separator();
-			ImGui::Spacing();
-			
-			// Buttons
+
 			if (ImGui::Button("Create", ImVec2(120, 0)))
 			{
 				// Validate scene name
@@ -913,19 +899,26 @@ namespace ignis
 						// Serialize the scene to file
 						SceneSerializer serializer;
 						serializer.Serialize(*new_scene, scene_path);
-					
+				
 						Log::CoreInfo("New scene created: {}", scene_path.string());
-					
+				
 						// Register the new scene file as an asset
 						AssetManager::ImportAsset(scene_path);
-					
+				
+						// Load the newly created scene into the editor
+						if (auto* app = dynamic_cast<EditorApp*>(&Application::Get()))
+						{
+							if (auto* scene_layer = app->GetSceneLayer())
+							{
+								scene_layer->LoadScene(scene_path);
+							}
+						}
+				
 						s_ShowNewScenePopup = false;
 					}
 				}
 			}
-			
 			ImGui::SameLine();
-			
 			if (ImGui::Button("Cancel", ImVec2(120, 0)))
 			{
 				s_ShowNewScenePopup = false;
@@ -942,8 +935,18 @@ namespace ignis
 			std::string filepath(s_LoadSceneFilePathBuffer);
 			Log::CoreInfo("Processing deferred scene load: {}", filepath);
 			
-			// TODO: Implement actual scene loading
-			Log::CoreInfo("Scene loading not yet implemented");
+			// Load the scene through EditorSceneLayer
+			if (auto* app = dynamic_cast<EditorApp*>(&Application::Get()))
+			{
+				if (auto* scene_layer = app->GetSceneLayer())
+				{
+					scene_layer->LoadScene(filepath);
+				}
+				else
+				{
+					Log::CoreError("Failed to access EditorSceneLayer for scene loading");
+				}
+			}
 			
 			// Clear buffer
 			s_LoadSceneFilePathBuffer[0] = '\0';

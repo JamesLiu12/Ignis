@@ -321,9 +321,7 @@ namespace ignis {
 			{
 				if (auto* scene_layer = app->GetSceneLayer())
 				{
-					// TODO: Implement EditorSceneLayer::LoadScene() in Phase 4
-					// For now, just log that we detected a scene file
-					Log::CoreInfo("Scene file double-clicked: {} (LoadScene not yet implemented)", full_path.string());
+					scene_layer->LoadScene(full_path);
 					return;
 				}
 			}

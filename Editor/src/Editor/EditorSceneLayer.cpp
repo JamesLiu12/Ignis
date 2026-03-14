@@ -222,7 +222,7 @@ void EditorSceneLayer::OnUpdate(float dt)
 		return;
 	}
 
-	// In Edit mode, use EditorCamera; in Play mode (Phase 4), use scene camera
+	// In Edit mode, use EditorCamera; in Play mode, use scene camera
 	std::shared_ptr<Camera> render_camera = (m_scene_state == SceneState::Edit) 
 		? m_editor_camera 
 		: m_current_scene->GetPrimaryCamera();
@@ -457,6 +457,7 @@ void EditorSceneLayer::RenderEditorOverlay()
 	
 		// Set current scene to editor scene
 		m_current_scene = m_editor_scene;
+		m_current_scene_path = Project::GetActiveStartScene();  // Track the start scene path
 
 		// Update hierarchy panel with all entities from the scene
 		if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
@@ -466,6 +467,73 @@ void EditorSceneLayer::RenderEditorOverlay()
 	
 		Log::CoreInfo("Project scene reloaded");
 	}
+
+	void EditorSceneLayer::LoadScene(const std::filesystem::path& scene_path)
+	{
+		if (!Project::GetActive())
+		{
+			Log::CoreError("Cannot load scene: No project is loaded");
+			return;
+		}
+
+		if (!std::filesystem::exists(scene_path))
+		{
+			Log::CoreError("Cannot load scene: File does not exist: {}", scene_path.string());
+			return;
+		}
+
+		Log::CoreInfo("Loading scene: {}", scene_path.string());
+
+	// Auto-stop Play mode if currently playing
+	if (m_scene_state == SceneState::Play)
+	{
+		Log::CoreWarn("Auto-stopping Play mode for scene load");
+		OnSceneStop();
+	}
+
+	// Clear panels before destroying old scene to prevent accessing stale entities
+	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
+	{
+		properties_panel->SetSelectedEntity({});
+		properties_panel->SetCurrentMesh(nullptr, nullptr);
+	}
+
+	// Clear the old editor scene (don't call OnRuntimeStop - that's for runtime scenes only)
+	if (m_editor_scene)
+	{
+		m_editor_scene.reset();
+	}
+
+	// Clear current scene pointer
+	m_current_scene = nullptr;
+
+	// Deserialize the new scene
+	SceneSerializer scene_serializer;
+	auto new_scene = scene_serializer.Deserialize(scene_path);
+
+	if (!new_scene)
+	{
+		Log::CoreError("Failed to load scene from: {}", scene_path.string());
+		return;
+	}
+
+	// Replace the editor scene
+	m_editor_scene = new_scene;
+	m_current_scene = m_editor_scene;
+	m_current_scene_path = scene_path;  // Track the loaded scene's file path
+
+	// Update viewport size
+	auto framebuffer = m_renderer.GetFramebuffer();
+	m_editor_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
+
+	// Update hierarchy panel with entities from the new scene
+	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+	{
+		hierarchy_panel->SetScene(m_editor_scene);
+	}
+
+	Log::CoreInfo("Scene loaded successfully: {}", scene_path.string());
+}
 
 	void EditorSceneLayer::OnScenePlay()
 	{
