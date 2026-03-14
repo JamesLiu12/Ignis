@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Ignis/Core/API.h"
 #include "Scene.h"
 #include <future>
 
@@ -7,7 +8,7 @@ namespace ignis
 {
 	// Async scene loader for loading scenes in background thread
 	// Allows displaying loading screens and prevents frame drops
-	class AsyncSceneLoader
+	class IGNIS_API AsyncSceneLoader
 	{
 	public:
 		AsyncSceneLoader() = default;
