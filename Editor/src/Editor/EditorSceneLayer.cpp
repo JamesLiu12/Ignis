@@ -743,80 +743,115 @@ void EditorSceneLayer::RenderEditorOverlay()
 
 	void EditorSceneLayer::ProcessSceneTransition()
 	{
-		if (m_pending_scene_path.empty())
+		// If async loading is in progress, check if ready
+		if (m_is_async_loading)
 		{
+			if (m_async_loader.IsReady())
+			{
+				Log::CoreInfo("Async scene load complete, finalizing transition");
+
+				// Get the loaded scene
+				auto new_scene = m_async_loader.GetScene();
+
+				if (!new_scene)
+				{
+					Log::CoreError("Failed to load scene asynchronously");
+					m_is_async_loading = false;
+					m_pending_scene_path.clear();
+					return;
+				}
+
+				// Resolve path relative to project directory
+				std::filesystem::path scene_path = m_pending_scene_path;
+				if (scene_path.is_relative())
+				{
+					scene_path = Project::GetActiveProjectDirectory() / scene_path;
+				}
+
+				// Replace runtime scene
+				m_runtime_scene = new_scene;
+				m_current_scene = m_runtime_scene;
+				m_current_scene_path = scene_path;
+
+				// Reload and register script module
+				m_script_module.Load(Project::ResolveActiveScriptModulePath());
+				m_script_module.RegisterAll(ScriptRegistry::Get());
+
+				// Start new runtime scene
+				m_runtime_scene->OnRuntimeStart();
+
+				// Update viewport size
+				auto framebuffer = m_renderer.GetFramebuffer();
+				m_runtime_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
+
+				// Update hierarchy panel
+				if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+				{
+					hierarchy_panel->SetScene(m_runtime_scene);
+				}
+
+				Log::CoreInfo("Runtime scene transition complete: {}", scene_path.filename().string());
+
+				// Clear state
+				m_is_async_loading = false;
+				m_pending_scene_path.clear();
+			}
+			else
+			{
+				// Still loading, display progress in editor
+				float progress = m_async_loader.GetProgress();
+				// TODO: Display progress in editor UI status bar
+				static int frame_count = 0;
+				if (++frame_count % 60 == 0)
+				{
+					Log::CoreInfo("Loading scene '{}': {:.0f}%", m_loading_scene_name, progress * 100.0f);
+				}
+			}
 			return;
 		}
 
-		Log::CoreInfo("Processing runtime scene transition to: {}", m_pending_scene_path.string());
-
-		// Resolve path relative to project directory
-		std::filesystem::path scene_path = m_pending_scene_path;
-		if (scene_path.is_relative())
+		// Start new async load if there's a pending scene
+		if (!m_pending_scene_path.empty())
 		{
-			scene_path = Project::GetActiveProjectDirectory() / scene_path;
+			Log::CoreInfo("Starting async scene transition to: {}", m_pending_scene_path.string());
+
+			// Resolve path relative to project directory
+			std::filesystem::path scene_path = m_pending_scene_path;
+			if (scene_path.is_relative())
+			{
+				scene_path = Project::GetActiveProjectDirectory() / scene_path;
+			}
+
+			if (!std::filesystem::exists(scene_path))
+			{
+				Log::CoreError("Scene file does not exist: {}", scene_path.string());
+				m_pending_scene_path.clear();
+				return;
+			}
+
+			// Clear panels before destroying runtime scene
+			if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
+			{
+				properties_panel->SetSelectedEntity({});
+			}
+
+			// Stop current runtime scene
+			if (m_runtime_scene)
+			{
+				m_runtime_scene->OnRuntimeStop();
+			}
+
+			// Unload script module
+			m_script_module.UnregisterAll(ScriptRegistry::Get());
+			m_script_module.Unload();
+
+			// Start async load
+			m_loading_scene_name = scene_path.filename().string();
+			m_async_loader.LoadSceneAsync(scene_path);
+			m_is_async_loading = true;
+
+			Log::CoreInfo("Async load started for: {}", m_loading_scene_name);
 		}
-
-		if (!std::filesystem::exists(scene_path))
-		{
-			Log::CoreError("Scene file does not exist: {}", scene_path.string());
-			m_pending_scene_path.clear();
-			return;
-		}
-
-		// Clear panels before destroying runtime scene
-		if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
-		{
-			properties_panel->SetSelectedEntity({});
-		}
-
-		// Stop current runtime scene
-		if (m_runtime_scene)
-		{
-			m_runtime_scene->OnRuntimeStop();
-		}
-
-		// Unload script module
-		m_script_module.UnregisterAll(ScriptRegistry::Get());
-		m_script_module.Unload();
-
-		// Load new scene
-		SceneSerializer scene_serializer;
-		auto new_scene = scene_serializer.Deserialize(scene_path);
-
-		if (!new_scene)
-		{
-			Log::CoreError("Failed to load scene: {}", scene_path.string());
-			m_pending_scene_path.clear();
-			return;
-		}
-
-		// Replace runtime scene
-		m_runtime_scene = new_scene;
-		m_current_scene = m_runtime_scene;
-		m_current_scene_path = scene_path;
-
-		// Reload and register script module
-		m_script_module.Load(Project::ResolveActiveScriptModulePath());
-		m_script_module.RegisterAll(ScriptRegistry::Get());
-
-		// Start new runtime scene
-		m_runtime_scene->OnRuntimeStart();
-
-		// Update viewport size
-		auto framebuffer = m_renderer.GetFramebuffer();
-		m_runtime_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
-
-		// Update hierarchy panel
-		if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
-		{
-			hierarchy_panel->SetScene(m_runtime_scene);
-		}
-
-		Log::CoreInfo("Runtime scene transition complete: {}", scene_path.filename().string());
-
-		// Clear pending path
-		m_pending_scene_path.clear();
 	}
 
 } // namespace ignis

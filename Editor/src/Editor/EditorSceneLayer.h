@@ -115,6 +115,11 @@ private:
 	bool m_is_locked = false;
 	bool m_is_visible = true;
 	bool m_is_in_scene = false;
+
+	// Async scene loading support for Play mode
+	AsyncSceneLoader m_async_loader;
+	bool m_is_async_loading = false;
+	std::string m_loading_scene_name;
 };
 
 } // namespace ignis

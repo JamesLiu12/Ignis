@@ -9,6 +9,7 @@
 #include "Ignis/UI/UIRenderer.h"
 #include "Ignis/UI/UISystem.h"
 #include "Ignis/Scene/SceneManager.h"
+#include "Ignis/Scene/AsyncSceneLoader.h"
 
 namespace ignis {
 
@@ -48,6 +49,11 @@ private:
 	// Scene transition support
 	std::filesystem::path m_pending_scene_path;
 	std::filesystem::path m_current_scene_path;
+	
+	// Async scene loading support
+	AsyncSceneLoader m_async_loader;
+	bool m_is_async_loading = false;
+	std::string m_loading_scene_name;
 };
 
 } // namespace ignis
