@@ -20,8 +20,11 @@ namespace ignis {
 
 	private:
 		void RenderPlayStopButtons();
+		void RenderCameraSpeedControls();
 
 		EditorSceneLayer* m_editor_scene_layer = nullptr;
+		float m_camera_speed = 5.0f;
+		float m_camera_speed_multiplier = 1.0f;
 	};
 
 } // namespace ignis

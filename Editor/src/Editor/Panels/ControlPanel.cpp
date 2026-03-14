@@ -37,11 +37,8 @@ namespace ignis {
 		if (ImGui::Begin("Control Panel", nullptr, window_flags))
 		{
 			RenderPlayStopButtons();
-			
-			// Future: Add more controls here
-			// - Scene settings
-			// - Editor preferences toggle
-			// - Build/Export buttons
+			ImGui::Spacing();
+			RenderCameraSpeedControls();
 		}
 		ImGui::End();
 	}
@@ -58,11 +55,12 @@ namespace ignis {
 		auto scene_state = m_editor_scene_layer->GetSceneState();
 		bool is_edit_mode = (scene_state == EditorSceneLayer::SceneState::Edit);
 
-		// Center button
+		// Left-align button
 		const float button_width = 100.0f;
 		const float button_height = 35.0f;
+		const float left_padding = 20.0f;
 		
-		ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - button_width) * 0.5f);
+		ImGui::SetCursorPosX(left_padding);
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 20.0f);
 
 		// Single toggle button - changes label and color based on state
@@ -97,6 +95,37 @@ namespace ignis {
 		
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("%s", tooltip_text);
+	}
+
+	void ControlPanel::RenderCameraSpeedControls()
+	{
+		if (!m_editor_scene_layer  || !Project::GetActive())
+			return;
+		
+		auto editor_camera = m_editor_scene_layer->GetEditorCamera();
+		if (!editor_camera)
+			return;
+		
+		const float left_padding = 20.0f;
+		
+		ImGui::SetCursorPosX(left_padding);
+		ImGui::Text("Camera Speed");
+		
+		ImGui::SetCursorPosX(left_padding);
+		if (ImGui::SliderFloat("##CameraSpeed", &m_camera_speed, 0.1f, 50.0f, "%.1f"))
+		{
+			editor_camera->SetMoveSpeed(m_camera_speed * m_camera_speed_multiplier);
+		}
+		
+		ImGui::SetCursorPosX(left_padding);
+		ImGui::Text("Camera Speed Scalar");
+		
+		ImGui::SetCursorPosX(left_padding);
+		if (ImGui::InputFloat("##CameraMultiplier", &m_camera_speed_multiplier, 0.0f, 0.0f, "%.2f"))
+		{
+			m_camera_speed_multiplier = glm::max(m_camera_speed_multiplier, 0.1f);
+			editor_camera->SetMoveSpeed(m_camera_speed * m_camera_speed_multiplier);
+		}
 	}
 
 	void ControlPanel::OnEvent(EventBase& event)
