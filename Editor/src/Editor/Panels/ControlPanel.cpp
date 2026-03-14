@@ -114,7 +114,17 @@ namespace ignis {
 		ImGui::SetCursorPosX(left_padding);
 		if (ImGui::SliderFloat("##CameraSpeed", &m_camera_speed, 0.1f, 50.0f, "%.1f"))
 		{
-			editor_camera->SetMoveSpeed(m_camera_speed);
+			editor_camera->SetMoveSpeed(m_camera_speed * m_camera_speed_multiplier);
+		}
+		
+		ImGui::SetCursorPosX(left_padding);
+		ImGui::Text("Camera Speed Scalar");
+		
+		ImGui::SetCursorPosX(left_padding);
+		if (ImGui::InputFloat("##CameraMultiplier", &m_camera_speed_multiplier, 0.0f, 0.0f, "%.2f"))
+		{
+			m_camera_speed_multiplier = glm::max(m_camera_speed_multiplier, 0.1f);
+			editor_camera->SetMoveSpeed(m_camera_speed * m_camera_speed_multiplier);
 		}
 	}
 
