@@ -5,6 +5,9 @@
 #include "Ignis/Core/File/FileDialog.h"
 #include "Ignis/Project/Project.h"
 #include "Ignis/Project/ProjectSerializer.h"
+#include "Ignis/Scene/Scene.h"
+#include "Ignis/Scene/SceneSerializer.h"
+#include "Ignis/Asset/AssetManager.h"
 #include "Editor/EditorApp.h"
 #include "Editor/EditorSceneLayer.h"
 
@@ -260,7 +263,7 @@ namespace ignis
 			// Project Menu
 			if (ImGui::BeginMenu("Project"))
 			{
-				if (ImGui::MenuItem("New Project..."))
+				if (ImGui::MenuItem("New Project"))
 				{
 					CreateNewProject();
 				}
@@ -274,7 +277,7 @@ namespace ignis
 					const char* saveShortcut = "Ctrl+S";
 				#endif
 
-				if (ImGui::MenuItem("Load Project...", openShortcut))
+				if (ImGui::MenuItem("Load Project", openShortcut))
 				{
 					OpenProject();
 				}
@@ -290,7 +293,7 @@ namespace ignis
 				#else
 					const char* saveAsShortcut = "Ctrl+Shift+S";
 				#endif
-				if (ImGui::MenuItem("Save Project As...", saveAsShortcut, false, hasProject))
+				if (ImGui::MenuItem("Save Project As", saveAsShortcut, false, hasProject))
 				{
 					SaveProjectAs();
 				}
@@ -317,7 +320,7 @@ namespace ignis
 				#else
 					const char* exportShortcut = "Ctrl+E";
 				#endif
-				if (ImGui::MenuItem("Export Game...", exportShortcut, false, hasProject))
+				if (ImGui::MenuItem("Export Game", exportShortcut, false, hasProject))
 				{
 					ExportGame();
 				}
@@ -335,7 +338,7 @@ namespace ignis
 					NewScene();
 				}
 
-				if (ImGui::MenuItem("Load Scene...", nullptr, false, hasProject))
+				if (ImGui::MenuItem("Load Scene", nullptr, false, hasProject))
 				{
 					LoadScene();
 				}
@@ -345,7 +348,7 @@ namespace ignis
 					SaveScene();
 				}
 
-				if (ImGui::MenuItem("Save Scene As...", nullptr, false, hasProject))
+				if (ImGui::MenuItem("Save Scene As", nullptr, false, hasProject))
 				{
 					SaveSceneAs();
 				}
@@ -874,18 +877,50 @@ namespace ignis
 			{
 				// Validate scene name
 				std::string scene_name(s_NewSceneNameBuffer);
+				std::string scene_location(s_NewSceneFolderBuffer);
+			
 				if (scene_name.empty())
 				{
 					Log::CoreError("Scene name cannot be empty");
 				}
+				else if (scene_location.empty())
+				{
+					Log::CoreError("Scene location cannot be empty");
+				}
 				else
 				{
-					// TODO: Implement scene creation
-					std::filesystem::path scene_path = std::filesystem::path(s_NewSceneFolderBuffer) / (scene_name + ".igscene");
-					Log::CoreInfo("Creating new scene: {}", scene_path.string());
-					Log::CoreInfo("New Scene creation not yet implemented");
+					// Construct full scene path
+					std::filesystem::path scene_path = std::filesystem::path(scene_location) / (scene_name + ".igscene");
+				
+					// Check if file already exists
+					if (std::filesystem::exists(scene_path))
+					{
+						Log::CoreError("Scene file already exists: {}", scene_path.string());
+					}
+					else
+					{
+						// Create directory if it doesn't exist
+						std::filesystem::path parent_dir = scene_path.parent_path();
+						if (!std::filesystem::exists(parent_dir))
+						{
+							std::filesystem::create_directories(parent_dir);
+						}
 					
-					s_ShowNewScenePopup = false;
+						// Create a new empty scene
+						auto new_scene = std::make_shared<Scene>();
+						new_scene->SetName(scene_name);
+				
+						// Serialize the scene to file
+						SceneSerializer serializer;
+						serializer.Serialize(*new_scene, scene_path);
+					
+						Log::CoreInfo("New scene created: {}", scene_path.string());
+					
+						// Register the new scene file as an asset
+						AssetManager::ImportAsset(scene_path);
+					
+						s_ShowNewScenePopup = false;
+					}
 				}
 			}
 			
