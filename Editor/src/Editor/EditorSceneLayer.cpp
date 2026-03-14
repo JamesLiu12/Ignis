@@ -484,56 +484,88 @@ void EditorSceneLayer::RenderEditorOverlay()
 
 		Log::CoreInfo("Loading scene: {}", scene_path.string());
 
-	// Auto-stop Play mode if currently playing
-	if (m_scene_state == SceneState::Play)
-	{
-		Log::CoreWarn("Auto-stopping Play mode for scene load");
-		OnSceneStop();
+		// Auto-save current scene before switching
+		if (m_editor_scene && !m_current_scene_path.empty())
+		{
+			SaveCurrentScene();
+		}
+
+		// Auto-stop Play mode if currently playing
+		if (m_scene_state == SceneState::Play)
+		{
+			Log::CoreWarn("Auto-stopping Play mode for scene load");
+			OnSceneStop();
+		}
+
+		// Clear panels before destroying old scene to prevent accessing stale entities
+		if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
+		{
+			properties_panel->SetSelectedEntity({});
+			properties_panel->SetCurrentMesh(nullptr, nullptr);
+		}
+
+		// Clear the old editor scene (don't call OnRuntimeStop - that's for runtime scenes only)
+		if (m_editor_scene)
+		{
+			m_editor_scene.reset();
+		}
+
+		// Clear current scene pointer
+		m_current_scene = nullptr;
+
+		// Deserialize the new scene
+		SceneSerializer scene_serializer;
+		auto new_scene = scene_serializer.Deserialize(scene_path);
+
+		if (!new_scene)
+		{
+			Log::CoreError("Failed to load scene from: {}", scene_path.string());
+			return;
+		}
+
+		// Replace the editor scene
+		m_editor_scene = new_scene;
+		m_current_scene = m_editor_scene;
+		m_current_scene_path = scene_path;  // Track the loaded scene's file path
+
+		// Update viewport size
+		auto framebuffer = m_renderer.GetFramebuffer();
+		m_editor_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
+
+		// Update hierarchy panel with entities from the new scene
+		if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
+		{
+			hierarchy_panel->SetScene(m_editor_scene);
+		}
+
+		Log::CoreInfo("Scene loaded successfully: {}", scene_path.string());
 	}
 
-	// Clear panels before destroying old scene to prevent accessing stale entities
-	if (auto* properties_panel = m_editor_app->GetPropertiesPanel())
+	void EditorSceneLayer::SaveCurrentScene()
 	{
-		properties_panel->SetSelectedEntity({});
-		properties_panel->SetCurrentMesh(nullptr, nullptr);
+		if (!m_editor_scene)
+		{
+			Log::CoreWarn("Cannot save scene: No scene is loaded");
+			return;
+		}
+		
+		if (m_current_scene_path.empty())
+		{
+			Log::CoreWarn("Cannot save scene: Scene has no file path");
+			return;
+		}
+		
+		// Always save the editor scene, not the runtime scene
+		SceneSerializer serializer;
+		if (serializer.Serialize(*m_editor_scene, m_current_scene_path))
+		{
+			Log::CoreInfo("Scene saved: {}", m_current_scene_path.string());
+		}
+		else
+		{
+			Log::CoreError("Failed to save scene: {}", m_current_scene_path.string());
+		}
 	}
-
-	// Clear the old editor scene (don't call OnRuntimeStop - that's for runtime scenes only)
-	if (m_editor_scene)
-	{
-		m_editor_scene.reset();
-	}
-
-	// Clear current scene pointer
-	m_current_scene = nullptr;
-
-	// Deserialize the new scene
-	SceneSerializer scene_serializer;
-	auto new_scene = scene_serializer.Deserialize(scene_path);
-
-	if (!new_scene)
-	{
-		Log::CoreError("Failed to load scene from: {}", scene_path.string());
-		return;
-	}
-
-	// Replace the editor scene
-	m_editor_scene = new_scene;
-	m_current_scene = m_editor_scene;
-	m_current_scene_path = scene_path;  // Track the loaded scene's file path
-
-	// Update viewport size
-	auto framebuffer = m_renderer.GetFramebuffer();
-	m_editor_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
-
-	// Update hierarchy panel with entities from the new scene
-	if (auto* hierarchy_panel = m_editor_app->GetSceneHierarchyPanel())
-	{
-		hierarchy_panel->SetScene(m_editor_scene);
-	}
-
-	Log::CoreInfo("Scene loaded successfully: {}", scene_path.string());
-}
 
 	void EditorSceneLayer::OnScenePlay()
 	{

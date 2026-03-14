@@ -316,6 +316,7 @@ namespace ignis {
 		// Check if this is a scene file - load it in the editor instead of opening externally
 		if (full_path.extension() == ".igscene")
 		{
+			Log::CoreInfo("Double clicked scene, now loading scene");
 			// Get EditorApp and load scene in editor
 			if (auto* app = dynamic_cast<EditorApp*>(&Application::Get()))
 			{

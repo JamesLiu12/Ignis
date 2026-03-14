@@ -41,6 +41,7 @@ public:
 
 	// Scene management
 	void LoadScene(const std::filesystem::path& scene_path);  // Load a scene file into the editor
+	void SaveCurrentScene();  // Save current scene to its file
 
 	// Scene state transitions
 	void OnScenePlay();

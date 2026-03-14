@@ -769,41 +769,86 @@ namespace ignis
 
 	void EditorLayer::SaveScene()
 	{
-		Log::CoreInfo("Save Scene menu item clicked");
-		
-		// TODO: Implement
-		Log::CoreInfo("Save Scene not yet implemented");
+		if (auto* app = dynamic_cast<EditorApp*>(&Application::Get()))
+		{
+			if (auto* scene_layer = app->GetSceneLayer())
+			{
+				scene_layer->SaveCurrentScene();
+			}
+		}
 	}
 
 	void EditorLayer::SaveSceneAs()
 	{
-		Log::CoreInfo("Save Scene As menu item clicked");
+		// Open file save dialog
+		std::string file_path = FileDialog::SaveFile();
 		
-		// Open folder dialog to select save location (restricted to assets folder)
-		std::string folder = FileDialog::OpenFolder();
-		
-		if (!folder.empty())
+		if (!file_path.empty())
 		{
-			// Verify the selected folder is within the project assets directory
-			std::filesystem::path assets_dir = Project::GetActiveAssetDirectory();
-			std::filesystem::path selected_path(folder);
-		
-			// Normalize paths for comparison
-			std::string assets_str = std::filesystem::canonical(assets_dir).string();
-			std::string selected_str = std::filesystem::canonical(selected_path).string();
-		
-			if (selected_str.find(assets_str) == 0 || selected_str == assets_str)
+			std::filesystem::path scene_path(file_path);
+			
+			// Ensure .igscene extension
+			if (scene_path.extension() != ".igscene")
 			{
-				std::strncpy(s_SaveSceneAsFolderBuffer, folder.c_str(), sizeof(s_SaveSceneAsFolderBuffer) - 1);
-				s_SaveSceneAsFolderBuffer[sizeof(s_SaveSceneAsFolderBuffer) - 1] = '\0';
-				Log::CoreInfo("Save location selected: {}", folder);
-				
-				// TODO: Implement actual save
-				Log::CoreInfo("Save Scene As not yet implemented");
+				scene_path += ".igscene";
 			}
-			else
+			
+			// Validate that the path is within the project assets directory
+			if (!Project::GetActive())
 			{
-				Log::CoreError("Scene must be saved within the project assets folder: {}", assets_dir.string());
+				Log::CoreError("Cannot save scene: No project is loaded");
+				return;
+			}
+			
+			std::filesystem::path assets_dir = Project::GetActiveAssetDirectory();
+			std::filesystem::path canonical_scene = std::filesystem::weakly_canonical(scene_path);
+			std::filesystem::path canonical_assets = std::filesystem::weakly_canonical(assets_dir);
+			
+			std::string scene_str = canonical_scene.string();
+			std::string assets_str = canonical_assets.string();
+			
+			if (scene_str.find(assets_str) != 0)
+			{
+				Log::CoreError("Scene must be saved within the project assets folder");
+				return;
+			}
+			
+			// Get scene layer and save
+			if (auto* app = dynamic_cast<EditorApp*>(&Application::Get()))
+			{
+				if (auto* scene_layer = app->GetSceneLayer())
+				{
+					auto editor_scene = scene_layer->GetEditorScene();
+					if (!editor_scene)
+					{
+						Log::CoreError("Cannot save scene: No scene is loaded");
+						return;
+					}
+					
+					// Create directory if it doesn't exist
+					std::filesystem::path parent_dir = scene_path.parent_path();
+					if (!std::filesystem::exists(parent_dir))
+					{
+						std::filesystem::create_directories(parent_dir);
+					}
+					
+					// Save the editor scene to the new path
+					SceneSerializer serializer;
+					if (serializer.Serialize(*editor_scene, scene_path))
+					{
+						Log::CoreInfo("Scene saved as: {}", scene_path.string());
+						
+						// Register the scene file as an asset
+						AssetManager::ImportAsset(scene_path);
+						
+						// Load the scene at the new path (this updates m_current_scene_path)
+						scene_layer->LoadScene(scene_path);
+					}
+					else
+					{
+						Log::CoreError("Failed to save scene as: {}", scene_path.string());
+					}
+				}
 			}
 		}
 	}
