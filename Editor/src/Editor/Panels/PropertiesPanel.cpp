@@ -1079,6 +1079,25 @@ namespace ignis {
 						// Misc
 						if (ImGui::Checkbox("Double Sided", &slot.DoubleSided)) SyncSlot();
 
+						// Alpha
+						ImGui::Separator();
+						ImGui::TextDisabled("Alpha");
+
+						const char* alpha_modes[] = { "Opaque", "Mask", "Blend" };
+						int current_alpha = static_cast<int>(slot.Alpha);
+						if (ImGui::Combo("Alpha Mode", &current_alpha, alpha_modes, IM_ARRAYSIZE(alpha_modes)))
+						{
+							slot.Alpha = static_cast<AlphaMode>(current_alpha);
+							SyncSlot();
+						}
+
+						if (slot.Alpha == AlphaMode::Mask)
+						{
+							if (ImGui::DragFloat("Alpha Cutoff", &slot.AlphaCutoff, 0.005f, 0.0f, 1.0f, "%.3f"))
+								SyncSlot();
+							ImGui::TextDisabled("Pixels below this threshold are discarded");
+						}
+
 						ImGui::TreePop();
 					}
 					ImGui::PopID();
