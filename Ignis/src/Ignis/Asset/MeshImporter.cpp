@@ -302,6 +302,32 @@ namespace ignis
 			}
 		}
 
+		// Alpha Mode
+		{
+			aiString alpha_mode_str;
+			if (AI_SUCCESS == aimat->Get("$mat.gltf.alphaMode", 0, 0, alpha_mode_str))
+			{
+				std::string mode = alpha_mode_str.C_Str();
+				if (mode == "BLEND")
+					out_material_data.Alpha = AlphaMode::Blend;
+				else if (mode == "MASK")
+					out_material_data.Alpha = AlphaMode::Mask;
+				else
+					out_material_data.Alpha = AlphaMode::Opaque;
+			}
+			else
+			{
+				float opacity = 1.0f;
+				aimat->Get(AI_MATKEY_OPACITY, opacity);
+				if (opacity < 1.0f)
+					out_material_data.Alpha = AlphaMode::Blend;
+			}
+
+			float cutoff = 0.5f;
+			aimat->Get("$mat.gltf.alphaCutoff", 0, 0, cutoff);
+			out_material_data.AlphaCutoff = cutoff;
+		}
+
 		// Double-Sided
 		{
 			int two_sided = 0;
