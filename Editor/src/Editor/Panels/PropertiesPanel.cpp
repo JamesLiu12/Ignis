@@ -303,7 +303,7 @@ namespace ignis {
 	
 	void PropertiesPanel::RenderMaterialsUI(std::shared_ptr<Mesh> mesh)
 	{
-		const auto& materials = mesh->GetMaterialsData();
+		auto materials = mesh->GetMaterialsData();
 		
 		for (uint32_t i = 0; i < materials.size(); ++i)
 		{
@@ -312,19 +312,21 @@ namespace ignis {
 			std::string header = "Material " + std::to_string(i);
 			if (ImGui::TreeNodeEx(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				RenderTextureSlot(mesh, i, MaterialType::Albedo, "Albedo Map");
-				RenderTextureSlot(mesh, i, MaterialType::Normal, "Normal Map");
-				RenderTextureSlot(mesh, i, MaterialType::Metal, "Metallic Map");
-				RenderTextureSlot(mesh, i, MaterialType::Roughness, "Roughness Map");
-				RenderTextureSlot(mesh, i, MaterialType::Emissive, "Emissive Map");
-				RenderTextureSlot(mesh, i, MaterialType::AO, "AO Map");
+				auto& slot = materials[i];
+				
+				RenderTextureSlot(mesh, i, slot, MaterialType::Albedo, "Albedo Map");
+				RenderTextureSlot(mesh, i, slot, MaterialType::Normal, "Normal Map");
+				RenderTextureSlot(mesh, i, slot, MaterialType::Metal, "Metallic Map");
+				RenderTextureSlot(mesh, i, slot, MaterialType::Roughness, "Roughness Map");
+				RenderTextureSlot(mesh, i, slot, MaterialType::Emissive, "Emissive Map");
+				RenderTextureSlot(mesh, i, slot, MaterialType::AO, "AO Map");
 
 				ImGui::Separator();
 				ImGui::TextDisabled("Clearcoat");
 
-				RenderTextureSlot(mesh, i, MaterialType::Clearcoat, "Clearcoat Map");
-				RenderTextureSlot(mesh, i, MaterialType::ClearcoatRoughness, "Clearcoat Roughness Map");
-				RenderTextureSlot(mesh, i, MaterialType::ClearcoatNormal, "Clearcoat Normal Map");
+				RenderTextureSlot(mesh, i, slot, MaterialType::Clearcoat, "Clearcoat Map");
+				RenderTextureSlot(mesh, i, slot, MaterialType::ClearcoatRoughness, "Clearcoat Roughness Map");
+				RenderTextureSlot(mesh, i, slot, MaterialType::ClearcoatNormal, "Clearcoat Normal Map");
 
 				ImGui::TreePop();
 			}
@@ -334,9 +336,15 @@ namespace ignis {
 	}
 	
 	void PropertiesPanel::RenderTextureSlot(std::shared_ptr<Mesh> mesh, uint32_t material_index,
-	                                        MaterialType type, const char* label)
+	                                        MaterialData& slot, MaterialType type, const char* label)
 	{
 		ImGui::PushID(label);
+		
+		if (!mesh)
+		{
+			ImGui::PopID();
+			return;
+		}
 		
 		const auto& materials = mesh->GetMaterialsData();
 		if (material_index >= materials.size())
@@ -430,6 +438,20 @@ namespace ignis {
 								AssetHandle texture_handle = AssetManager::ImportAsset(filepath);
 								if (texture_handle.IsValid())
 								{
+									// Update slot data
+									switch (type)
+									{
+										case MaterialType::Albedo:              slot.AlbedoMap = texture_handle;             break;
+										case MaterialType::Normal:              slot.NormalMap = texture_handle;             break;
+										case MaterialType::Metal:               slot.MetalnessMap = texture_handle;          break;
+										case MaterialType::Roughness:           slot.RoughnessMap = texture_handle;          break;
+										case MaterialType::Emissive:            slot.EmissiveMap = texture_handle;           break;
+										case MaterialType::AO:                  slot.AOMap = texture_handle;                 break;
+										case MaterialType::Clearcoat:           slot.ClearcoatMap = texture_handle;          break;
+										case MaterialType::ClearcoatRoughness:  slot.ClearcoatRoughnessMap = texture_handle; break;
+										case MaterialType::ClearcoatNormal:     slot.ClearcoatNormalMap = texture_handle;    break;
+									}
+									// Update mesh asset
 									mesh->SetMaterialDataTexture(material_index, type, texture_handle);
 									Log::Info("Imported texture: {}", filepath);
 								}
@@ -446,19 +468,94 @@ namespace ignis {
 					}
 					break;
 				case 2: // None
-					mesh->SetMaterialDataTexture(material_index, type, AssetHandle::Invalid);
+					{
+						AssetHandle invalid_handle = AssetHandle::Invalid;
+						switch (type)
+						{
+							case MaterialType::Albedo:              slot.AlbedoMap = invalid_handle;             break;
+							case MaterialType::Normal:              slot.NormalMap = invalid_handle;             break;
+							case MaterialType::Metal:               slot.MetalnessMap = invalid_handle;          break;
+							case MaterialType::Roughness:           slot.RoughnessMap = invalid_handle;          break;
+							case MaterialType::Emissive:            slot.EmissiveMap = invalid_handle;           break;
+							case MaterialType::AO:                  slot.AOMap = invalid_handle;                 break;
+							case MaterialType::Clearcoat:           slot.ClearcoatMap = invalid_handle;          break;
+							case MaterialType::ClearcoatRoughness:  slot.ClearcoatRoughnessMap = invalid_handle; break;
+							case MaterialType::ClearcoatNormal:     slot.ClearcoatNormalMap = invalid_handle;    break;
+						}
+						mesh->SetMaterialDataTexture(material_index, type, invalid_handle);
+					}
 					break;
 				case 3: // White Texture
-					mesh->SetMaterialDataTexture(material_index, type, Renderer::GetWhiteTextureHandle());
+					{
+						AssetHandle white_handle = Renderer::GetWhiteTextureHandle();
+						switch (type)
+						{
+							case MaterialType::Albedo:              slot.AlbedoMap = white_handle;             break;
+							case MaterialType::Normal:              slot.NormalMap = white_handle;             break;
+							case MaterialType::Metal:               slot.MetalnessMap = white_handle;          break;
+							case MaterialType::Roughness:           slot.RoughnessMap = white_handle;          break;
+							case MaterialType::Emissive:            slot.EmissiveMap = white_handle;           break;
+							case MaterialType::AO:                  slot.AOMap = white_handle;                 break;
+							case MaterialType::Clearcoat:           slot.ClearcoatMap = white_handle;          break;
+							case MaterialType::ClearcoatRoughness:  slot.ClearcoatRoughnessMap = white_handle; break;
+							case MaterialType::ClearcoatNormal:     slot.ClearcoatNormalMap = white_handle;    break;
+						}
+						mesh->SetMaterialDataTexture(material_index, type, white_handle);
+					}
 					break;
 				case 4: // Black Texture
-					mesh->SetMaterialDataTexture(material_index, type, Renderer::GetBlackTextureHandle());
+					{
+						AssetHandle black_handle = Renderer::GetBlackTextureHandle();
+						switch (type)
+						{
+							case MaterialType::Albedo:              slot.AlbedoMap = black_handle;             break;
+							case MaterialType::Normal:              slot.NormalMap = black_handle;             break;
+							case MaterialType::Metal:               slot.MetalnessMap = black_handle;          break;
+							case MaterialType::Roughness:           slot.RoughnessMap = black_handle;          break;
+							case MaterialType::Emissive:            slot.EmissiveMap = black_handle;           break;
+							case MaterialType::AO:                  slot.AOMap = black_handle;                 break;
+							case MaterialType::Clearcoat:           slot.ClearcoatMap = black_handle;          break;
+							case MaterialType::ClearcoatRoughness:  slot.ClearcoatRoughnessMap = black_handle; break;
+							case MaterialType::ClearcoatNormal:     slot.ClearcoatNormalMap = black_handle;    break;
+						}
+						mesh->SetMaterialDataTexture(material_index, type, black_handle);
+					}
 					break;
 				case 5: // Default Normal
-					mesh->SetMaterialDataTexture(material_index, type, Renderer::GetDefaultNormalTextureHandle());
+					{
+						AssetHandle normal_handle = Renderer::GetDefaultNormalTextureHandle();
+						switch (type)
+						{
+							case MaterialType::Albedo:              slot.AlbedoMap = normal_handle;             break;
+							case MaterialType::Normal:              slot.NormalMap = normal_handle;             break;
+							case MaterialType::Metal:               slot.MetalnessMap = normal_handle;          break;
+							case MaterialType::Roughness:           slot.RoughnessMap = normal_handle;          break;
+							case MaterialType::Emissive:            slot.EmissiveMap = normal_handle;           break;
+							case MaterialType::AO:                  slot.AOMap = normal_handle;                 break;
+							case MaterialType::Clearcoat:           slot.ClearcoatMap = normal_handle;          break;
+							case MaterialType::ClearcoatRoughness:  slot.ClearcoatRoughnessMap = normal_handle; break;
+							case MaterialType::ClearcoatNormal:     slot.ClearcoatNormalMap = normal_handle;    break;
+						}
+						mesh->SetMaterialDataTexture(material_index, type, normal_handle);
+					}
 					break;
 				case 6: // Default Roughness
-					mesh->SetMaterialDataTexture(material_index, type, Renderer::GetDefaultRoughnessTextureHandle());
+					{
+						AssetHandle roughness_handle = Renderer::GetDefaultRoughnessTextureHandle();
+						switch (type)
+						{
+							case MaterialType::Albedo:              slot.AlbedoMap = roughness_handle;             break;
+							case MaterialType::Normal:              slot.NormalMap = roughness_handle;             break;
+							case MaterialType::Metal:               slot.MetalnessMap = roughness_handle;          break;
+							case MaterialType::Roughness:           slot.RoughnessMap = roughness_handle;          break;
+							case MaterialType::Emissive:            slot.EmissiveMap = roughness_handle;           break;
+							case MaterialType::AO:                  slot.AOMap = roughness_handle;                 break;
+							case MaterialType::Clearcoat:           slot.ClearcoatMap = roughness_handle;          break;
+							case MaterialType::ClearcoatRoughness:  slot.ClearcoatRoughnessMap = roughness_handle; break;
+							case MaterialType::ClearcoatNormal:     slot.ClearcoatNormalMap = roughness_handle;    break;
+						}
+						mesh->SetMaterialDataTexture(material_index, type, roughness_handle);
+					}
 					break;
 			}
 		}
@@ -936,48 +1033,51 @@ namespace ignis {
 					{
 						auto& slot = mesh_component.MaterialSlots[i];
 
+						// Get mesh asset for texture slot rendering
+						std::shared_ptr<Mesh> mesh;
+						if (mesh_component.Mesh.IsValid())
+						{
+							mesh = AssetManager::GetAsset<Mesh>(mesh_component.Mesh);
+						}
+
 						auto SyncSlot = [&]()
 							{
-								if (mesh_component.Mesh.IsValid())
-								{
-									auto mesh = AssetManager::GetAsset<Mesh>(mesh_component.Mesh);
-									if (mesh && i < (uint32_t)mesh->GetMaterialsData().size())
-										mesh->SetMaterialData(i, slot);
-								}
+								if (mesh && i < (uint32_t)mesh->GetMaterialsData().size())
+									mesh->SetMaterialData(i, slot);
 							};
 
 						// Albedo
-						RenderTextureMapSlot("Albedo Map", slot.AlbedoMap, mesh_component, i, MaterialType::Albedo);
+						RenderTextureSlot(mesh, i, slot, MaterialType::Albedo, "Albedo Map");
 						if (ImGui::ColorEdit4("Albedo Color", &slot.AlbedoColor.x))         SyncSlot();
 						RenderUVTransformUI("AlbedoUV", slot.AlbedoMapUVTransform, SyncSlot);
 						ImGui::Separator();
 
 						// Normal
-						RenderTextureMapSlot("Normal Map", slot.NormalMap, mesh_component, i, MaterialType::Normal);
+						RenderTextureSlot(mesh, i, slot, MaterialType::Normal, "Normal Map");
 						RenderUVTransformUI("NormalUV", slot.NormalMapUVTransform, SyncSlot);
 						ImGui::Separator();
 
 						// Metalness
-						RenderTextureMapSlot("Metalness Map", slot.MetalnessMap, mesh_component, i, MaterialType::Metal);
+						RenderTextureSlot(mesh, i, slot, MaterialType::Metal, "Metalness Map");
 						if (ImGui::DragFloat("Metallic Value", &slot.MetallicValue, 0.01f, 0.0f, FLT_MAX)) SyncSlot();
 						RenderUVTransformUI("MetalnessUV", slot.MetalnessMapUVTransform, SyncSlot);
 						ImGui::Separator();
 
 						// Roughness
-						RenderTextureMapSlot("Roughness Map", slot.RoughnessMap, mesh_component, i, MaterialType::Roughness);
+						RenderTextureSlot(mesh, i, slot, MaterialType::Roughness, "Roughness Map");
 						if (ImGui::DragFloat("Roughness Value", &slot.RoughnessValue, 0.01f, 0.0f, FLT_MAX)) SyncSlot();
 						RenderUVTransformUI("RoughnessUV", slot.RoughnessMapUVTransform, SyncSlot);
 						ImGui::Separator();
 
 						// Emissive
-						RenderTextureMapSlot("Emissive Map", slot.EmissiveMap, mesh_component, i, MaterialType::Emissive);
+						RenderTextureSlot(mesh, i, slot, MaterialType::Emissive, "Emissive Map");
 						if (ImGui::ColorEdit3("Emissive Color", &slot.EmissiveColor.x))     SyncSlot();
 						if (ImGui::DragFloat("Emissive Intensity", &slot.EmissiveIntensity, 0.1f, 0.0f, FLT_MAX)) SyncSlot();
 						RenderUVTransformUI("EmissiveUV", slot.EmissiveMapUVTransform, SyncSlot);
 						ImGui::Separator();
 
 						// AO
-						RenderTextureMapSlot("AO Map", slot.AOMap, mesh_component, i, MaterialType::AO);
+						RenderTextureSlot(mesh, i, slot, MaterialType::AO, "AO Map");
 						RenderUVTransformUI("AOUV", slot.AOMapUVTransform, SyncSlot);
 						ImGui::Separator();
 
@@ -986,13 +1086,13 @@ namespace ignis {
 						if (ImGui::DragFloat("Clearcoat Factor", &slot.ClearcoatFactor, 0.01f, 0.0f, 1.0f)) SyncSlot();
 						if (ImGui::DragFloat("Clearcoat Roughness Factor", &slot.ClearcoatRoughnessFactor, 0.01f, 0.0f, 1.0f)) SyncSlot();
 
-						RenderTextureMapSlot("Clearcoat Map", slot.ClearcoatMap, mesh_component, i, MaterialType::Clearcoat);
+						RenderTextureSlot(mesh, i, slot, MaterialType::Clearcoat, "Clearcoat Map");
 						RenderUVTransformUI("ClearcoatUV", slot.ClearcoatMapUVTransform, SyncSlot);
 
-						RenderTextureMapSlot("Clearcoat Roughness Map", slot.ClearcoatRoughnessMap, mesh_component, i, MaterialType::ClearcoatRoughness);
+						RenderTextureSlot(mesh, i, slot, MaterialType::ClearcoatRoughness, "Clearcoat Roughness Map");
 						RenderUVTransformUI("ClearcoatRoughnessUV", slot.ClearcoatRoughnessMapUVTransform, SyncSlot);
 
-						RenderTextureMapSlot("Clearcoat Normal Map", slot.ClearcoatNormalMap, mesh_component, i, MaterialType::ClearcoatNormal);
+						RenderTextureSlot(mesh, i, slot, MaterialType::ClearcoatNormal, "Clearcoat Normal Map");
 						RenderUVTransformUI("ClearcoatNormalUV", slot.ClearcoatNormalMapUVTransform, SyncSlot);
 						ImGui::Separator();
 
@@ -1777,65 +1877,6 @@ namespace ignis {
 			ImGui::Spacing();
 		}
 		
-		ImGui::PopID();
-	}
-
-	void PropertiesPanel::RenderTextureMapSlot(const char* label, AssetHandle& texture_handle, MeshComponent& mesh_component, uint32_t slot_index, MaterialType type)
-	{
-		ImGui::PushID(label);
-		ImGui::Text("%s:", label);
-		ImGui::Indent();
-
-		if (texture_handle.IsValid())
-		{
-			if (auto* metadata = AssetManager::GetMetadata(texture_handle))
-			{
-				ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), "Loaded");
-				ImGui::SameLine();
-				ImGui::TextWrapped("%s", std::filesystem::path(metadata->FilePath).filename().string().c_str());
-			}
-			else
-			{
-				ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.4f, 1.0f), "Handle: %llu", (uint64_t)texture_handle);
-			}
-		}
-		else
-		{
-			ImGui::TextDisabled("Not loaded");
-		}
-
-		if (ImGui::Button("Browse...", ImVec2(-1, 0)))
-		{
-			std::string filepath = FileDialog::OpenFile("Texture Files", { "png", "jpg", "jpeg", "tga", "bmp" });
-			if (!filepath.empty())
-			{
-				AssetHandle new_handle = AssetManager::ImportAsset(filepath);
-				if (new_handle.IsValid())
-				{
-					// Update the slot struct directly
-					texture_handle = new_handle;
-
-					// Mirror into the loaded Mesh asset so the renderer sees the change
-					if (mesh_component.Mesh.IsValid())
-					{
-						auto mesh = AssetManager::GetAsset<Mesh>(mesh_component.Mesh);
-						if (mesh && slot_index < (uint32_t)mesh->GetMaterialsData().size())
-							mesh->SetMaterialDataTexture(slot_index, type, new_handle);
-					}
-
-					AssetManager::SaveAssetRegistry(Project::GetActiveAssetRegistry());
-					Log::CoreInfo("PropertiesPanel: Loaded texture '{}' for {} (slot {})",
-						std::filesystem::path(filepath).filename().string(), label, slot_index);
-				}
-				else
-				{
-					Log::Error("Failed to import texture: {}", filepath);
-				}
-			}
-		}
-
-		ImGui::Unindent();
-		ImGui::Spacing();
 		ImGui::PopID();
 	}
 
