@@ -167,9 +167,15 @@ namespace ignis
 
 		auto result = ProcessRunner::RunCommand(command, options.SourceDir);
 		if (result.Success)
+		{
+			Log::CoreInfo("{}", result.Output);
 			Log::CoreInfo("CMake Configure succeeded");
+		}
 		else
+		{
+			Log::CoreInfo("{}", result.Output);
 			Log::CoreError("CMake Configure failed");
+		}
 		return result.Success;
 	}
 
@@ -188,9 +194,15 @@ namespace ignis
 
 		auto result = ProcessRunner::RunCommand(command, options.BuildDir);
 		if (result.Success)
+		{
+			Log::CoreInfo("{}", result.Output);
 			Log::CoreInfo("CMake Build succeeded");
+		}
 		else
+		{
+			Log::CoreError("{}", result.Output);
 			Log::CoreError("CMake Build failed");
+		}
 		return result.Success;
 	}
 
