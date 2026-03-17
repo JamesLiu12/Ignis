@@ -291,20 +291,56 @@ namespace ignis
 		{
 			auto meshes = m_registry.group<MeshComponent>(entt::get<TransformComponent>);
 
-			meshes.each([&](auto entity_handle, MeshComponent& mesh_component, TransformComponent& transform)
-				{
-					if (auto mesh = AssetManager::GetAsset<Mesh>(mesh_component.Mesh))
-					{
-						const uint32_t slot_count = static_cast<uint32_t>(mesh_component.MaterialSlots.size());
-						for (uint32_t i = 0; i < slot_count; i++)
-						{
-							mesh->SetMaterialData(i, mesh_component.MaterialSlots[i]);
-						}
+			{
+				auto meshes = m_registry.group<MeshComponent>(entt::get<TransformComponent>);
 
-						Entity entity(entity_handle, this);
-						scene_renderer.SubmitMesh(*mesh, entity.GetWorldTransform());
-					}
-				});
+				struct MeshDrawCall
+				{
+					Mesh* MeshPtr;
+					glm::mat4 Transform;
+					bool IsBlend;
+				};
+				std::vector<MeshDrawCall> draw_calls;
+
+				meshes.each([&](auto entity_handle, MeshComponent& mesh_component, TransformComponent& transform)
+					{
+						if (auto mesh = AssetManager::GetAsset<Mesh>(mesh_component.Mesh))
+						{
+							const uint32_t slot_count = static_cast<uint32_t>(mesh_component.MaterialSlots.size());
+							for (uint32_t i = 0; i < slot_count; i++)
+							{
+								mesh->SetMaterialData(i, mesh_component.MaterialSlots[i]);
+							}
+
+							bool has_blend = false;
+							for (const auto& mat : mesh->GetMaterialsData())
+							{
+								if (mat.Alpha == AlphaMode::Blend)
+								{
+									has_blend = true;
+									break;
+								}
+							}
+
+							Entity entity(entity_handle, this);
+							draw_calls.push_back({ mesh.get(), entity.GetWorldTransform(), has_blend });
+						}
+					});
+
+				// Pass 1: Opaque / Mask
+				for (const auto& dc : draw_calls)
+				{
+					if (!dc.IsBlend)
+						scene_renderer.SubmitMesh(*dc.MeshPtr, dc.Transform);
+				}
+
+				// Pass 2: Blend
+				for (const auto& dc : draw_calls)
+				{
+					if (dc.IsBlend)
+						scene_renderer.SubmitMesh(*dc.MeshPtr, dc.Transform);
+				}
+			}
 		}
 
 		// -------------------------
