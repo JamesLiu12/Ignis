@@ -108,6 +108,11 @@ namespace ignis {
 						Entity pasted = m_copied_entity.Duplicate();
 						// Paste as root-level entity (no parent) - keep original position
 						m_selected_entity = pasted;
+						auto& transform = pasted.GetComponent<TransformComponent>();
+						if (pasted.GetParentID() != m_copied_entity.GetParentID())
+						{
+							transform.Translation = glm::vec3(0.0f, 0.0f, 0.0f);
+						}
 						if (m_properties_panel)
 						{
 							m_properties_panel->SetSelectedEntity(pasted);
@@ -286,7 +291,10 @@ namespace ignis {
 				if (pasted.HasComponent<TransformComponent>())
 				{
 					auto& transform = pasted.GetComponent<TransformComponent>();
-					transform.Translation = glm::vec3(0.0f, 0.0f, 0.0f);
+					if (pasted.GetParentID() != m_copied_entity.GetParentID())
+					{
+						transform.Translation = glm::vec3(0.0f, 0.0f, 0.0f);
+					}
 				}
 				
 				m_selected_entity = pasted;
