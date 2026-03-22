@@ -130,7 +130,7 @@ namespace ignis {
 							break;
 
 						case GizmoMode::Rotate:
-							tc.Rotation = glm::eulerAngles(glm::normalize(rotation_quat));
+							tc.Rotation = glm::degrees(glm::eulerAngles(glm::normalize(rotation_quat)));
 							break;
 
 						case GizmoMode::Scale:
