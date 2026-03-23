@@ -13,15 +13,42 @@ namespace ignis
 		Unload();
 
 #if defined(_WIN32)
-		HMODULE lib = ::LoadLibraryA(module_path.string().c_str());
+		std::filesystem::path shadow_dir = module_path.parent_path() / "shadow";
+		std::filesystem::path shadow_dll = shadow_dir / module_path.filename();
+
+		std::error_code ec;
+		std::filesystem::create_directories(shadow_dir, ec);
+
+		std::filesystem::copy_file(
+			module_path, shadow_dll,
+			std::filesystem::copy_options::overwrite_existing, ec);
+
+		if (ec)
+		{
+			Log::CoreError("[ScriptModule] Failed to shadow copy DLL: {}", ec.message());
+			return false;
+		}
+
+		auto src_pdb = module_path;   src_pdb.replace_extension(".pdb");
+		auto dst_pdb = shadow_dll;    dst_pdb.replace_extension(".pdb");
+		if (std::filesystem::exists(src_pdb))
+		{
+			std::filesystem::copy_file(
+				src_pdb, dst_pdb,
+				std::filesystem::copy_options::overwrite_existing, ec);
+			if (ec)
+				Log::CoreWarn("[ScriptModule] Failed to shadow copy PDB: {}", ec.message());
+		}
+
+		HMODULE lib = ::LoadLibraryA(shadow_dll.string().c_str());
 		if (!lib)
 		{
-			Log::CoreError("[ScriptModule] Failed to load module: {}", module_path.string());
+			Log::CoreError("[ScriptModule] Failed to load module: {}", shadow_dll.string());
 			return false;
 		}
 
 		m_handle = (void*)lib;
-		m_register_fn = (RegisterFn)::GetProcAddress(lib, "RegisterProjectScripts");
+		m_register_fn = (RegisterFn)  ::GetProcAddress(lib, "RegisterProjectScripts");
 		m_unregister_fn = (UnregisterFn)::GetProcAddress(lib, "UnregisterProjectScripts");
 #else
 		void* lib = dlopen(module_path.string().c_str(), RTLD_NOW);
