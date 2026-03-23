@@ -182,6 +182,9 @@ namespace ignis
 			{ ".mp3",  AssetType::AudioClip },
 			{ ".flac", AssetType::AudioClip },
 			{ ".ogg",  AssetType::AudioClip },
+
+			{ ".ttf", AssetType::Font },
+			{ ".otf", AssetType::Font },
 		};
 
 		std::string extension = ToLowerASCII(path.extension().string());
