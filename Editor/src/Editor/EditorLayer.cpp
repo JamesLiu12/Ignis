@@ -397,6 +397,13 @@ namespace ignis
 			return;
 		}
 
+		EditorApp& editor_app = static_cast<EditorApp&>(Application::Get());
+		if (editor_app.GetSceneLayer()->GetSceneState() == EditorSceneLayer::SceneState::Play)
+		{
+			Log::CoreWarn("Scripts can only be built in Edit mode");
+			return;
+		}
+
 		CMakeBuilder::BuildOptions options;
 		options.SourceDir = Project::GetActiveProjectDirectory();
 		options.BuildDir = options.SourceDir / "out" / "build";
