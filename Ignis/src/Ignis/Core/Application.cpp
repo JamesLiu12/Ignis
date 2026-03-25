@@ -44,7 +44,6 @@ namespace ignis
 	{
 		Log::CoreInfo("Application shutting down...");
 		VFS::Shutdown();
-		Log::Shutdown();
 	}
 
 	void Application::Run()
