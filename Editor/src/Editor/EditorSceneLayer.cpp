@@ -26,7 +26,6 @@ EditorSceneLayer::~EditorSceneLayer()
 	{
 		// Stop runtime and clear scripts before scene destruction
 		// Note: Don't log here as logger already be destroyed during shutdown
-		m_runtime_scene->OnRuntimeStop();
 		m_script_module.UnregisterAll(ScriptRegistry::Get());
 		m_script_module.Unload();
 		m_runtime_scene = nullptr;
