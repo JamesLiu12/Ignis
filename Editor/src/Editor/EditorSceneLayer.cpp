@@ -21,17 +21,7 @@ EditorSceneLayer::EditorSceneLayer(Renderer& renderer, EditorApp* editor_app)
 
 EditorSceneLayer::~EditorSceneLayer()
 {
-	// Ensure we're in Edit mode before destruction
-	if (m_scene_state == SceneState::Play && m_runtime_scene)
-	{
-		// Stop runtime and clear scripts before scene destruction
-		// Note: Don't log here as logger already be destroyed during shutdown
-		m_script_module.UnregisterAll(ScriptRegistry::Get());
-		m_script_module.Unload();
-		m_runtime_scene = nullptr;
-		
-		m_scene_state = SceneState::Edit;
-	}
+
 }
 
 void EditorSceneLayer::OnAttach()
@@ -125,17 +115,10 @@ void EditorSceneLayer::OnAttach()
 
 void EditorSceneLayer::OnDetach()
 {
+	OnSceneStop();
+
 	// Unregister from SceneManager
 	SceneManager::UnregisterSceneLayer();
-	
-	if (m_editor_scene)
-	{
-		m_editor_scene->OnRuntimeStop();
-	}
-	m_script_module.UnregisterAll(ignis::ScriptRegistry::Get());
-	m_script_module.Unload();
-
-	AudioEngine::Get().Init();
 }
 
 void EditorSceneLayer::OnUpdate(float dt)
