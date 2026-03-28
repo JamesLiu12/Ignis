@@ -230,6 +230,12 @@ void RuntimeSceneLayer::LoadScene(const std::filesystem::path& scene_path)
 	// Start scene
 	m_runtime_scene->OnRuntimeStart();
 	
+	// Update camera aspect ratio to match viewport
+	auto& window = Application::Get().GetWindow();
+	uint32_t fb_width = window.GetFramebufferWidth();
+	uint32_t fb_height = window.GetFramebufferHeight();
+	m_runtime_scene->OnViewportResize(fb_width, fb_height);
+	
 	Log::CoreInfo("Runtime scene loaded: {}", scene_path.string());
 }
 
@@ -291,6 +297,12 @@ void RuntimeSceneLayer::ProcessSceneTransition()
 
 			// Start new runtime scene
 			m_runtime_scene->OnRuntimeStart();
+			
+			// Update camera aspect ratio to match viewport
+			auto& window = Application::Get().GetWindow();
+			uint32_t fb_width = window.GetFramebufferWidth();
+			uint32_t fb_height = window.GetFramebufferHeight();
+			m_runtime_scene->OnViewportResize(fb_width, fb_height);
 
 			Log::CoreInfo("Runtime scene transition complete: {}", scene_path.filename().string());
 
