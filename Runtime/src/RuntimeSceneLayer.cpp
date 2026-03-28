@@ -8,6 +8,7 @@
 #include "Ignis/Renderer/IBLBaker.h"
 #include "Ignis/Core/Events/MouseEvents.h"
 #include "Ignis/Core/Events/KeyEvents.h"
+#include "Ignis/Core/Events/WindowEvents.h"
 
 namespace ignis {
 
@@ -33,6 +34,13 @@ void RuntimeSceneLayer::OnAttach()
 	// Initialize renderer
 	m_renderer.Init();
 	AudioEngine::Get().Init();
+	
+	// Set initial viewport size using framebuffer dimensions
+	auto& window = Application::Get().GetWindow();
+	uint32_t fb_width = window.GetFramebufferWidth();
+	uint32_t fb_height = window.GetFramebufferHeight();
+	m_renderer.SetViewport(0, 0, fb_width, fb_height);
+	Log::CoreInfoTag("Runtime", "Initial viewport set: {0}x{1}", fb_width, fb_height);
 	
 	// Set asset load context
 	AssetManager::SetLoadContext({
@@ -151,6 +159,28 @@ void RuntimeSceneLayer::OnEvent(EventBase& event)
 	if (!m_runtime_scene)
 		return;
 	
+	// Handle window resize to update viewport
+	if (auto* e = dynamic_cast<WindowResizeEvent*>(&event))
+	{
+		auto& window = Application::Get().GetWindow();
+		uint32_t fb_width = window.GetFramebufferWidth();
+		uint32_t fb_height = window.GetFramebufferHeight();
+		
+		// Update renderer viewport to match framebuffer size
+		m_renderer.SetViewport(0, 0, fb_width, fb_height);
+		
+		// Update camera aspect ratio
+		auto camera = m_runtime_scene->GetPrimaryCamera();
+		if (camera && fb_width > 0 && fb_height > 0)
+		{
+			float aspect = static_cast<float>(fb_width) / static_cast<float>(fb_height);
+			camera->SetPerspective(45.0f, aspect, 0.1f, 1000.0f);
+		}
+		
+		Log::CoreInfoTag("Runtime", "Viewport updated: {0}x{1}, aspect: {2}", 
+			fb_width, fb_height, static_cast<float>(fb_width) / static_cast<float>(fb_height));
+	}
+	
 	// Handle UI events using dynamic_cast to check event types
 	if (auto* e = dynamic_cast<MouseMovedEvent*>(&event))
 	{
@@ -199,6 +229,12 @@ void RuntimeSceneLayer::LoadScene(const std::filesystem::path& scene_path)
 	
 	// Start scene
 	m_runtime_scene->OnRuntimeStart();
+	
+	// Update camera aspect ratio to match viewport
+	auto& window = Application::Get().GetWindow();
+	uint32_t fb_width = window.GetFramebufferWidth();
+	uint32_t fb_height = window.GetFramebufferHeight();
+	m_runtime_scene->OnViewportResize(fb_width, fb_height);
 	
 	Log::CoreInfo("Runtime scene loaded: {}", scene_path.string());
 }
@@ -261,6 +297,12 @@ void RuntimeSceneLayer::ProcessSceneTransition()
 
 			// Start new runtime scene
 			m_runtime_scene->OnRuntimeStart();
+			
+			// Update camera aspect ratio to match viewport
+			auto& window = Application::Get().GetWindow();
+			uint32_t fb_width = window.GetFramebufferWidth();
+			uint32_t fb_height = window.GetFramebufferHeight();
+			m_runtime_scene->OnViewportResize(fb_width, fb_height);
 
 			Log::CoreInfo("Runtime scene transition complete: {}", scene_path.filename().string());
 
