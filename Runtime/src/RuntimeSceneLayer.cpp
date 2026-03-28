@@ -125,11 +125,11 @@ void RuntimeSceneLayer::OnUpdate(float dt)
 	
 	// Get window dimensions for UI
 	auto& window = Application::Get().GetWindow();
-	uint32_t window_width = window.GetWidth();
-	uint32_t window_height = window.GetHeight();
+	uint32_t fb_width = window.GetFramebufferWidth();
+	uint32_t fb_height = window.GetFramebufferHeight();
 	
 	// Update UI layout
-	m_ui_system.OnUpdate(*m_runtime_scene, window_width, window_height);
+	m_ui_system.OnUpdate(*m_runtime_scene, fb_width, fb_height);
 	
 	// Render scene
 	m_renderer.BeginFrame();
@@ -144,8 +144,8 @@ void RuntimeSceneLayer::OnUpdate(float dt)
 	}
 	
 	// Render UI
-	m_ui_renderer.BeginUI(window_width, window_height);
-	m_ui_system.OnRender(*m_runtime_scene, m_ui_renderer, window_width, window_height);
+	m_ui_renderer.BeginUI(fb_width, fb_height);
+	m_ui_system.OnRender(*m_runtime_scene, m_ui_renderer, fb_width, fb_height);
 	m_ui_renderer.EndUI();
 	
 	m_renderer.EndFrame();
