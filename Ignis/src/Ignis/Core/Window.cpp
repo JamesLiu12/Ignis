@@ -41,9 +41,23 @@ namespace ignis
 		glfwSetWindowUserPointer(m_window, &m_data);
 		glfwSwapInterval(1);
 
+		// Initialize framebuffer size
+		int fb_width, fb_height;
+		glfwGetFramebufferSize(m_window, &fb_width, &fb_height);
+		m_data.FramebufferWidth = static_cast<uint32_t>(fb_width);
+		m_data.FramebufferHeight = static_cast<uint32_t>(fb_height);
+
+		// Initialize content scale (DPI scaling factor)
+		float xscale, yscale;
+		glfwGetWindowContentScale(m_window, &xscale, &yscale);
+		m_data.ContentScaleX = xscale;
+		m_data.ContentScaleY = yscale;
+
 		SetUpCallbacks();
 
-		Log::CoreInfoTag("GLFW", "Created window '{0}' ({1}, {2})", m_data.Title, m_data.Width, m_data.Height);
+		Log::CoreInfoTag("GLFW", "Created window '{0}' ({1}x{2})", m_data.Title, m_data.Width, m_data.Height);
+		Log::CoreInfoTag("GLFW", "Framebuffer size: {0}x{1}", m_data.FramebufferWidth, m_data.FramebufferHeight);
+		Log::CoreInfoTag("GLFW", "Content scale: {0}x{1}", m_data.ContentScaleX, m_data.ContentScaleY);
 	}
 
 	Window::~Window() {
@@ -74,19 +88,6 @@ namespace ignis
 		}
 	}
 
-	uint32_t Window::GetFramebufferWidth() const
-	{
-		int width, height;
-		glfwGetFramebufferSize(m_window, &width, &height);
-		return static_cast<uint32_t>(width);
-	}
-
-	uint32_t Window::GetFramebufferHeight() const
-	{
-		int width, height;
-		glfwGetFramebufferSize(m_window, &width, &height);
-		return static_cast<uint32_t>(height);
-	}
 
 	void Window::Shutdown()
 	{
@@ -183,6 +184,19 @@ namespace ignis
 				default:
 					break;
 				}
+			});
+
+		// Framebuffer size callback tracks actual pixel buffer size changes
+		glfwSetFramebufferSizeCallback(m_window, [](GLFWwindow* window, int width, int height)
+			{
+				WindowData* data = (WindowData*)glfwGetWindowUserPointer(window);
+				data->FramebufferWidth = static_cast<uint32_t>(width);
+				data->FramebufferHeight = static_cast<uint32_t>(height);
+				Log::CoreInfoTag("GLFW", "Framebuffer resized: {0}x{1}", width, height);
+				
+				// Dispatch resize event so renderer can update viewport
+				WindowResizeEvent event(width, height);
+				data->EventCallback(event);
 			});
 	}
 

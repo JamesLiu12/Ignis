@@ -35,8 +35,11 @@ namespace ignis
 		uint32_t GetWidth() const { return m_data.Width; }
 		uint32_t GetHeight() const { return m_data.Height; }
 
-		uint32_t GetFramebufferWidth() const;
-		uint32_t GetFramebufferHeight() const;
+		uint32_t GetFramebufferWidth() const { return m_data.FramebufferWidth; }
+		uint32_t GetFramebufferHeight() const { return m_data.FramebufferHeight; }
+
+		float GetContentScaleX() const { return m_data.ContentScaleX; }
+		float GetContentScaleY() const { return m_data.ContentScaleY; }
 
 		void SetEventCallback(const EventCallbackFn& cb) { m_data.EventCallback = cb; }
 
@@ -64,6 +67,8 @@ namespace ignis
 		{
 			std::string Title;
 			uint32_t Width, Height;
+			uint32_t FramebufferWidth, FramebufferHeight;
+			float ContentScaleX, ContentScaleY;
 			bool VSync;
 			EventCallbackFn EventCallback;
 		} m_data;
