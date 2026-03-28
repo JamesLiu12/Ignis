@@ -120,6 +120,8 @@ private:
 	AsyncSceneLoader m_async_loader;
 	bool m_is_async_loading = false;
 	std::string m_loading_scene_name;
+
+	glm::vec2 m_last_viewport_size = { 0.0f, 0.0f };
 };
 
 } // namespace ignis

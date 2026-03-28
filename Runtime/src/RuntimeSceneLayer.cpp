@@ -125,11 +125,11 @@ void RuntimeSceneLayer::OnUpdate(float dt)
 	
 	// Get window dimensions for UI
 	auto& window = Application::Get().GetWindow();
-	uint32_t window_width = window.GetWidth();
-	uint32_t window_height = window.GetHeight();
+	uint32_t fb_width = window.GetFramebufferWidth();
+	uint32_t fb_height = window.GetFramebufferHeight();
 	
 	// Update UI layout
-	m_ui_system.OnUpdate(*m_runtime_scene, window_width, window_height);
+	m_ui_system.OnUpdate(*m_runtime_scene, fb_width, fb_height);
 	
 	// Render scene
 	m_renderer.BeginFrame();
@@ -144,8 +144,8 @@ void RuntimeSceneLayer::OnUpdate(float dt)
 	}
 	
 	// Render UI
-	m_ui_renderer.BeginUI(window_width, window_height);
-	m_ui_system.OnRender(*m_runtime_scene, m_ui_renderer, window_width, window_height);
+	m_ui_renderer.BeginUI(fb_width, fb_height);
+	m_ui_system.OnRender(*m_runtime_scene, m_ui_renderer, fb_width, fb_height);
 	m_ui_renderer.EndUI();
 	
 	m_renderer.EndFrame();
@@ -169,13 +169,7 @@ void RuntimeSceneLayer::OnEvent(EventBase& event)
 		// Update renderer viewport to match framebuffer size
 		m_renderer.SetViewport(0, 0, fb_width, fb_height);
 		
-		// Update camera aspect ratio
-		auto camera = m_runtime_scene->GetPrimaryCamera();
-		if (camera && fb_width > 0 && fb_height > 0)
-		{
-			float aspect = static_cast<float>(fb_width) / static_cast<float>(fb_height);
-			camera->SetPerspective(45.0f, aspect, 0.1f, 1000.0f);
-		}
+		m_runtime_scene->OnViewportResize(fb_width, fb_height);
 		
 		Log::CoreInfoTag("Runtime", "Viewport updated: {0}x{1}, aspect: {2}", 
 			fb_width, fb_height, static_cast<float>(fb_width) / static_cast<float>(fb_height));

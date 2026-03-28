@@ -185,6 +185,23 @@ void EditorSceneLayer::OnUpdate(float dt)
 		{
 			float aspect = viewport_size.x / viewport_size.y;
 			m_editor_camera->SetPerspective(45.0f, aspect, 0.1f, 1000.0f);
+
+			if (m_scene_state == SceneState::Play && m_current_scene)
+			{
+				if (viewport_size.x != m_last_viewport_size.x ||
+					viewport_size.y != m_last_viewport_size.y)
+				{
+					auto framebuffer = m_renderer.GetFramebuffer();
+					framebuffer->Resize(viewport_size.x, viewport_size.y);
+
+					m_current_scene->OnViewportResize(
+						static_cast<uint32_t>(viewport_size.x),
+						static_cast<uint32_t>(viewport_size.y));
+				}
+			}
+
+			m_last_viewport_size.x = viewport_size.x;
+			m_last_viewport_size.y = viewport_size.y;
 		}
 	}
 
@@ -265,8 +282,7 @@ void EditorSceneLayer::RenderEditorOverlay()
 		{
 			if (m_current_scene)
 			{
-				auto framebuffer = m_renderer.GetFramebuffer();
-				m_current_scene->OnViewportResize(framebuffer->GetWidth(), framebuffer->GetHeight());
+
 			}
 		}
 
