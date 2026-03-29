@@ -217,6 +217,9 @@ namespace ignis
 		for (auto e_handle : canvas_view)
 		{
 			Entity canvas = scene.GetEntityByHandle(e_handle);
+			if (!canvas.GetComponent<CanvasComponent>().Visible)
+				continue;
+
 			for (Entity child : canvas.GetChildren())
 			{
 				if (HitTestNode(scene, child, m_mouse_pos, hit))
