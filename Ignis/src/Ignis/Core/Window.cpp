@@ -70,6 +70,12 @@ namespace ignis
 		glfwSwapBuffers(m_window);
 	}
 
+	void Window::SetTitle(const std::string& title)
+	{
+		m_data.Title = title;
+		glfwSetWindowTitle(m_window, title.c_str());
+	}
+
 	void Window::SetVSync(bool enabled)
 	{
 		glfwSwapInterval(enabled);

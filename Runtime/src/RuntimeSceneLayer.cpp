@@ -76,6 +76,9 @@ void RuntimeSceneLayer::OnAttach()
 	Project::SetActive(project);
 	Log::CoreInfo("Project loaded: {}", Project::GetActiveProjectName());
 	
+	// Set window title to project name
+	window.SetTitle(Project::GetActiveProjectName());
+	
 	// Load asset registry
 	AssetManager::LoadAssetRegistry(Project::GetActiveAssetRegistry());
 	
