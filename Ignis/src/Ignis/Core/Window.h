@@ -43,6 +43,8 @@ namespace ignis
 
 		void SetEventCallback(const EventCallbackFn& cb) { m_data.EventCallback = cb; }
 
+		void SetTitle(const std::string& title);
+
 		void SetVSync(bool enabled);
 		bool IsVSync() const { return m_data.VSync; }
 
