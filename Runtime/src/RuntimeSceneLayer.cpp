@@ -181,22 +181,6 @@ void RuntimeSceneLayer::OnEvent(EventBase& event)
 		// Transform mouse coordinates from window space to framebuffer space
 		auto& window = Application::Get().GetWindow();
 		
-		// Diagnostic: Log dimensions on first mouse move
-		static bool s_logged = false;
-		if (!s_logged)
-		{
-			s_logged = true;
-			uint32_t w = window.GetWidth();
-			uint32_t h = window.GetHeight();
-			uint32_t fb_w = window.GetFramebufferWidth();
-			uint32_t fb_h = window.GetFramebufferHeight();
-			float cs_x = window.GetContentScaleX();
-			float cs_y = window.GetContentScaleY();
-			Log::CoreInfo("[Runtime] Window: {}x{}, FB: {}x{}, ContentScale: {:.2f}x{:.2f}, Calculated: {:.4f}x{:.4f}",
-				w, h, fb_w, fb_h, cs_x, cs_y,
-				static_cast<float>(fb_w) / w, static_cast<float>(fb_h) / h);
-		}
-		
 		// Use content scale directly (e.g., 2.0 on macOS Retina, 1.0 on Windows)
 		float scale_x = window.GetContentScaleX();
 		float scale_y = window.GetContentScaleY();
