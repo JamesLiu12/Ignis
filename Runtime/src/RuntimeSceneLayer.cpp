@@ -178,18 +178,18 @@ void RuntimeSceneLayer::OnEvent(EventBase& event)
 	// Handle UI events using dynamic_cast to check event types
 	if (auto* e = dynamic_cast<MouseMovedEvent*>(&event))
 	{
-		// Transform mouse coordinates from window space to framebuffer space
-		auto& window = Application::Get().GetWindow();
-		
-		// Use content scale directly (e.g., 2.0 on macOS Retina, 1.0 on Windows)
-		float scale_x = window.GetContentScaleX();
-		float scale_y = window.GetContentScaleY();
-		
-		// Transform coordinates
-		double mouse_fb_x = e->GetX() * scale_x;
-		double mouse_fb_y = e->GetY() * scale_y;
-		
-		m_ui_system.OnMouseMoved(*m_runtime_scene, mouse_fb_x, mouse_fb_y);
+		#ifdef __APPLE__
+			// macOS: GLFW provides logical coordinates, need to scale to framebuffer coordinates
+			auto& window = Application::Get().GetWindow();
+			float scale_x = window.GetContentScaleX();
+			float scale_y = window.GetContentScaleY();
+			double mouse_fb_x = e->GetX() * scale_x;
+			double mouse_fb_y = e->GetY() * scale_y;
+			m_ui_system.OnMouseMoved(*m_runtime_scene, mouse_fb_x, mouse_fb_y);
+		#else
+			// Windows: GLFW provides coordinates that match the framebuffer directly
+			m_ui_system.OnMouseMoved(*m_runtime_scene, e->GetX(), e->GetY());
+		#endif
 	}
 	else if (auto* e = dynamic_cast<MouseButtonPressedEvent*>(&event))
 	{
