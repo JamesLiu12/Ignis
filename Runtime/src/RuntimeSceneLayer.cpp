@@ -181,14 +181,25 @@ void RuntimeSceneLayer::OnEvent(EventBase& event)
 		// Transform mouse coordinates from window space to framebuffer space
 		auto& window = Application::Get().GetWindow();
 		
-		// Calculate scale based on framebuffer vs window size
-		uint32_t w = window.GetWidth();
-		uint32_t h = window.GetHeight();
-		uint32_t fb_w = window.GetFramebufferWidth();
-		uint32_t fb_h = window.GetFramebufferHeight();
+		// Diagnostic: Log dimensions on first mouse move
+		static bool s_logged = false;
+		if (!s_logged)
+		{
+			s_logged = true;
+			uint32_t w = window.GetWidth();
+			uint32_t h = window.GetHeight();
+			uint32_t fb_w = window.GetFramebufferWidth();
+			uint32_t fb_h = window.GetFramebufferHeight();
+			float cs_x = window.GetContentScaleX();
+			float cs_y = window.GetContentScaleY();
+			Log::CoreInfo("[Runtime] Window: {}x{}, FB: {}x{}, ContentScale: {:.2f}x{:.2f}, Calculated: {:.4f}x{:.4f}",
+				w, h, fb_w, fb_h, cs_x, cs_y,
+				static_cast<float>(fb_w) / w, static_cast<float>(fb_h) / h);
+		}
 		
-		float scale_x = (w > 0) ? static_cast<float>(fb_w) / static_cast<float>(w) : 1.0f;
-		float scale_y = (h > 0) ? static_cast<float>(fb_h) / static_cast<float>(h) : 1.0f;
+		// Use content scale directly (e.g., 2.0 on macOS Retina, 1.0 on Windows)
+		float scale_x = window.GetContentScaleX();
+		float scale_y = window.GetContentScaleY();
 		
 		// Transform coordinates
 		double mouse_fb_x = e->GetX() * scale_x;
